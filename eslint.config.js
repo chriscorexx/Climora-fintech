@@ -6,7 +6,7 @@ import globals from 'globals';
 export default [
   js.configs.recommended,
   {
-    files: ['src/**/*.{js,jsx}', 'electron/**/*.js'],
+    files: ['src/**/*.{js,jsx}', 'electron/**/*.js', 'scripts/**/*.{js,mjs}'],
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: 'module',

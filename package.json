@@ -5,11 +5,11 @@
   "main": "electron/main.js",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm:dev:web\" \"wait-on http://localhost:5173 && ELECTRON_RENDERER_URL=http://localhost:5173 electron .\"",
+    "dev": "concurrently \"npm:dev:web\" \"wait-on tcp:5173 && npm run dev:electron\"",
     "dev:web": "vite",
-    "dev:electron": "ELECTRON_RENDERER_URL=http://localhost:5173 electron .",
+    "dev:electron": "ELECTRON_RENDERER_URL=http://localhost:5173 node scripts/dev-electron.mjs",
     "build": "vite build && electron-builder build",
-    "lint": "eslint src/ electron/ --fix",
+    "lint": "eslint src/ electron/ scripts/ --fix",
     "test": "vitest run"
   },
   "allowScripts": {
