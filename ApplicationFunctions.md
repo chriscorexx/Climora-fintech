@@ -249,7 +249,7 @@ For the first prototype, these can be in-app notifications rather than email or 
 * Provides a lender workspace and an MSME owner workspace.
 * Displays the appropriate navigation and features for each role.
 * Limits access to records and actions according to the configured permissions.
-* Prevents the renderer from accessing unrestricted Node.js or local system capabilities.
+* Prevents the renderer from accessing unrestricted Node.js/TypeScript backend runtime or local system capabilities.
 * Protects sensitive financial information and avoids exposing one business's records to another owner.
 
 For a 24-hour demo, role switching can be simulated with clearly labelled demo accounts. Real multi-user authentication and production-grade access control would require further implementation.

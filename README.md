@@ -1,44 +1,109 @@
-# minimal-repro
+# Climora — Climate-Adjusted Risk Scoring for MSMEs
 
-**Quickly create and share examples of Electron app behaviors or bugs.**
+**Climate Intelligence. Smarter Credit Decisions.**
 
-> [!NOTE]
-> This repro was renamed from `electron-quick-start` to clarify its purpose as a repro template. If you're looking to boostrap a new Electron app, check out the [Electron Forge](https://www.electronforge.io/) docs instead to get started!
+Climora is a real-time climate-adjusted financial risk platform designed for the **FUSION 2026 Hackathon (FIN-05, International Finance Corporation challenge)**. It helps lenders and financial institutions assess how physical climate hazards (flooding, heavy rainfall, extreme heat) impact Micro, Small, and Medium Enterprises (MSMEs), while giving business owners clear roadmaps and government scheme matches to build climate resilience.
 
-Creating a minimal reproduction (or "minimal repro") is essential when troubleshooting Electron apps. By stripping away everything except the code needed to demonstrate a specific behavior or bug, it becomes easier for others to understand, debug, and fix issues. This focused approach saves time and ensures that everyone involved is looking at exactly the same problem without distractions.
+---
 
-A basic Electron application contains:
+## 1. Core Problem & Solution
 
-- `package.json` - Points to the app's main file and lists its details and dependencies.
-- `main.js` - Starts the app and creates a browser window to render HTML. This is the app's **main process**.
-- `index.html` - A web page to render. This is the app's **renderer process**.
-- `preload.js` - A content script that runs before the renderer process loads.
+* **The Problem:** Credit officers typically evaluate MSMEs using backward-looking financial statements alone. Two enterprises with identical balance sheets may look equally creditworthy, yet one operates in a severe flood basin or heatwave zone vulnerable to immediate inventory wipeouts or operating disruptions.
+* **The Solution:** Climora combines location-based environmental data from Open-Meteo, regional flood benchmarks, and business operational profiles to produce an **explainable 0–100 climate risk score** and a **cashflow stress-testing simulator (DSCR impact)**.
 
-You can learn more about each of these components in depth within the [Tutorial](https://electronjs.org/docs/latest/tutorial/tutorial-prerequisites).
+---
 
-## To Use
+## 2. Architecture & Technology Stack
 
-To clone and run this repository you'll need [Git](https://git-scm.com) and [Node.js](https://nodejs.org/en/download/) (which comes with [npm](http://npmjs.com)) installed on your computer. From your command line:
+The platform is built with a **100% TypeScript** architecture:
+
+| Layer | Technology | Role |
+|---|---|---|
+| **Frontend UI** | React 18 + Vite + TypeScript | High-trust institutional FinTech interface with dual workspaces (Lender & MSME Owner) |
+| **Styling & System** | Tailwind CSS + Lucide Icons | Clean, anti-AI-slop design system with tabular financial typography |
+| **Data Visualizations** | Recharts + SVG gauges | Multi-dimension hazard breakdowns, cashflow stress charts, risk gauges |
+| **Hazard Maps** | Leaflet + OpenStreetMap | Spatial risk boundary and location context |
+| **Domain Logic** | Pure TypeScript (`src/core/`) | 5-dimension rule-based scoring engine, climate-to-cashflow simulator, scheme matcher |
+| **Data Ingestion** | Open-Meteo APIs (TypeScript client) | Real-time weather, flood simulation, and location geocoding with sample-data fallback |
+| **Desktop Shell** | Electron + TypeScript | Optional cross-platform desktop application using typed IPC |
+
+---
+
+## 3. Key Capabilities
+
+1. **Dual Persona Workspaces**:
+   - **Lender Workspace (Credit Analyst)**: Loan pipeline table, portfolio climate exposure distribution, stress-testing simulator (+2°C heat, +50mm storm, utility outages) calculating pre- and post-shock Debt Service Coverage Ratio (DSCR), and one-click credit recommendation memo.
+   - **MSME Owner Workspace**: Business profile manager with live geocoding, 7-day weather hazard monitor, climate resilience action checklist, and matched government subsidies.
+2. **Transparent 5-Dimension Risk Scoring**:
+   - Flood Exposure (30%)
+   - Heavy Rainfall (25%)
+   - Extreme Heat (20%)
+   - Business Vulnerability (15%)
+   - Financial Resilience (10%)
+   - *Dynamic proportional reweighting* ensures missing indicators are never silently treated as zero risk.
+3. **Government Scheme Catalogue**:
+   - 16 verified Central & State MSME resilience schemes (CGTMSE, PM Surya Ghar, Agriculture Infrastructure Fund, etc.) with real eligibility criteria and direct portal links.
+4. **Data Provenance**:
+   - Explicit badges distinguish live weather observations, modelled regional benchmarks, and self-reported inputs.
+
+---
+
+## 4. Getting Started
+
+### Prerequisites
+* [Node.js](https://nodejs.org/) (version 18 or higher)
+* [npm](https://www.npmjs.com/)
+
+### Installation & Launch
 
 ```bash
-# Clone this repository
-git clone https://github.com/electron/minimal-repro
-# Go into the repository
-cd minimal-repro
-# Install dependencies
+# 1. Clone repository
+git clone https://github.com/chriscorexx/Climora-fintech.git
+cd Climora-fintech
+
+# 2. Install dependencies
 npm install
-# Run the app
-npm start
+
+# 3. Start development server
+npm run dev
 ```
 
-Note: If you're using Linux Bash for Windows, [see this guide](https://www.howtogeek.com/261575/how-to-run-graphical-linux-desktop-applications-from-windows-10s-bash-shell/) or use `node` from the command prompt.
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-## Resources for Learning Electron
+---
 
-- [electronjs.org/docs](https://electronjs.org/docs) - all of Electron's documentation
-- [Electron Fiddle](https://electronjs.org/fiddle) - Electron Fiddle, an app to test small Electron experiments
-- [Electron Forge](https://www.electronforge.io/) - Looking to bootstrap a new Electron app? Check out the Electron Forge docs to get started
+## 5. External APIs & Data Sources
 
-## License
+* **Open-Meteo Forecast API**: Real-time precipitation, temperature extremes, wind speeds (Free, CC BY 4.0, no key required).
+* **Open-Meteo Flood API**: River discharge anomalies and flood hazard return period simulations (Free, CC BY 4.0).
+* **Open-Meteo Geocoding API**: Resolves city/postal codes to coordinates (Free, CC BY 4.0).
+* **World Bank Global Flood Dataset**: Preprocessed regional flood hazard baselines for administrative districts.
+* **Government Subsidy Registry**: Official MSME schemes from Ministry of MSME, SIDBI, and State Governments.
 
-[CC0 1.0 (Public Domain)](LICENSE.md)
+---
+
+## 6. Project Structure
+
+```
+climora/
+├── src/
+│   ├── types/          # TypeScript domain models (business, climate, risk, scenario, scheme)
+│   ├── core/           # Pure TypeScript domain engines (scoring, simulation, matching, API)
+│   ├── components/     # React + TypeScript UI components (lender, owner, risk, simulator)
+│   ├── App.tsx         # Main application shell with dual workspace routing
+│   ├── main.tsx        # React application entrypoint
+│   └── index.css       # Tailwind financial styling tokens
+├── electron/           # Electron TypeScript desktop shell
+│   ├── main.ts         # Desktop main process
+│   └── preload.ts      # Context isolation IPC bridge
+├── public/             # Static assets and logo
+├── package.json        # Dependencies & scripts
+├── tsconfig.json       # TypeScript configuration
+└── vite.config.ts      # Vite build configuration
+```
+
+---
+
+## 7. Responsible Use & Disclaimer
+
+Climora is a hackathon prototype developed for IFC challenge FIN-05. Its risk scores, scoring weights, and cashflow stress simulations are illustrative heuristics designed for decision support and climate preparedness. They do not constitute official credit ratings or automated credit approval/rejection decisions.

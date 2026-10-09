@@ -38,7 +38,7 @@ License: CC BY 4.0 (attribution required). Free for non-commercial use. No API k
 
 ### Integration
 
-Access the Open-Meteo APIs directly from the Node.js backend (running in Electron's main process) using the business location's latitude and longitude. The Geocoding API resolves city or postal-code inputs to coordinates.
+Access the Open-Meteo APIs directly from the Node.js/TypeScript backend service or client using the business location's latitude and longitude. The Geocoding API resolves city or postal-code inputs to coordinates.
 
 ### Differences Among Data Types
 
@@ -68,7 +68,7 @@ License: Free tier (1,000 records/day, no credit card). Paid plans for higher vo
 
 - **Purpose:** Single Timeline API for historical, current, and forecast weather data globally.
 - **Variables:** Temperature, precipitation, wind, humidity, UV index, alerts, and more.
-- **Integration note:** Would be called from the Node.js backend. Requires secure API credential handling (environment variables, not hardcoded).
+- **Integration note:** Would be called from the Node.js/TypeScript backend. Requires secure API credential handling (environment variables, not hardcoded).
 - **Limitations:** Free tier is lower volume than Open-Meteo. Requires an API key for all access.
 
 ### B. Meteostat
@@ -77,7 +77,7 @@ Website: https://dev.meteostat.net/
 License: Free. No API key required for basic usage. Primarily historical/observation-based.
 
 - **Purpose:** Historical weather and climate data via JSON API and CSV downloads.
-- **Integration note:** Would be called from the Node.js backend.
+- **Integration note:** Would be called from the Node.js/TypeScript backend.
 - **Limitations:** Focuses on historical observations rather than forecasts. Limited free-tier concurrency.
 
 ## 5. Climate & Flood Datasets (Downloadable, Reference Only)
@@ -138,7 +138,7 @@ Because this is a 24-hour hackathon:
 
 ## 8. Data Handling
 
-- Fetch external data through the **Node.js backend** (Electron main process), not from the React renderer directly.
+- Fetch external data through the **Node.js/TypeScript backend service or client**, not directly unvalidated from the renderer.
 - Validate API responses and handle missing or unexpected values.
 - Display the data source and retrieval timestamp when available.
 - Do not invent observations or present sample data as live data.
