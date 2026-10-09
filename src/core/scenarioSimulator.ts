@@ -1,4 +1,5 @@
 import { MSMEProfile, CashflowScenario } from '../types';
+import { normalizeProfile } from './profileUtils';
 
 /**
  * Climate-to-Cashflow Stress Testing Simulator
@@ -17,7 +18,8 @@ export function simulateCashflowStress(
   profile: MSMEProfile,
   params: ScenarioParams
 ): CashflowScenario {
-  const { monthlyRevenue, monthlyOperatingExpenses, existingMonthlyDebtObligations, availableCashReserves } = profile.financials;
+  const safeProfile = normalizeProfile(profile);
+  const { monthlyRevenue, monthlyOperatingExpenses, existingMonthlyDebtObligations, availableCashReserves } = safeProfile.financials;
 
   const baselineNetOperatingIncome = monthlyRevenue - monthlyOperatingExpenses;
   const baselineDSCR = existingMonthlyDebtObligations > 0
@@ -36,16 +38,16 @@ export function simulateCashflowStress(
       // Physical water entry stops all production and foot-traffic
       baseDailyLossRate = params.facilityInundation ? 0.90 : 0.45;
       emergencyRepairCost = params.facilityInundation
-        ? Math.round(monthlyRevenue * 0.35 + (profile.operations.hasFloodBarriers ? -15000 : 35000))
+        ? Math.round(monthlyRevenue * 0.35 + (safeProfile.operations?.hasFloodBarriers ? -15000 : 35000))
         : 10000;
       break;
 
     case 'extreme_heatwave':
       // Productivity loss + equipment overheating
-      baseDailyLossRate = profile.operations.perishableInventory && !profile.operations.hasColdStorage
+      baseDailyLossRate = safeProfile.operations?.perishableInventory && !safeProfile.operations?.hasColdStorage
         ? 0.70
         : 0.30;
-      emergencyRepairCost = profile.operations.hasBackupGenerator ? 5000 : 25000;
+      emergencyRepairCost = safeProfile.operations?.hasBackupGenerator ? 5000 : 25000;
       break;
 
     case 'severe_storm_cyclone':
@@ -54,7 +56,7 @@ export function simulateCashflowStress(
       break;
 
     case 'water_shortage':
-      baseDailyLossRate = profile.operations.waterIntensive && !profile.operations.hasWaterStorageRainwater
+      baseDailyLossRate = safeProfile.operations?.waterIntensive && !safeProfile.operations?.hasWaterStorageRainwater
         ? 0.65
         : 0.20;
       emergencyRepairCost = 15000;
@@ -62,7 +64,7 @@ export function simulateCashflowStress(
   }
 
   // Adjust for power outages
-  if (params.powerGridOutageDays > 0 && !profile.operations.hasBackupGenerator) {
+  if (params.powerGridOutageDays > 0 && !safeProfile.operations?.hasBackupGenerator) {
     baseDailyLossRate = Math.min(1.0, baseDailyLossRate + 0.15);
   }
 

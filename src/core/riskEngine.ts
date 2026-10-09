@@ -7,6 +7,7 @@ import {
   MitigationRecommendation,
   IndustryType,
 } from '../types';
+import { normalizeProfile } from './profileUtils';
 
 /**
  * Climora Transparent Rule-Based Risk Engine
@@ -29,6 +30,7 @@ function calculateFloodScore(
   climate: ClimateIndicators,
   profile: MSMEProfile
 ): { score: number; factors: string[] } {
+  const safeProfile = normalizeProfile(profile);
   const factors: string[] = [];
   const baseline = climate.districtBaseline.floodExposureScore; // 0-100
   const riverAnomaly = climate.extremes.riverDischargeAnomalyPct; // 0-100
@@ -44,7 +46,7 @@ function calculateFloodScore(
   }
 
   // Structural mitigations reduce the physical vulnerability
-  const plinth = profile.operations.plinthHeightMeters;
+  const plinth = safeProfile.operations?.plinthHeightMeters ?? 0.3;
   if (plinth >= 1.0) {
     rawScore = Math.max(10, rawScore - 22);
     factors.push(`Elevated ground plinth (+${plinth}m) significantly buffers flood ingress (-22 pts)`);
@@ -53,7 +55,7 @@ function calculateFloodScore(
     factors.push('Ground-level floor (<0.2m) increases flash-flood inundation vulnerability (+12 pts)');
   }
 
-  if (profile.operations.hasFloodBarriers) {
+  if (safeProfile.operations?.hasFloodBarriers) {
     rawScore = Math.max(10, rawScore - 15);
     factors.push('Installed flood barriers/sandbag bulkheads reduce direct water entry (-15 pts)');
   }
@@ -74,6 +76,7 @@ function calculateRainfallScore(
   climate: ClimateIndicators,
   profile: MSMEProfile
 ): { score: number; factors: string[] } {
+  const safeProfile = normalizeProfile(profile);
   const factors: string[] = [];
   const maxRain = climate.extremes.maxDailyPrecipitationMm;
   const rainDays = climate.extremes.precipitationDaysCount;
@@ -100,7 +103,7 @@ function calculateRainfallScore(
   }
 
   // Sensitivity: transport/logistics dependency
-  if (profile.operations.transportSupplyChainSensitive) {
+  if (safeProfile.operations?.transportSupplyChainSensitive) {
     baseRainScore += 8;
     factors.push('High reliance on road transport increases risk of supply-chain delay (+8 pts)');
   }
@@ -117,6 +120,7 @@ function calculateHeatScore(
   climate: ClimateIndicators,
   profile: MSMEProfile
 ): { score: number; factors: string[] } {
+  const safeProfile = normalizeProfile(profile);
   const factors: string[] = [];
   const hotDays = climate.extremes.consecutiveHotDays;
   const maxTemp = Math.max(...climate.forecast7Days.map((d) => d.maxTempC), 32);
@@ -141,11 +145,11 @@ function calculateHeatScore(
   }
 
   // Inventory & operational sensitivities
-  if (profile.operations.perishableInventory) {
-    if (!profile.operations.hasColdStorage) {
+  if (safeProfile.operations?.perishableInventory) {
+    if (!safeProfile.operations?.hasColdStorage) {
       baseScore += 20;
       factors.push('Perishable inventory WITHOUT on-site cold storage exposes business to spoilage (+20 pts)');
-    } else if (!profile.operations.hasBackupGenerator) {
+    } else if (!safeProfile.operations?.hasBackupGenerator) {
       baseScore += 10;
       factors.push('Cold storage without backup generator risks inventory loss during grid brownouts (+10 pts)');
     } else {
@@ -165,23 +169,24 @@ function calculateHeatScore(
 function calculateVulnerabilityScore(
   profile: MSMEProfile
 ): { score: number; factors: string[] } {
+  const safeProfile = normalizeProfile(profile);
   const factors: string[] = [];
-  const sectorRisk = getSectorBaselineVulnerability(profile.industry);
+  const sectorRisk = getSectorBaselineVulnerability(safeProfile.industry);
   let score = sectorRisk;
 
-  factors.push(`${formatIndustry(profile.industry)} baseline climate sensitivity: ${sectorRisk}/100`);
+  factors.push(`${formatIndustry(safeProfile.industry)} baseline climate sensitivity: ${sectorRisk}/100`);
 
-  if (profile.operations.waterIntensive && !profile.operations.hasWaterStorageRainwater) {
+  if (safeProfile.operations?.waterIntensive && !safeProfile.operations?.hasWaterStorageRainwater) {
     score += 15;
     factors.push('Water-intensive operations lack rainwater harvesting or on-site storage buffer (+15 pts)');
   }
 
-  if (profile.operations.electricityGridDependent && !profile.operations.hasBackupGenerator) {
+  if (safeProfile.operations?.electricityGridDependent && !safeProfile.operations?.hasBackupGenerator) {
     score += 12;
     factors.push('100% grid dependence without captive backup power exposes enterprise to climate storm outages (+12 pts)');
   }
 
-  if (!profile.operations.hasClimateInsurance) {
+  if (!safeProfile.operations?.hasClimateInsurance) {
     score += 8;
     factors.push('Absence of climate/property catastrophe insurance limits external loss recovery (+8 pts)');
   } else {
@@ -201,8 +206,9 @@ function calculateVulnerabilityScore(
 function calculateFinancialResilienceScore(
   profile: MSMEProfile
 ): { score: number; factors: string[] } {
+  const safeProfile = normalizeProfile(profile);
   const factors: string[] = [];
-  const { monthlyRevenue, monthlyOperatingExpenses, existingMonthlyDebtObligations, availableCashReserves } = profile.financials;
+  const { monthlyRevenue, monthlyOperatingExpenses, existingMonthlyDebtObligations, availableCashReserves } = safeProfile.financials;
 
   const netOperatingIncome = monthlyRevenue - monthlyOperatingExpenses;
   const dscr = existingMonthlyDebtObligations > 0
@@ -278,11 +284,12 @@ export function assessMSMEClimateRisk(
   profile: MSMEProfile,
   climate: ClimateIndicators
 ): RiskAssessment {
-  const flood = calculateFloodScore(climate, profile);
-  const rainfall = calculateRainfallScore(climate, profile);
-  const heat = calculateHeatScore(climate, profile);
-  const vulnerability = calculateVulnerabilityScore(profile);
-  const resilience = calculateFinancialResilienceScore(profile);
+  const safeProfile = normalizeProfile(profile);
+  const flood = calculateFloodScore(climate, safeProfile);
+  const rainfall = calculateRainfallScore(climate, safeProfile);
+  const heat = calculateHeatScore(climate, safeProfile);
+  const vulnerability = calculateVulnerabilityScore(safeProfile);
+  const resilience = calculateFinancialResilienceScore(safeProfile);
 
   const rawDimensions: Record<string, { score: number; baseWeight: number; available: boolean; factors: string[] }> = {
     floodExposure: { score: flood.score, baseWeight: NOMINAL_WEIGHTS.floodExposure, available: true, factors: flood.factors },
@@ -340,14 +347,14 @@ export function assessMSMEClimateRisk(
   ];
 
   // Tailored mitigation recommendations
-  const mitigationRecommendations = generateMitigations(profile, dimensionScores);
+  const mitigationRecommendations = generateMitigations(safeProfile, dimensionScores);
 
   // Loan underwriting recommendation
-  const loanDecisionSupport = generateLoanDecisionSupport(overallScore, riskCategory, profile);
+  const loanDecisionSupport = generateLoanDecisionSupport(overallScore, riskCategory, safeProfile);
 
   return {
     id: `asm_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-    businessId: profile.id,
+    businessId: safeProfile.id,
     timestamp: new Date().toISOString(),
     overallScore,
     riskCategory,
@@ -388,9 +395,10 @@ function getHighestDriver(dims: Record<string, DimensionScore>): string {
 }
 
 function generateMitigations(profile: MSMEProfile, dims: any): MitigationRecommendation[] {
+  const safeProfile = normalizeProfile(profile);
   const list: MitigationRecommendation[] = [];
 
-  if (dims.floodExposure.score >= 45 && !profile.operations.hasFloodBarriers) {
+  if ((dims.floodExposure?.score ?? 0) >= 45 && !safeProfile.operations?.hasFloodBarriers) {
     list.push({
       id: 'mit_flood_barriers',
       title: 'Install Removable Flood Barriers & Plinth Elevation',
@@ -403,7 +411,7 @@ function generateMitigations(profile: MSMEProfile, dims: any): MitigationRecomme
     });
   }
 
-  if (dims.extremeHeat.score >= 50 && (!profile.operations.hasBackupGenerator || !profile.operations.hasColdStorage)) {
+  if ((dims.extremeHeat?.score ?? 0) >= 50 && (!safeProfile.operations?.hasBackupGenerator || !safeProfile.operations?.hasColdStorage)) {
     list.push({
       id: 'mit_rooftop_solar',
       title: 'Adopt Grid-Interactive Rooftop Solar & Battery Backup',
@@ -416,7 +424,7 @@ function generateMitigations(profile: MSMEProfile, dims: any): MitigationRecomme
     });
   }
 
-  if (profile.operations.waterIntensive && !profile.operations.hasWaterStorageRainwater) {
+  if (safeProfile.operations?.waterIntensive && !safeProfile.operations?.hasWaterStorageRainwater) {
     list.push({
       id: 'mit_rainwater_storage',
       title: 'Construct Rainwater Harvesting & Dual Storage Tank',
@@ -428,7 +436,7 @@ function generateMitigations(profile: MSMEProfile, dims: any): MitigationRecomme
     });
   }
 
-  if (!profile.operations.hasClimateInsurance) {
+  if (!safeProfile.operations?.hasClimateInsurance) {
     list.push({
       id: 'mit_climate_insurance',
       title: 'Enroll in Parametric MSME Climate & Inundation Cover',
@@ -448,9 +456,10 @@ function generateLoanDecisionSupport(
   category: RiskCategory,
   profile: MSMEProfile
 ) {
-  const monthlyProfit = profile.financials.monthlyRevenue - profile.financials.monthlyOperatingExpenses;
+  const safeProfile = normalizeProfile(profile);
+  const monthlyProfit = safeProfile.financials.monthlyRevenue - safeProfile.financials.monthlyOperatingExpenses;
   const maxSafeMonthlyEmi = Math.max(0, monthlyProfit * 0.45);
-  const estimatedSafeLoan = Math.round(maxSafeMonthlyEmi * (profile.financials.loanTenureMonths || 36));
+  const estimatedSafeLoan = Math.round(maxSafeMonthlyEmi * (safeProfile.financials.loanTenureMonths || 36));
 
   if (category === 'low') {
     return {

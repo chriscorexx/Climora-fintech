@@ -52,7 +52,7 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
     hazardType: 'flash_flood',
     durationDays: 7,
     intensityPct: 65,
-    facilityInundation: activeProfile.operations.plinthHeightMeters < 0.5,
+    facilityInundation: (activeProfile.operations?.plinthHeightMeters ?? 0.3) < 0.5,
     powerGridOutageDays: 3,
   });
 
@@ -61,12 +61,12 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
 
   // Portfolio metrics
   const totalExposureInr = profiles.reduce(
-    (sum, p) => sum + (p.financials.requestedLoanAmount || 2000000),
+    (sum, p) => sum + (p.financials?.requestedLoanAmount || 2000000),
     0
   );
   const highRiskCount = profiles.filter((p) => {
     // Basic heuristic for portfolio count
-    return p.operations.plinthHeightMeters < 0.3 || (p.financials.monthlyOperatingExpenses / p.financials.monthlyRevenue) > 0.85;
+    return (p.operations?.plinthHeightMeters ?? 0.3) < 0.3 || ((p.financials?.monthlyOperatingExpenses ?? 1) / (p.financials?.monthlyRevenue || 1)) > 0.85;
   }).length;
 
   // Filtered pipeline table

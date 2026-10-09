@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MSMEProfile, IndustryType } from '../../types';
 import { geocodeCity } from '../../core/weatherService';
+import { normalizeProfile } from '../../core/profileUtils';
 import { X, MapPin, Check, Loader2 } from 'lucide-react';
 
 interface ProfileEditModalProps {
@@ -18,33 +19,35 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  const [name, setName] = useState(initialProfile?.name || '');
-  const [udyam, setUdyam] = useState(initialProfile?.udyamNumber || '');
-  const [industry, setIndustry] = useState<IndustryType>(initialProfile?.industry || 'food_processing');
-  const [businessSize, setBusinessSize] = useState<'micro' | 'small' | 'medium'>(initialProfile?.businessSize || 'small');
+  const safeInitial = initialProfile ? normalizeProfile(initialProfile) : undefined;
+
+  const [name, setName] = useState(safeInitial?.name || '');
+  const [udyam, setUdyam] = useState(safeInitial?.udyamNumber || '');
+  const [industry, setIndustry] = useState<IndustryType>(safeInitial?.industry || 'food_processing');
+  const [businessSize, setBusinessSize] = useState<'micro' | 'small' | 'medium'>(safeInitial?.businessSize || 'small');
   
   // Location
-  const [city, setCity] = useState(initialProfile?.location.city || 'Pune');
-  const [state, setState] = useState(initialProfile?.location.state || 'Maharashtra');
-  const [lat, setLat] = useState(initialProfile?.location.latitude || 18.5204);
-  const [lng, setLng] = useState(initialProfile?.location.longitude || 73.8567);
+  const [city, setCity] = useState(safeInitial?.location.city || 'Pune');
+  const [state, setState] = useState(safeInitial?.location.state || 'Maharashtra');
+  const [lat, setLat] = useState(safeInitial?.location.latitude || 18.5204);
+  const [lng, setLng] = useState(safeInitial?.location.longitude || 73.8567);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [geocodeMsg, setGeocodeMsg] = useState('');
 
   // Financials
-  const [monthlyRevenue, setMonthlyRevenue] = useState(initialProfile?.financials.monthlyRevenue || 1500000);
-  const [monthlyExpenses, setMonthlyExpenses] = useState(initialProfile?.financials.monthlyOperatingExpenses || 1100000);
-  const [monthlyDebt, setMonthlyDebt] = useState(initialProfile?.financials.existingMonthlyDebtObligations || 120000);
-  const [cashReserves, setCashReserves] = useState(initialProfile?.financials.availableCashReserves || 800000);
-  const [requestedLoan, setRequestedLoan] = useState(initialProfile?.financials.requestedLoanAmount || 2500000);
+  const [monthlyRevenue, setMonthlyRevenue] = useState(safeInitial?.financials.monthlyRevenue || 1500000);
+  const [monthlyExpenses, setMonthlyExpenses] = useState(safeInitial?.financials.monthlyOperatingExpenses || 1100000);
+  const [monthlyDebt, setMonthlyDebt] = useState(safeInitial?.financials.existingMonthlyDebtObligations || 120000);
+  const [cashReserves, setCashReserves] = useState(safeInitial?.financials.availableCashReserves || 800000);
+  const [requestedLoan, setRequestedLoan] = useState(safeInitial?.financials.requestedLoanAmount || 2500000);
 
   // Operations
-  const [plinthHeight, setPlinthHeight] = useState(initialProfile?.operations.plinthHeightMeters || 0.4);
-  const [hasFloodBarriers, setHasFloodBarriers] = useState(initialProfile?.operations.hasFloodBarriers || false);
-  const [hasBackupGen, setHasBackupGen] = useState(initialProfile?.operations.hasBackupGenerator || false);
-  const [hasColdStorage, setHasColdStorage] = useState(initialProfile?.operations.hasColdStorage || false);
-  const [hasWaterStorage, setHasWaterStorage] = useState(initialProfile?.operations.hasWaterStorageRainwater || false);
-  const [hasInsurance, setHasInsurance] = useState(initialProfile?.operations.hasClimateInsurance || false);
+  const [plinthHeight, setPlinthHeight] = useState(safeInitial?.operations.plinthHeightMeters ?? 0.4);
+  const [hasFloodBarriers, setHasFloodBarriers] = useState(safeInitial?.operations.hasFloodBarriers ?? false);
+  const [hasBackupGen, setHasBackupGen] = useState(safeInitial?.operations.hasBackupGenerator ?? false);
+  const [hasColdStorage, setHasColdStorage] = useState(safeInitial?.operations.hasColdStorage ?? false);
+  const [hasWaterStorage, setHasWaterStorage] = useState(safeInitial?.operations.hasWaterStorageRainwater ?? false);
+  const [hasInsurance, setHasInsurance] = useState(safeInitial?.operations.hasClimateInsurance ?? false);
 
   const handleGeocode = async () => {
     setIsGeocoding(true);

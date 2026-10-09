@@ -19,10 +19,11 @@ import { LenderDashboard } from './components/lender/LenderDashboard';
 import { MSMEOwnerDashboard } from './components/owner/MSMEOwnerDashboard';
 import { ProfileEditModal } from './components/owner/ProfileEditModal';
 import { CreditReportModal } from './components/report/CreditReportModal';
+import { normalizeProfile } from './core/profileUtils';
 import { Loader2 } from 'lucide-react';
 
 export const App: React.FC = () => {
-  const [profiles, setProfiles] = useState<MSMEProfile[]>(() => getStoredProfiles());
+  const [profiles, setProfiles] = useState<MSMEProfile[]>(() => getStoredProfiles().map(normalizeProfile));
   const [activeProfileId, setActiveId] = useState<string>(() => getActiveProfileId());
   const [role, setRole] = useState<UserRole>(() => getStoredRole());
   const [completedActionIds, setCompletedActionIds] = useState<string[]>(() => getCompletedActionIds());
@@ -38,14 +39,15 @@ export const App: React.FC = () => {
 
   // Active Profile object
   const activeProfile = useMemo(() => {
-    return profiles.find((p) => p.id === activeProfileId) || profiles[0];
+    const found = profiles.find((p) => p.id === activeProfileId) || profiles[0];
+    return normalizeProfile(found);
   }, [profiles, activeProfileId]);
 
   // Sync with backend businesses on mount if available
   useEffect(() => {
     apiClient.getBusinesses().then((bizList) => {
       if (bizList && bizList.length > 0) {
-        setProfiles(bizList);
+        setProfiles(bizList.map(normalizeProfile));
       }
     });
   }, []);
@@ -118,19 +120,20 @@ export const App: React.FC = () => {
   };
 
   const handleSaveProfile = (updated: MSMEProfile) => {
-    const existingIndex = profiles.findIndex((p) => p.id === updated.id);
+    const safeUpdated = normalizeProfile(updated);
+    const existingIndex = profiles.findIndex((p) => p.id === safeUpdated.id);
     let newProfiles: MSMEProfile[];
     if (existingIndex >= 0) {
       newProfiles = [...profiles];
-      newProfiles[existingIndex] = updated;
+      newProfiles[existingIndex] = safeUpdated;
     } else {
-      newProfiles = [updated, ...profiles];
+      newProfiles = [safeUpdated, ...profiles];
     }
     setProfiles(newProfiles);
     saveProfiles(newProfiles);
-    apiClient.createBusiness(updated).catch(() => {});
-    setActiveId(updated.id);
-    setActiveProfileId(updated.id);
+    apiClient.createBusiness(safeUpdated).catch(() => {});
+    setActiveId(safeUpdated.id);
+    setActiveProfileId(safeUpdated.id);
   };
 
   const handleToggleAction = (actionId: string) => {
@@ -208,8 +211,9 @@ export const App: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-fin-border py-4 px-6 text-center text-xs text-slate-500 font-mono no-print">
-        Climora • FUSION 2026 Hackathon (IFC FIN-05) • Built with TypeScript, React, and Open-Meteo CC BY 4.0
+      <footer className="border-t border-fin-border py-4 px-6 text-center text-xs text-slate-500 font-mono no-print flex items-center justify-center gap-2">
+        <img src="/Climora-logo.jpg" alt="Climora" className="w-4 h-4 rounded-full object-cover" />
+        <span>Climora • FUSION 2026 Hackathon (IFC FIN-05) • Built with TypeScript, React, and Open-Meteo CC BY 4.0</span>
       </footer>
 
       {/* Modals */}

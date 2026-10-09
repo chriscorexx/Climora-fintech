@@ -69,4 +69,30 @@ describe('Climora TypeScript Domain Engines', () => {
     expect(solarScheme).toBeDefined();
     expect(solarScheme?.isEligible).toBe(true);
   });
+
+  it('safely handles empty, partial, and malformed profiles without throwing exceptions', () => {
+    const emptyProfile = {} as any;
+    const partialProfile = { id: 'msme_partial', name: 'Test' } as any;
+    const missingOpsProfile = { id: 'msme_no_ops', name: 'Test', financials: {} } as any;
+
+    expect(() => assessMSMEClimateRisk(emptyProfile, climate)).not.toThrow();
+    expect(() => assessMSMEClimateRisk(partialProfile, climate)).not.toThrow();
+    expect(() => assessMSMEClimateRisk(missingOpsProfile, climate)).not.toThrow();
+
+    const emptyAssessment = assessMSMEClimateRisk(emptyProfile, climate);
+    expect(emptyAssessment.overallScore).toBeGreaterThanOrEqual(0);
+    expect(emptyAssessment.loanDecisionSupport).toBeDefined();
+
+    expect(() =>
+      simulateCashflowStress(emptyProfile, {
+        hazardType: 'flash_flood',
+        durationDays: 5,
+        intensityPct: 50,
+        facilityInundation: true,
+        powerGridOutageDays: 1,
+      })
+    ).not.toThrow();
+
+    expect(() => matchSchemesForProfile(emptyProfile, 40, 40)).not.toThrow();
+  });
 });

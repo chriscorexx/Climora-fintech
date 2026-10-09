@@ -1,4 +1,5 @@
 import { MSMEProfile, GovernmentScheme, IndustryType } from '../types';
+import { normalizeProfile } from './profileUtils';
 
 /**
  * 16 Curated Indian Central & State MSME Resilience and Credit Schemes
@@ -211,6 +212,7 @@ export function matchSchemesForProfile(
   floodScore = 50,
   heatScore = 50
 ): GovernmentScheme[] {
+  const safeProfile = normalizeProfile(profile);
   return SCHEMES_CATALOGUE.map((sch) => {
     let score = 50;
     const matchReasons: string[] = [];
@@ -218,9 +220,9 @@ export function matchSchemesForProfile(
 
     // 1. Geography check
     if (sch.eligibleStates.length > 0) {
-      if (sch.eligibleStates.includes(profile.location.state)) {
+      if (sch.eligibleStates.includes(safeProfile.location.state)) {
         score += 15;
-        matchReasons.push(`Location in ${profile.location.state} matches state-specific target zone.`);
+        matchReasons.push(`Location in ${safeProfile.location.state} matches state-specific target zone.`);
       } else {
         isEligible = false;
         matchReasons.push(`Requires operations in ${sch.eligibleStates.join(', ')}.`);
@@ -231,18 +233,18 @@ export function matchSchemesForProfile(
     }
 
     // 2. Industry check
-    if (sch.eligibleIndustries.includes(profile.industry)) {
+    if (sch.eligibleIndustries.includes(safeProfile.industry)) {
       score += 20;
-      matchReasons.push(`Applicable to ${profile.industry.replace('_', ' ')} enterprises.`);
+      matchReasons.push(`Applicable to ${safeProfile.industry.replace('_', ' ')} enterprises.`);
     } else {
       isEligible = false;
       matchReasons.push(`Targeted primarily at other specific industrial sectors.`);
     }
 
     // 3. Enterprise size check
-    if (sch.eligibleSizes.includes(profile.businessSize)) {
+    if (sch.eligibleSizes.includes(safeProfile.businessSize)) {
       score += 15;
-      matchReasons.push(`Tailored for ${profile.businessSize.toUpperCase()} category enterprises.`);
+      matchReasons.push(`Tailored for ${safeProfile.businessSize.toUpperCase()} category enterprises.`);
     } else {
       isEligible = false;
     }
@@ -256,7 +258,7 @@ export function matchSchemesForProfile(
       score += 15;
       matchReasons.push('Provides collateral cushion for flood adaptation capital expenditure.');
     }
-    if (sch.category === 'interest_subvention' && profile.operations.perishableInventory) {
+    if (sch.category === 'interest_subvention' && safeProfile.operations?.perishableInventory) {
       score += 18;
       matchReasons.push('Subsidizes cold chain and climate-resilient warehouse facilities.');
     }

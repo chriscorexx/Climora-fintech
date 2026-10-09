@@ -93,17 +93,17 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-5">
           <MetricCard
             label="Monthly Revenue"
-            value={`₹${(activeProfile.financials.monthlyRevenue / 100000).toFixed(1)}L`}
-            subtitle={`Opex: ₹${(activeProfile.financials.monthlyOperatingExpenses / 100000).toFixed(1)}L/mo`}
+            value={`₹${((activeProfile.financials?.monthlyRevenue ?? 0) / 100000).toFixed(1)}L`}
+            subtitle={`Opex: ₹${((activeProfile.financials?.monthlyOperatingExpenses ?? 0) / 100000).toFixed(1)}L/mo`}
             icon={<Building2 className="w-4 h-4 text-emerald-400" />}
           />
           <MetricCard
             label="Liquidity Cushion"
             value={`${(
-              activeProfile.financials.availableCashReserves /
-              activeProfile.financials.monthlyOperatingExpenses
+              (activeProfile.financials?.availableCashReserves ?? 0) /
+              (activeProfile.financials?.monthlyOperatingExpenses || 1)
             ).toFixed(1)} mo`}
-            subtitle={`₹${(activeProfile.financials.availableCashReserves / 100000).toFixed(1)}L in reserves`}
+            subtitle={`₹${((activeProfile.financials?.availableCashReserves ?? 0) / 100000).toFixed(1)}L in reserves`}
             icon={<ShieldCheck className="w-4 h-4 text-cyan-400" />}
           />
           <MetricCard

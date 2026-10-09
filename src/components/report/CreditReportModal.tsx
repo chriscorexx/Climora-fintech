@@ -1,7 +1,9 @@
 import React from 'react';
 import { MSMEProfile, RiskAssessment, ClimateIndicators } from '../../types';
+import { normalizeProfile } from '../../core/profileUtils';
 import { X, Printer, ShieldCheck, Download } from 'lucide-react';
 import { RiskBadge } from '../common/RiskBadge';
+import climoraLogo from '../../assets/Climora-logo.jpg';
 
 interface CreditReportModalProps {
   isOpen: boolean;
@@ -20,12 +22,14 @@ export const CreditReportModal: React.FC<CreditReportModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  const safeProfile = normalizeProfile(profile);
+
   const handlePrint = () => {
     window.print();
   };
 
-  const dscr = (profile.financials.monthlyRevenue - profile.financials.monthlyOperatingExpenses) /
-    (profile.financials.existingMonthlyDebtObligations || 1);
+  const dscr = (safeProfile.financials.monthlyRevenue - safeProfile.financials.monthlyOperatingExpenses) /
+    (safeProfile.financials.existingMonthlyDebtObligations || 1);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm print:p-0 print:bg-white">
@@ -57,17 +61,26 @@ export const CreditReportModal: React.FC<CreditReportModalProps> = ({
         <div className="space-y-6 text-xs text-slate-300 print:text-slate-900 leading-relaxed">
           {/* Header */}
           <div className="flex justify-between items-start border-b border-slate-700 print:border-slate-300 pb-5">
-            <div>
-              <div className="text-xl font-extrabold tracking-tight text-white print:text-slate-900">
-                CLIMORA CREDIT & CLIMATE UNDERWRITING MEMO
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-black border border-slate-700 print:border-slate-300 overflow-hidden flex-shrink-0 shadow-sm">
+                <img
+                  src={climoraLogo}
+                  alt="Climora Logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <div className="text-[11px] font-mono text-slate-400 print:text-slate-600 mt-1">
-                FUSION 2026 Hackathon (IFC FIN-05 Framework) • Commercial SME Lending
+              <div>
+                <div className="text-xl font-extrabold tracking-tight text-white print:text-slate-900 font-sans">
+                  CLIMORA CREDIT & CLIMATE UNDERWRITING MEMO
+                </div>
+                <div className="text-[11px] font-mono text-slate-400 print:text-slate-600 mt-1">
+                  FUSION 2026 Hackathon (IFC FIN-05 Framework) • Commercial SME Lending
+                </div>
               </div>
             </div>
             <div className="text-right">
               <div className="font-mono text-[11px] text-slate-400 print:text-slate-600">
-                Memo Ref: CLM-{profile.id.toUpperCase()}-2026
+                Memo Ref: CLM-{safeProfile.id.toUpperCase()}-2026
               </div>
               <div className="font-mono text-[11px] text-slate-400 print:text-slate-600">
                 Date: {new Date().toLocaleDateString()}
@@ -83,19 +96,19 @@ export const CreditReportModal: React.FC<CreditReportModalProps> = ({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl bg-slate-900/60 print:bg-slate-50 border border-slate-800 print:border-slate-200">
               <div>
                 <span className="text-[10px] text-slate-500 block uppercase">Borrower Name</span>
-                <span className="font-bold text-white print:text-slate-900">{profile.name}</span>
+                <span className="font-bold text-white print:text-slate-900">{safeProfile.name}</span>
               </div>
               <div>
                 <span className="text-[10px] text-slate-500 block uppercase">Industry Sector</span>
-                <span className="capitalize">{profile.industry.replace('_', ' ')}</span>
+                <span className="capitalize">{safeProfile.industry.replace('_', ' ')}</span>
               </div>
               <div>
                 <span className="text-[10px] text-slate-500 block uppercase">Registration / Udyam</span>
-                <span className="font-mono">{profile.udyamNumber || profile.registrationNumber || 'Pending'}</span>
+                <span className="font-mono">{safeProfile.udyamNumber || safeProfile.registrationNumber || 'Pending'}</span>
               </div>
               <div>
                 <span className="text-[10px] text-slate-500 block uppercase">Location & District</span>
-                <span>{profile.location.city}, {profile.location.state}</span>
+                <span>{safeProfile.location.city}, {safeProfile.location.state}</span>
               </div>
             </div>
           </div>
@@ -109,12 +122,12 @@ export const CreditReportModal: React.FC<CreditReportModalProps> = ({
               <div>
                 <span className="text-[10px] text-slate-500 block uppercase">Monthly Revenue</span>
                 <span className="font-bold text-white print:text-slate-900">
-                  ₹{(profile.financials.monthlyRevenue / 100000).toFixed(2)} Lakhs
+                  ₹{(safeProfile.financials.monthlyRevenue / 100000).toFixed(2)} Lakhs
                 </span>
               </div>
               <div>
                 <span className="text-[10px] text-slate-500 block uppercase">Operating Expenses</span>
-                <span>₹{(profile.financials.monthlyOperatingExpenses / 100000).toFixed(2)} Lakhs</span>
+                <span>₹{(safeProfile.financials.monthlyOperatingExpenses / 100000).toFixed(2)} Lakhs</span>
               </div>
               <div>
                 <span className="text-[10px] text-slate-500 block uppercase">Baseline DSCR</span>
@@ -123,7 +136,7 @@ export const CreditReportModal: React.FC<CreditReportModalProps> = ({
               <div>
                 <span className="text-[10px] text-slate-500 block uppercase">Requested Facility</span>
                 <span className="font-bold text-white print:text-slate-900">
-                  ₹{((profile.financials.requestedLoanAmount || 2500000) / 100000).toFixed(2)} Lakhs
+                  ₹{((safeProfile.financials.requestedLoanAmount || 2500000) / 100000).toFixed(2)} Lakhs
                 </span>
               </div>
             </div>

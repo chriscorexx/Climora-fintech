@@ -1,5 +1,6 @@
 import { getDatabase } from '../db/database';
 import { MSMEProfile } from '../../../src/types';
+import { normalizeProfile } from '../../../src/core/profileUtils';
 
 export class BusinessRepository {
   private db = getDatabase();
@@ -114,7 +115,7 @@ export class BusinessRepository {
   }
 
   private mapRowToProfile(row: any): MSMEProfile {
-    return {
+    return normalizeProfile({
       id: row.id,
       name: row.name,
       udyamNumber: row.udyam_number || undefined,
@@ -141,6 +142,6 @@ export class BusinessRepository {
       operations: JSON.parse(row.operations_json || '{}'),
       createdAt: row.created_at,
       updatedAt: row.updated_at,
-    };
+    });
   }
 }

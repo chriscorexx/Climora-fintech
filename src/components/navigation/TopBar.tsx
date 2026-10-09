@@ -1,7 +1,8 @@
 import React from 'react';
 import { MSMEProfile, UserRole, RiskCategory } from '../../types';
-import { ShieldAlert, Building2, ChevronDown, Plus, Printer, RefreshCw, Layers } from 'lucide-react';
+import { Building2, ChevronDown, Plus, Printer, RefreshCw, Layers } from 'lucide-react';
 import { RiskBadge } from '../common/RiskBadge';
+import climoraLogo from '../../assets/Climora-logo.jpg';
 
 interface TopBarProps {
   role: UserRole;
@@ -35,13 +36,17 @@ export const TopBar: React.FC<TopBarProps> = ({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Brand & Tagline */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-            <ShieldAlert className="w-5 h-5 text-emerald-400" />
+          <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-black border border-emerald-500/30 overflow-hidden shadow-sm">
+            <img
+              src={climoraLogo}
+              alt="Climora Logo"
+              className="w-full h-full object-cover"
+            />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-lg tracking-tight text-white">CLIMORA</span>
-              <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+              <span className="font-extrabold text-lg tracking-tight text-white font-sans">CLIMORA</span>
+              <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-emerald-950/60 text-emerald-300 border border-emerald-500/30">
                 IFC FIN-05
               </span>
             </div>

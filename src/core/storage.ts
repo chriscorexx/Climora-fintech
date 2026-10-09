@@ -1,5 +1,6 @@
 import { MSMEProfile, UserRole } from '../types';
 import { SAMPLE_MSME_PROFILES } from './sampleData';
+import { normalizeProfile } from './profileUtils';
 
 const STORAGE_KEYS = {
   PROFILES: 'climora_profiles_v1',
@@ -12,13 +13,17 @@ export function getStoredProfiles(): MSMEProfile[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.PROFILES);
     if (!raw) {
-      localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(SAMPLE_MSME_PROFILES));
-      return SAMPLE_MSME_PROFILES;
+      const initial = SAMPLE_MSME_PROFILES.map(normalizeProfile);
+      localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(initial));
+      return initial;
     }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : SAMPLE_MSME_PROFILES;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed.map(normalizeProfile);
+    }
+    return SAMPLE_MSME_PROFILES.map(normalizeProfile);
   } catch {
-    return SAMPLE_MSME_PROFILES;
+    return SAMPLE_MSME_PROFILES.map(normalizeProfile);
   }
 }
 

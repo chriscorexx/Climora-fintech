@@ -4,6 +4,7 @@ import { fetchClimateIndicators } from '../core/weatherService';
 import { assessMSMEClimateRisk } from '../core/riskEngine';
 import { matchSchemesForProfile } from '../core/schemeMatcher';
 import { simulateCashflowStress, ScenarioParams } from '../core/scenarioSimulator';
+import { normalizeProfile } from '../core/profileUtils';
 
 const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
@@ -36,7 +37,7 @@ class ClimoraApiClient {
         if (res.ok) {
           const json = await res.json();
           if (json.success && json.data.businesses) {
-            return json.data.businesses;
+            return json.data.businesses.map(normalizeProfile);
           }
         }
       } catch (err) {
@@ -58,14 +59,14 @@ class ClimoraApiClient {
         if (res.ok) {
           const json = await res.json();
           if (json.success && json.data.business) {
-            return json.data.business;
+            return normalizeProfile(json.data.business);
           }
         }
       } catch (err) {
         console.warn('Backend create failed, storing locally:', err);
       }
     }
-    const fullProfile = profile as MSMEProfile;
+    const fullProfile = normalizeProfile(profile);
     const current = getStoredProfiles();
     saveProfiles([fullProfile, ...current]);
     return fullProfile;
