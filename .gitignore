@@ -1,2 +1,16 @@
+# Dependencies & build output
+node_modules/
+dist/
+.electron-builder/
+
+# Local agent tooling / skills
+.agents/
+.kilocode/
+.opencode/
+.idea/
+.vscode/
+
+# Scratch / notes
 help.txt
 ref.txt
+*.log

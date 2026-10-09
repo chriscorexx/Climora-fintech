@@ -1,92 +1,44 @@
+# minimal-repro
 
-# Climora
+**Quickly create and share examples of Electron app behaviors or bugs.**
 
-**Climate intelligence. Smarter decisions.**
+> [!NOTE]
+> This repro was renamed from `electron-quick-start` to clarify its purpose as a repro template. If you're looking to boostrap a new Electron app, check out the [Electron Forge](https://www.electronforge.io/) docs instead to get started!
 
-Climora is a climate-intelligence platform designed to help financial institutions assess how climate hazards may affect micro, small and medium enterprises (MSMEs). It combines business information with location-based climate indicators to generate an explainable climate-adjusted risk assessment.
+Creating a minimal reproduction (or "minimal repro") is essential when troubleshooting Electron apps. By stripping away everything except the code needed to demonstrate a specific behavior or bug, it becomes easier for others to understand, debug, and fix issues. This focused approach saves time and ensures that everyone involved is looking at exactly the same problem without distractions.
 
-## Problem Statement
+A basic Electron application contains:
 
-MSMEs operating in climate-exposed regions may experience revenue losses and operational disruptions due to floods, heatwaves, storms, droughts, and water shortages.
+- `package.json` - Points to the app's main file and lists its details and dependencies.
+- `main.js` - Starts the app and creates a browser window to render HTML. This is the app's **main process**.
+- `index.html` - A web page to render. This is the app's **renderer process**.
+- `preload.js` - A content script that runs before the renderer process loads.
 
-Financial institutions may not have sufficiently detailed, timely climate information to distinguish between businesses with similar financial histories but different levels of climate exposure.
+You can learn more about each of these components in depth within the [Tutorial](https://electronjs.org/docs/latest/tutorial/tutorial-prerequisites).
 
-Climora aims to bridge this information gap by combining climate indicators with business and financial information.
+## To Use
 
-## Proposed Solution
+To clone and run this repository you'll need [Git](https://git-scm.com) and [Node.js](https://nodejs.org/en/download/) (which comes with [npm](http://npmjs.com)) installed on your computer. From your command line:
 
-Climora provides a dashboard that allows users to:
-
-* Enter or select an MSME business profile.
-* Analyze location-based climate hazards.
-* Generate an illustrative climate-adjusted risk score.
-* Understand the factors contributing to the score.
-* View recommendations for climate preparedness and early intervention.
-
-## Target Users
-
-* **Primary users:** Bank loan officers and credit-risk analysts.
-* **Secondary users:** MSME owners, insurance companies, and development-finance institutions.
-
-## Project Workflow
-
-1. Collect business details and location.
-2. Retrieve available climate indicators.
-3. Evaluate climate exposure, business vulnerability, and financial resilience.
-4. Calculate an illustrative climate-adjusted risk score.
-5. Display the result with explanations and recommended interventions.
-
-## Architecture
-
-Climora is a cross-platform desktop application built with Electron. The React-based renderer renders the dashboard UI, while a Node.js backend (running in Electron's main process) handles input validation, external API integration, the climate-risk scoring engine, and SQLite persistence. See [TECH_STACK.md](TECH_STACK.md) for full architecture, security, and data-flow details.
-
-## Getting Started
-
-The project is currently in the planning and documentation stage.
-
-### Prerequisites
-
-* Node.js 18+ and npm
-* Git
-* A GitHub account
-
-### Project Structure
-
-```
-climora/
-├── electron/          # Electron main process, preload bridge, SQLite
-├── src/               # React renderer (dashboard, forms, results)
-├── data/              # Sample data and local SQLite database
-├── *.md              # Project documentation (root level)
-│   ├── DATA_SOURCES.md
-│   ├── RISK_SCORING.md
-│   ├── MVP_SCOPE.md
-│   ├── ProblemStatement.md
-│   └── TECH_STACK.md
-├── package.json
-└── electron-builder/  # Packaging configuration
+```bash
+# Clone this repository
+git clone https://github.com/electron/minimal-repro
+# Go into the repository
+cd minimal-repro
+# Install dependencies
+npm install
+# Run the app
+npm start
 ```
 
-These paths describe the intended project structure. They will work once the corresponding source files have been created.
+Note: If you're using Linux Bash for Windows, [see this guide](https://www.howtogeek.com/261575/how-to-run-graphical-linux-desktop-applications-from-windows-10s-bash-shell/) or use `node` from the command prompt.
 
-## Data Sources
+## Resources for Learning Electron
 
-Primary weather provider: [Open-Meteo](https://open-meteo.com/) (free, CC BY 4.0, no API key required for non-commercial use).
+- [electronjs.org/docs](https://electronjs.org/docs) - all of Electron's documentation
+- [Electron Fiddle](https://electronjs.org/fiddle) - Electron Fiddle, an app to test small Electron experiments
+- [Electron Forge](https://www.electronforge.io/) - Looking to bootstrap a new Electron app? Check out the Electron Forge docs to get started
 
-See [DATA_SOURCES.md](DATA_SOURCES.md) for the full list including supplementary datasets (World Bank, HDX) and alternative providers (Visual Crossing, Meteostat).
+## License
 
-## Responsible Use
-
-Climora is a hackathon prototype intended to support human decision-making and climate preparedness.
-
-Its risk score and scoring weights are illustrative assumptions, not a scientifically validated credit rating or probability of default. The prototype must not be used as the sole basis for approving or rejecting loans.
-
-## Project Status
-
-**Status:** Planning and documentation.
-
-**Project Type:** ClimateTech × FinTech
-
-**Challenge:** Real-Time Climate Risk Scoring for MSMEs
-
-**Team Size:** 4 members
+[CC0 1.0 (Public Domain)](LICENSE.md)
