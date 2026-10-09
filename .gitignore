@@ -1,7 +1,18 @@
 # Dependencies & build output
 node_modules/
 dist/
+coverage/
 .electron-builder/
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
 
 # Local agent tooling / skills
 .agents/
@@ -13,4 +24,7 @@ dist/
 # Scratch / notes
 help.txt
 ref.txt
+
+# Logs
 *.log
+npm-debug.log*
