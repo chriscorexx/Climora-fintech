@@ -22,29 +22,29 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   variant = 'default',
 }) => {
   const borderClass = {
-    default: 'border-fin-border hover:border-slate-700',
-    alert: 'border-rose-500/40 bg-rose-950/10',
-    highlight: 'border-emerald-500/40 bg-emerald-950/10',
+    default: 'border-fin-border hover:border-fin-hover',
+    alert: 'border-rose-500/40 bg-rose-500/10 dark:bg-rose-950/10',
+    highlight: 'border-emerald-500/40 bg-emerald-500/10 dark:bg-emerald-950/10',
   }[variant];
 
   return (
     <div className={`rounded-xl bg-fin-card border p-4 shadow-fin-card transition-all ${borderClass}`}>
       <div className="flex items-center justify-between text-xs font-medium text-fin-muted tracking-wide uppercase">
         <span>{label}</span>
-        {icon && <div className="text-slate-400">{icon}</div>}
+        {icon && <div className="text-fin-muted">{icon}</div>}
       </div>
       <div className="mt-2 flex items-baseline gap-2">
-        <span className="font-mono text-2xl font-bold tracking-tight text-white tabular-nums">
+        <span className="font-mono text-2xl font-bold tracking-tight text-fin-text tabular-nums">
           {value}
         </span>
         {change && (
           <span
             className={`text-xs font-semibold tabular-nums ${
               change.isNeutral
-                ? 'text-slate-400'
+                ? 'text-fin-muted'
                 : change.isPositive
-                ? 'text-emerald-400'
-                : 'text-rose-400'
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : 'text-rose-600 dark:text-rose-400'
             }`}
           >
             {change.value}

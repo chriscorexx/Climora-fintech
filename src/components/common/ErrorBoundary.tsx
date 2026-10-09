@@ -40,10 +40,10 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#090D16] text-slate-100 flex items-center justify-center p-6">
-          <div className="max-w-md w-full rounded-2xl bg-slate-900 border border-rose-500/30 p-6 shadow-2xl text-center space-y-4">
+        <div className="min-h-screen bg-fin-bg text-fin-text flex items-center justify-center p-6">
+          <div className="max-w-md w-full rounded-2xl bg-fin-card border border-rose-500/30 p-6 shadow-2xl text-center space-y-4">
             <div className="flex items-center justify-center gap-3 mx-auto">
-              <div className="w-11 h-11 rounded-xl bg-black border border-slate-700 overflow-hidden shadow-sm">
+              <div className="w-11 h-11 rounded-xl bg-black border border-fin-border overflow-hidden shadow-sm">
                 <img src="/Climora-logo.jpg" alt="Climora Logo" className="w-full h-full object-cover" />
               </div>
               <div className="w-11 h-11 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400">
@@ -51,20 +51,20 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white tracking-tight">Application Render Interrupted</h2>
-              <p className="text-xs text-slate-400 mt-1">
+              <h2 className="text-lg font-bold text-fin-text tracking-tight">Application Render Interrupted</h2>
+              <p className="text-xs text-fin-muted mt-1">
                 An unexpected state error was safely intercepted by Climora's resilience boundary.
               </p>
             </div>
             {this.state.error && (
-              <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 text-[11px] font-mono text-rose-300 text-left overflow-x-auto">
+              <div className="p-3 rounded-lg bg-fin-inset border border-fin-border text-[11px] font-mono text-rose-300 text-left overflow-x-auto">
                 {this.state.error.message}
               </div>
             )}
             <div className="flex flex-col sm:flex-row gap-2 pt-2">
               <button
                 onClick={this.handleRetry}
-                className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-fin-inset hover:bg-fin-hover text-xs font-semibold text-fin-text transition-colors"
               >
                 <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
                 <span>Retry View</span>

@@ -1,4 +1,5 @@
 import { MSMEProfile, UserRole } from '../types';
+import { THEME_STORAGE_KEY, type ThemeMode } from './theme';
 import { SAMPLE_MSME_PROFILES } from './sampleData';
 import { normalizeProfile } from './profileUtils';
 
@@ -7,6 +8,7 @@ const STORAGE_KEYS = {
   ACTIVE_PROFILE_ID: 'climora_active_profile_id_v1',
   USER_ROLE: 'climora_user_role_v1',
   COMPLETED_ACTIONS: 'climora_completed_actions_v1',
+  UI_MODE: THEME_STORAGE_KEY,
 };
 
 export function getStoredProfiles(): MSMEProfile[] {
@@ -90,5 +92,22 @@ export function toggleCompletedActionId(actionId: string): string[] {
     return updated;
   } catch {
     return [];
+  }
+}
+
+export function getStoredThemeMode(): ThemeMode {
+  try {
+    const mode = localStorage.getItem(STORAGE_KEYS.UI_MODE);
+    return mode === 'light' || mode === 'dark' || mode === 'system' ? mode : 'system';
+  } catch {
+    return 'system';
+  }
+}
+
+export function saveStoredThemeMode(mode: ThemeMode): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.UI_MODE, mode);
+  } catch (err) {
+    console.error('Failed to save UI mode to localStorage:', err);
   }
 }

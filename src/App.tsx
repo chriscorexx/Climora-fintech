@@ -176,8 +176,8 @@ export const App: React.FC = () => {
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
         {isLoadingClimate && !climate ? (
           <div className="h-96 flex flex-col items-center justify-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
-            <p className="text-xs text-slate-400 font-mono">
+            <Loader2 className="w-8 h-8 animate-spin text-emerald-600 dark:text-emerald-400" />
+            <p className="text-xs text-fin-muted font-mono">
               Retrieving environmental data for {activeProfile.location.city}...
             </p>
           </div>
@@ -211,7 +211,7 @@ export const App: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-fin-border py-4 px-6 text-center text-xs text-slate-500 font-mono no-print flex items-center justify-center gap-2">
+      <footer className="border-t border-fin-border py-4 px-6 text-center text-xs text-fin-muted font-mono no-print flex items-center justify-center gap-2">
         <img src="/Climora-logo.jpg" alt="Climora" className="w-4 h-4 rounded-full object-cover" />
         <span>Climora • FUSION 2026 Hackathon (IFC FIN-05) • Built with TypeScript, React, and Open-Meteo CC BY 4.0</span>
       </footer>

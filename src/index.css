@@ -2,19 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --fin-bg: #090D16;
-    --fin-card: #0F1626;
-    --fin-border: #1F2E4D;
-  }
+/* Light theme (default tokens) */
+:root {
+  --fin-bg: 248 250 252;
+  --fin-card: 255 255 255;
+  --fin-elevated: 241 245 249;
+  --fin-inset: 241 245 249;
+  --fin-border: 226 232 240;
+  --fin-hover: 226 232 240;
+  --fin-muted: 100 116 139;
+  --fin-text: 15 23 42;
+  --fin-secondary: 51 65 85;
+  --fin-sunken: 226 232 240;
+  color-scheme: light;
+}
 
+/* Dark theme overrides (matches original Climora palette) */
+.dark {
+  --fin-bg: 9 13 22;
+  --fin-card: 15 22 38;
+  --fin-elevated: 23 34 57;
+  --fin-inset: 15 23 42;
+  --fin-border: 31 46 77;
+  --fin-hover: 38 56 94;
+  --fin-muted: 138 153 173;
+  --fin-text: 241 245 249;
+  --fin-secondary: 203 213 225;
+  --fin-sunken: 30 41 59;
+  color-scheme: dark;
+}
+
+@layer base {
   body {
-    background-color: #090D16;
-    color: #F1F5F9;
+    background-color: rgb(var(--fin-bg));
+    color: rgb(var(--fin-text));
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   /* Force tabular numbers for financial figures */
@@ -29,14 +54,14 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #090D16;
+  background: rgb(var(--fin-bg));
 }
 ::-webkit-scrollbar-thumb {
-  background: #1F2E4D;
+  background: rgb(var(--fin-border));
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2D416B;
+  background: rgb(var(--fin-hover));
 }
 
 /* Print Styles for Executive Credit Memo */

@@ -10,13 +10,16 @@ const config: Config = {
     extend: {
       colors: {
         fin: {
-          bg: '#090D16',
-          card: '#0F1626',
-          elevated: '#172239',
-          border: '#1F2E4D',
-          hover: '#26385E',
-          muted: '#8A99AD',
-          text: '#F1F5F9',
+          bg: 'rgb(var(--fin-bg) / <alpha-value>)',
+          card: 'rgb(var(--fin-card) / <alpha-value>)',
+          elevated: 'rgb(var(--fin-elevated) / <alpha-value>)',
+          inset: 'rgb(var(--fin-inset) / <alpha-value>)',
+          sunken: 'rgb(var(--fin-sunken) / <alpha-value>)',
+          border: 'rgb(var(--fin-border) / <alpha-value>)',
+          hover: 'rgb(var(--fin-hover) / <alpha-value>)',
+          muted: 'rgb(var(--fin-muted) / <alpha-value>)',
+          text: 'rgb(var(--fin-text) / <alpha-value>)',
+          secondary: 'rgb(var(--fin-secondary) / <alpha-value>)',
         },
         risk: {
           low: '#10B981',      // Emerald
