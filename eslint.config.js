@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
+import prettierConfig from 'eslint-config-prettier';
 import globals from 'globals';
 
 export default [
@@ -36,4 +37,5 @@ export default [
       'react/react-in-jsx-scope': 'off',
     },
   },
+  prettierConfig,
 ];

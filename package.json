@@ -16,7 +16,8 @@
     "electron": "postinstall",
     "esbuild": "postinstall",
     "electron@33.2.0": true,
-    "esbuild@0.21.5": true
+    "esbuild@0.21.5": true,
+    "better-sqlite3@9.6.0": true
   },
   "build": {
     "appId": "com.climora.app",
@@ -65,7 +66,9 @@
     "wait-on": "^8.0.1"
   },
   "dependencies": {
+    "better-sqlite3": "^9.6.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "zod": "^3.25.76"
   }
 }
