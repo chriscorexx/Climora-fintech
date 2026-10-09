@@ -13,6 +13,9 @@ coverage/
 *.db
 *.sqlite
 *.sqlite3
+*.db-wal
+*.db-shm
+backend/data/
 
 # Local agent tooling / skills
 .agents/

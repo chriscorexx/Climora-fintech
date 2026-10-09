@@ -1,19 +1,30 @@
 {
-  "name": "backend",
+  "name": "climora-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "description": "Climora backend API: MSME climate-risk assessment, cashflow scenarios, government scheme matching and loan readiness",
+  "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "test": "node --test tests/*.test.js",
+    "test:verbose": "node --test --test-reporter spec tests/"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "climate-risk",
+    "msme",
+    "open-meteo",
+    "express",
+    "sqlite"
+  ],
+  "author": "Climora Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.5.0"
+  },
   "dependencies": {
-    "cors": "^2.8.6",
-    "dotenv": "^18.0.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "express": "^5.2.1"
   },
   "devDependencies": {
