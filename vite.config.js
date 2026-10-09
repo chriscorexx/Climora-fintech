@@ -12,7 +12,7 @@ export default defineConfig({
     strictPort: true,
   },
   build: {
-    outDir: resolve('../dist'),
+    outDir: resolve('../dist-renderer'),
     emptyOutDir: true,
   },
 });

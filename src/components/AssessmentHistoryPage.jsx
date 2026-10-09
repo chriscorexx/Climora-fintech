@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ownerBusiness } from '../data/demoData.js';
+
+const ipc = window.climora;
 
 function getColor(score) {
   if (score <= 24) return 'var(--color-low)';
@@ -15,13 +17,32 @@ function getLabel(score) {
   return 'Very High';
 }
 
+const DIM_KEYS = ['flood_score', 'rainfall_score', 'heat_score', 'business_score', 'financial_score'];
 const DIM_LABELS = {
-  flood:     'Flood',
-  rainfall:  'Rainfall',
-  heat:      'Heat',
-  business:  'Business',
-  financial: 'Financial',
+  flood_score:     'Flood',
+  rainfall_score:  'Rainfall',
+  heat_score:      'Heat',
+  business_score:  'Business',
+  financial_score: 'Financial',
 };
+
+// Normalise a DB row into the shape used for display
+function normaliseRow(row, index, total) {
+  return {
+    date:         (row.assessed_at ?? row.date ?? '').slice(0, 10),
+    overallScore: row.overall_score ?? row.overallScore ?? 0,
+    category:     row.category ?? getLabel(row.overall_score ?? 0),
+    note:         row.note ?? '',
+    isLive:       row.data_source === 'live',
+    dimensions: {
+      flood:    row.flood_score    ?? row.dimensions?.flood    ?? null,
+      rainfall: row.rainfall_score ?? row.dimensions?.rainfall ?? null,
+      heat:     row.heat_score     ?? row.dimensions?.heat     ?? null,
+      business: row.business_score ?? row.dimensions?.business ?? null,
+      financial:row.financial_score?? row.dimensions?.financial?? null,
+    },
+  };
+}
 
 function MiniRing({ score, size = 56, stroke = 6 }) {
   const r    = (size - stroke) / 2;
@@ -35,11 +56,8 @@ function MiniRing({ score, size = 56, stroke = 6 }) {
         <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={col} strokeWidth={stroke}
           strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" />
       </svg>
-      <div style={{
-        position: 'absolute', inset: 0,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '0.75rem', fontWeight: 800, color: col,
-      }}>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: '0.75rem', fontWeight: 800, color: col }}>
         {score}
       </div>
     </div>
@@ -47,172 +65,181 @@ function MiniRing({ score, size = 56, stroke = 6 }) {
 }
 
 export default function AssessmentHistoryPage() {
-  const history  = ownerBusiness.assessmentHistory;
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [compareA, setCompareA] = useState(0);
-  const [compareB, setCompareB] = useState(history.length - 1);
+  const [compareB, setCompareB] = useState(0);
+  const [usingDemo, setUsingDemo] = useState(false);
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      if (ipc) {
+        // Get the first persisted business
+        const bizRes = await ipc.listBusinesses();
+        if (bizRes.ok && bizRes.data.length > 0) {
+          const histRes = await ipc.getHistory(bizRes.data[0].id);
+          if (histRes.ok && histRes.data.length > 0) {
+            const rows = histRes.data.map((r, i) => normaliseRow(r, i, histRes.data.length));
+            setHistory(rows);
+            setCompareA(0);
+            setCompareB(Math.min(1, rows.length - 1));
+            setLoading(false);
+            return;
+          }
+        }
+      }
+      // Fallback to demo data
+      const rows = ownerBusiness.assessmentHistory.map((r, i) =>
+        normaliseRow({ ...r, overall_score: r.overallScore, flood_score: r.dimensions?.flood, rainfall_score: r.dimensions?.rainfall, heat_score: r.dimensions?.heat, business_score: r.dimensions?.business, financial_score: r.dimensions?.financial }, i, ownerBusiness.assessmentHistory.length)
+      );
+      setHistory(rows);
+      setCompareA(0);
+      setCompareB(Math.min(1, rows.length - 1));
+      setUsingDemo(true);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: 'var(--color-text-secondary)' }}>
+        Loading history...
+      </div>
+    );
+  }
+
+  if (history.length === 0) {
+    return (
+      <div className="card">
+        <div className="empty-state">
+          <div className="empty-state-icon">&#9906;</div>
+          <h3>No assessment history yet</h3>
+          <p>Run your first assessment from My Dashboard or the Risk Assessment page to start building history.</p>
+        </div>
+      </div>
+    );
+  }
 
   const a = history[compareA];
-  const b = history[compareB];
-
-  const dims = Object.keys(DIM_LABELS);
+  const b = history[Math.min(compareB, history.length - 1)];
 
   return (
     <div>
-      {/* Timeline overview */}
+      {usingDemo && (
+        <div className="disclaimer mb-3">
+          <span className="disclaimer-icon">&#9888;</span>
+          Showing simulated demo history. Run an assessment in Electron to build real history from SQLite.
+        </div>
+      )}
+
+      {/* Timeline */}
       <div className="card mb-3">
         <div className="card-header">
           <h3>Score History</h3>
-          <span className="badge badge-simulated">&#9888; Simulated Data</span>
+          <span className={`badge ${usingDemo ? 'badge-simulated' : 'badge-success'}`}>
+            {usingDemo ? 'Demo data' : 'From database'}
+          </span>
         </div>
 
-        <div style={{ display: 'flex', gap: '0', position: 'relative' }}>
-          {/* Connecting line */}
-          <div style={{
-            position: 'absolute',
-            top: 28,
-            left: 28,
-            right: 28,
-            height: 2,
-            background: 'var(--color-border)',
-            zIndex: 0,
-          }} />
-
+        <div style={{ display: 'flex', gap: 0, position: 'relative', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+          <div style={{ position: 'absolute', top: 28, left: 28, right: 28, height: 2, background: 'var(--color-border)', zIndex: 0 }} />
           {history.map((entry, i) => {
-            const col = getColor(entry.overallScore);
+            const col   = getColor(entry.overallScore);
             const isLast = i === history.length - 1;
+            const delta  = i > 0 ? entry.overallScore - history[i - 1].overallScore : null;
             return (
-              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 1 }}>
-                {/* Node */}
-                <div style={{
-                  width: 56, height: 56, borderRadius: '50%',
-                  background: 'var(--color-card)',
-                  border: `3px solid ${col}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexDirection: 'column',
-                  marginBottom: '0.6rem',
-                }}>
+              <div key={i} style={{ flex: 1, minWidth: 100, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+                {delta !== null && (
+                  <div style={{ position: 'absolute', top: -10, fontSize: '0.65rem', fontWeight: 700,
+                    color: delta > 0 ? 'var(--color-danger)' : delta < 0 ? 'var(--color-success)' : 'var(--color-text-tertiary)' }}>
+                    {delta > 0 ? '+' : ''}{delta !== 0 ? delta : ''}
+                  </div>
+                )}
+                <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--color-card)',
+                  border: `3px solid ${col}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexDirection: 'column', marginBottom: '0.5rem' }}>
                   <span style={{ fontSize: '1rem', fontWeight: 800, color: col, lineHeight: 1 }}>{entry.overallScore}</span>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: col }}>{getLabel(entry.overallScore)}</div>
-                  <div style={{ fontSize: '0.68rem', color: 'var(--color-text-tertiary)', marginTop: '0.15rem' }}>
-                    {entry.date}
-                  </div>
-                  {isLast && (
-                    <span className="badge badge-primary" style={{ marginTop: '0.3rem', fontSize: '0.6rem' }}>Current</span>
-                  )}
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: col }}>{entry.category}</div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--color-text-tertiary)', marginTop: '0.1rem' }}>{entry.date}</div>
+                  {isLast && <span className="badge badge-primary" style={{ marginTop: '0.3rem', fontSize: '0.58rem' }}>Current</span>}
+                  {entry.isLive && <span className="badge badge-success" style={{ marginTop: '0.3rem', fontSize: '0.58rem' }}>Live</span>}
                 </div>
-                {/* Delta from previous */}
-                {i > 0 && (() => {
-                  const delta = entry.overallScore - history[i - 1].overallScore;
-                  return (
-                    <div style={{
-                      position: 'absolute', top: -8, right: '50%',
-                      fontSize: '0.65rem', fontWeight: 700,
-                      color: delta > 0 ? 'var(--color-danger)' : 'var(--color-success)',
-                    }}>
-                      {delta > 0 ? '+' : ''}{delta}
-                    </div>
-                  );
-                })()}
               </div>
             );
           })}
         </div>
 
-        {/* Notes */}
         <div style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {history.map((entry, i) => (
-            <div key={i} style={{ display: 'flex', gap: '0.75rem', padding: '0.6rem 0.85rem', background: 'var(--color-bg-tertiary)', borderRadius: 'var(--radius-md)', alignItems: 'flex-start' }}>
+            <div key={i} style={{ display: 'flex', gap: '0.75rem', padding: '0.6rem 0.85rem',
+              background: 'var(--color-bg-tertiary)', borderRadius: 'var(--radius-md)', alignItems: 'flex-start' }}>
               <MiniRing score={entry.overallScore} />
               <div>
-                <div style={{ fontWeight: 600, fontSize: '0.82rem', marginBottom: '0.15rem' }}>{entry.date}</div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)' }}>{entry.note}</div>
+                <div style={{ fontWeight: 600, fontSize: '0.82rem', marginBottom: '0.1rem' }}>{entry.date}</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)' }}>{entry.note || 'No note recorded'}</div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Side-by-side comparison */}
-      <div className="card mb-3">
-        <div className="card-header">
-          <h3>Compare Two Assessments</h3>
-        </div>
-
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-            <label style={{ fontSize: '0.72rem', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Assessment A</label>
-            <select className="select" style={{ width: 200 }} value={compareA} onChange={e => setCompareA(Number(e.target.value))}>
-              {history.map((h, i) => <option key={i} value={i}>{h.date}</option>)}
-            </select>
+      {/* Compare */}
+      {history.length >= 2 && (
+        <div className="card">
+          <div className="card-header"><h3>Compare Two Assessments</h3></div>
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+            {[['Assessment A', compareA, setCompareA], ['Assessment B', compareB, setCompareB]].map(([lbl, val, setter]) => (
+              <div key={lbl} style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <label style={{ fontSize: '0.72rem', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{lbl}</label>
+                <select className="select" style={{ width: 200 }} value={val} onChange={e => setter(Number(e.target.value))}>
+                  {history.map((h, i) => <option key={i} value={i}>{h.date} — {h.overallScore}</option>)}
+                </select>
+              </div>
+            ))}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-            <label style={{ fontSize: '0.72rem', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Assessment B</label>
-            <select className="select" style={{ width: 200 }} value={compareB} onChange={e => setCompareB(Number(e.target.value))}>
-              {history.map((h, i) => <option key={i} value={i}>{h.date}</option>)}
-            </select>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Dimension</th>
+                  <th>{a.date}</th>
+                  <th>{b.date}</th>
+                  <th>Change</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ fontWeight: 700 }}>Overall</td>
+                  <td style={{ fontWeight: 800, color: getColor(a.overallScore) }}>{a.overallScore}</td>
+                  <td style={{ fontWeight: 800, color: getColor(b.overallScore) }}>{b.overallScore}</td>
+                  <td>{(() => { const d = b.overallScore - a.overallScore; return <span style={{ fontWeight: 700, color: d > 0 ? 'var(--color-danger)' : d < 0 ? 'var(--color-success)' : 'var(--color-text-tertiary)' }}>{d > 0 ? '+' : ''}{d || '—'}</span>; })()}</td>
+                </tr>
+                {Object.keys(a.dimensions).map(key => {
+                  const sA = a.dimensions[key], sB = b.dimensions[key];
+                  const d = sA != null && sB != null ? sB - sA : null;
+                  return (
+                    <tr key={key}>
+                      <td style={{ color: 'var(--color-text-secondary)', fontSize: '0.82rem', textTransform: 'capitalize' }}>{key}</td>
+                      <td style={{ color: sA != null ? getColor(sA) : 'var(--color-text-tertiary)', fontWeight: 600 }}>{sA ?? '—'}</td>
+                      <td style={{ color: sB != null ? getColor(sB) : 'var(--color-text-tertiary)', fontWeight: 600 }}>{sB ?? '—'}</td>
+                      <td>{d != null ? <span style={{ fontWeight: 700, fontSize: '0.82rem', color: d > 0 ? 'var(--color-danger)' : d < 0 ? 'var(--color-success)' : 'var(--color-text-tertiary)' }}>{d > 0 ? '+' : ''}{d || '—'}</span> : '—'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
+      )}
 
-        <div style={{ overflowX: 'auto' }}>
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Dimension</th>
-                <th>{a.date}</th>
-                <th>{b.date}</th>
-                <th>Change</th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* Overall row */}
-              <tr>
-                <td style={{ fontWeight: 700 }}>Overall Score</td>
-                <td>
-                  <span style={{ fontWeight: 800, fontSize: '1.05rem', color: getColor(a.overallScore) }}>{a.overallScore}</span>
-                  <span className={`badge ml-1`} style={{ marginLeft: '0.4rem', background: `${getColor(a.overallScore)}18`, color: getColor(a.overallScore) }}>{getLabel(a.overallScore)}</span>
-                </td>
-                <td>
-                  <span style={{ fontWeight: 800, fontSize: '1.05rem', color: getColor(b.overallScore) }}>{b.overallScore}</span>
-                  <span style={{ marginLeft: '0.4rem', background: `${getColor(b.overallScore)}18`, color: getColor(b.overallScore), padding: '0.1rem 0.4rem', borderRadius: '999px', fontSize: '0.68rem', fontWeight: 700 }}>{getLabel(b.overallScore)}</span>
-                </td>
-                <td>
-                  {(() => {
-                    const d = b.overallScore - a.overallScore;
-                    return (
-                      <span style={{ fontWeight: 700, color: d > 0 ? 'var(--color-danger)' : d < 0 ? 'var(--color-success)' : 'var(--color-text-tertiary)' }}>
-                        {d > 0 ? '+' : ''}{d !== 0 ? d : '—'}
-                      </span>
-                    );
-                  })()}
-                </td>
-              </tr>
-              {dims.map(key => {
-                const scoreA = a.dimensions[key] ?? 0;
-                const scoreB = b.dimensions[key] ?? 0;
-                const delta  = scoreB - scoreA;
-                return (
-                  <tr key={key}>
-                    <td style={{ color: 'var(--color-text-secondary)', fontSize: '0.82rem' }}>{DIM_LABELS[key]}</td>
-                    <td style={{ color: getColor(scoreA), fontWeight: 600 }}>{scoreA}</td>
-                    <td style={{ color: getColor(scoreB), fontWeight: 600 }}>{scoreB}</td>
-                    <td>
-                      <span style={{ fontSize: '0.82rem', fontWeight: 700, color: delta > 0 ? 'var(--color-danger)' : delta < 0 ? 'var(--color-success)' : 'var(--color-text-tertiary)' }}>
-                        {delta > 0 ? '+' : ''}{delta !== 0 ? delta : '—'}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="disclaimer">
+      <div className="disclaimer" style={{ marginTop: '1.25rem' }}>
         <span className="disclaimer-icon">&#9888;</span>
-        All historical scores are simulated demo values. Score changes between assessments do not necessarily reflect real climate changes — they illustrate how the prototype would behave as input data is updated.
+        Score changes reflect updates to input data or climate indicators — not necessarily real climate changes. All scores are illustrative.
       </div>
     </div>
   );
