@@ -1,37 +1,18 @@
-import React, { useState } from 'react';
-import { demoBusinesses, demoLoanApplications } from '../data/demoData.js';
+import React, { useMemo } from 'react';
+import { useData } from '../services/DataProvider.jsx';
+import { api } from '../services/apiClient.js';
+import { useAsync } from '../hooks/useAsync.js';
+import { categoryColor, formatDate, formatIndustry } from '../services/mappers.js';
+import { EmptyState, ErrorState, LoadingState } from './ui.jsx';
 
-function getCategory(score) {
-  if (score <= 24) return { label: 'Low',       variant: 'low',       color: 'var(--color-low)'       };
-  if (score <= 49) return { label: 'Moderate',  variant: 'moderate',  color: 'var(--color-moderate)'  };
-  if (score <= 74) return { label: 'High',       variant: 'high',      color: 'var(--color-high)'      };
-  return              { label: 'Very High',  variant: 'very-high', color: 'var(--color-very-high)' };
-}
-
-function ScoreRing({ score, size = 80, strokeWidth = 7 }) {
-  const cat   = getCategory(score);
-  const r     = (size - strokeWidth) / 2;
-  const circ  = 2 * Math.PI * r;
-  const dash  = (score / 100) * circ;
-
-  return (
-    <div className="score-ring-wrap" style={{ width: size, height: size }}>
-      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--color-bg-tertiary)" strokeWidth={strokeWidth} />
-        <circle
-          cx={size/2} cy={size/2} r={r} fill="none"
-          stroke={cat.color} strokeWidth={strokeWidth}
-          strokeDasharray={`${dash} ${circ}`}
-          strokeLinecap="round"
-          style={{ transition: 'stroke-dasharray 0.8s cubic-bezier(0.34,1.56,0.64,1)' }}
-        />
-      </svg>
-      <div className="score-ring-label">
-        <span className="score-ring-value" style={{ color: cat.color, fontSize: '1.1rem' }}>{score}</span>
-        <span className="score-ring-sub">/ 100</span>
-      </div>
-    </div>
-  );
+function getCategoryVariant(category) {
+  const map = {
+    Low: 'low',
+    Moderate: 'moderate',
+    High: 'high',
+    'Very High': 'very-high',
+  };
+  return map[category] || 'default';
 }
 
 function MiniBar({ value, color }) {
@@ -42,27 +23,28 @@ function MiniBar({ value, color }) {
   );
 }
 
-// Simple donut using SVG arcs
 function DonutChart({ segments, size = 140 }) {
   const strokeWidth = 18;
-  const r     = (size - strokeWidth) / 2;
-  const circ  = 2 * Math.PI * r;
-  let offset  = 0;
+  const r = (size - strokeWidth) / 2;
+  const circ = 2 * Math.PI * r;
+  let offset = 0;
 
   const arcs = segments.map((seg) => {
     const dash = (seg.pct / 100) * circ;
-    const arc  = { ...seg, dash, offset: circ - offset };
+    const arc = { ...seg, dash, offset: circ - offset };
     offset += dash;
     return arc;
   });
 
   return (
-    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--color-bg-tertiary)" strokeWidth={strokeWidth} />
-      {arcs.map((arc, i) => (
+    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }} role="img" aria-label="Risk category distribution">
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--color-bg-tertiary)" strokeWidth={strokeWidth} />
+      {arcs.map((arc) => (
         <circle
-          key={i}
-          cx={size/2} cy={size/2} r={r}
+          key={arc.label}
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
           fill="none"
           stroke={arc.color}
           strokeWidth={strokeWidth}
@@ -76,152 +58,238 @@ function DonutChart({ segments, size = 140 }) {
 }
 
 export default function OverviewDashboard({ onSelectBusiness }) {
-  const [hoveredRow, setHoveredRow] = useState(null);
+  const { dashboard, businesses, sectors, health, refresh, checkHealth } = useData();
 
-  const total       = demoBusinesses.length;
-  const avgScore    = Math.round(demoBusinesses.reduce((s, b) => s + b.assessment.overallScore, 0) / total);
-  const highRisk    = demoBusinesses.filter(b => b.assessment.overallScore >= 50).length;
-  const pendingApps = demoLoanApplications.filter(l => ['Under Review', 'Additional Info Required', 'Draft'].includes(l.status)).length;
+  const metrics = dashboard?.metrics || null;
+  const total = metrics?.portfolioSize ?? businesses.length;
 
-  const categoryCounts = demoBusinesses.reduce((acc, b) => {
-    const cat = getCategory(b.assessment.overallScore).label;
-    acc[cat] = (acc[cat] || 0) + 1;
-    return acc;
-  }, {});
+  const scoreByBusiness = useMemo(() => {
+    const map = new Map();
+    for (const entry of metrics?.latestAssessmentByBusiness || []) {
+      map.set(entry.businessId, entry);
+    }
+    return map;
+  }, [metrics]);
 
-  const donutSegments = [
-    { label: 'Low',       pct: Math.round((categoryCounts['Low']       || 0) / total * 100), color: 'var(--color-low)'       },
-    { label: 'Moderate',  pct: Math.round((categoryCounts['Moderate']  || 0) / total * 100), color: 'var(--color-moderate)'  },
-    { label: 'High',      pct: Math.round((categoryCounts['High']      || 0) / total * 100), color: 'var(--color-high)'      },
-    { label: 'Very High', pct: Math.round((categoryCounts['Very High'] || 0) / total * 100), color: 'var(--color-very-high)' },
-  ].filter(s => s.pct > 0);
+  const recent = useAsync(() => api.listAssessments({ limit: 6 }), { immediate: Boolean(metrics) });
 
-  const recentActivity = [
-    { text: 'Apex Textiles loan application rejected', time: '2 days ago', icon: '⊗', color: 'var(--color-danger)' },
-    { text: 'Tech Solutions Inc approved for ₹200k loan', time: '2 days ago', icon: '⊕', color: 'var(--color-success)' },
-    { text: 'Pacific Seafoods — additional info requested', time: '3 days ago', icon: '⊘', color: 'var(--color-warning)' },
-    { text: 'Green Valley Grocers risk re-assessed (68)', time: '4 days ago', icon: '⊙', color: 'var(--color-info)' },
-  ];
+  if (health.error && !dashboard) {
+    return (
+      <ErrorState
+        error={{ message: health.error, isNetworkError: !health.online }}
+        onRetry={refresh}
+      />
+    );
+  }
+
+  if (!dashboard) return <LoadingState label="Loading portfolio overview…" rows={4} />;
+
+  const avgScore = metrics.averageRiskScore ?? 0;
+  const highRisk = metrics.highRiskBusinesses ?? 0;
+  const distribution = metrics.categoryDistribution || {};
+
+  const categoryOrder = ['Low', 'Moderate', 'High', 'Very High'];
+  const donutSegments = categoryOrder
+    .map((label) => ({
+      label,
+      count: distribution[label] || 0,
+      pct: total ? Math.round(((distribution[label] || 0) / total) * 100) : 0,
+      color: categoryColor(label),
+    }))
+    .filter((segment) => segment.count > 0);
+
+  const rows = (metrics.businesses || businesses).map((business) => {
+    const latest = scoreByBusiness.get(business.id);
+    return {
+      business,
+      industryLabel: formatIndustry(business.industry, sectors),
+      latest,
+    };
+  });
+
+  const assessments = recent.data?.assessments || [];
+  const recentActivity = assessments.slice(0, 4).map((assessment) => ({
+    id: assessment.id,
+    text: `${assessment.businessName || 'Business'} assessed at ${assessment.overallScore}/100`,
+    time: formatDate(assessment.assessedAt || assessment.createdAt),
+    incomplete: assessment.isIncomplete,
+    color: categoryColor(assessment.category),
+  }));
 
   const statCards = [
     {
       label: 'Portfolio Size',
       value: total,
-      sub: 'MSMEs assessed',
+      sub: `${metrics.assessedBusinesses ?? 0} assessed`,
       icon: '◫',
-      accentStart: 'var(--color-primary)',
-      accentEnd: '#3b82f6',
+      accent: 'var(--color-primary)',
       valueColor: 'var(--color-text)',
     },
     {
       label: 'Average Risk Score',
       value: avgScore,
-      sub: `Across all ${total} businesses`,
+      sub: `Across ${total} businesses`,
       icon: '◈',
-      accentStart: getCategory(avgScore).color,
-      accentEnd: getCategory(avgScore).color,
-      valueColor: getCategory(avgScore).color,
+      accent: categoryColor(avgScore >= 75 ? 'Very High' : avgScore >= 50 ? 'High' : avgScore >= 25 ? 'Moderate' : 'Low'),
+      valueColor: categoryColor(avgScore >= 75 ? 'Very High' : avgScore >= 50 ? 'High' : avgScore >= 25 ? 'Moderate' : 'Low'),
     },
     {
       label: 'Elevated Risk',
       value: highRisk,
-      sub: `${Math.round((highRisk / total) * 100)}% of portfolio`,
+      sub: `${metrics.highRiskPct ?? 0}% of portfolio`,
       icon: '⊛',
-      accentStart: 'var(--color-high)',
-      accentEnd: 'var(--color-very-high)',
+      accent: 'var(--color-high)',
       valueColor: 'var(--color-very-high)',
     },
     {
-      label: 'Pending Applications',
-      value: pendingApps,
-      sub: 'Require attention',
+      label: 'Incomplete Assessments',
+      value: metrics.incompleteAssessments ?? 0,
+      sub: `${metrics.assessmentsLast30Days ?? 0} runs in 30 days`,
       icon: '⊟',
-      accentStart: 'var(--color-warning)',
-      accentEnd: 'var(--color-moderate)',
+      accent: 'var(--color-warning)',
       valueColor: 'var(--color-warning)',
     },
   ];
 
   return (
     <div>
+      {!health.online && <ErrorState error={{ message: health.error }} onRetry={checkHealth} />}
+
       {/* ── Stat cards ── */}
       <div className="grid-4 mb-3">
-        {statCards.map((c, i) => (
+        {statCards.map((card, index) => (
           <div
-            key={i}
+            key={card.label}
             className="stat-card fade-in"
             style={{
-              '--accent-start': c.accentStart,
-              '--accent-end': c.accentEnd,
-              animationDelay: `${i * 0.05}s`,
+              '--accent-start': card.accent,
+              '--accent-end': card.accent,
+              animationDelay: `${index * 0.05}s`,
             }}
           >
-            <div className="stat-icon" style={{ background: `${c.accentStart}18` }}>
-              <span style={{ color: c.accentStart }}>{c.icon}</span>
+            <div className="stat-icon" style={{ background: `${card.accent}18` }}>
+              <span style={{ color: card.accent }}>{card.icon}</span>
             </div>
-            <div className="stat-label">{c.label}</div>
-            <div className="stat-value" style={{ color: c.valueColor }}>{c.value}</div>
-            <div className="stat-sub">{c.sub}</div>
+            <div className="stat-label">{card.label}</div>
+            <div className="stat-value" style={{ color: card.valueColor }}>{card.value}</div>
+            <div className="stat-sub">{card.sub}</div>
           </div>
         ))}
       </div>
 
       {/* ── Middle row: donut + recent activity ── */}
       <div className="grid-2 mb-3" style={{ gridTemplateColumns: '1fr 1.6fr' }}>
-        {/* Donut */}
         <div className="card">
           <div className="card-header">
             <h3>Risk Distribution</h3>
-            <span className="badge badge-demo">&#9906; Live</span>
+            <span className={health.online ? 'badge badge-demo' : 'badge badge-simulated'}>
+              {health.online ? 'Backend live' : 'Backend offline'}
+            </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-            <div style={{ position: 'relative', flexShrink: 0 }}>
-              <DonutChart segments={donutSegments} size={130} />
-              <div style={{
-                position: 'absolute', inset: 0,
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center',
-              }}>
-                <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-text)', lineHeight: 1 }}>{total}</span>
-                <span style={{ fontSize: '0.6rem', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</span>
+          {total === 0 ? (
+            <EmptyState title="No businesses yet" message="Create an MSME profile to populate the portfolio." />
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+              <div style={{ position: 'relative', flexShrink: 0 }}>
+                <DonutChart segments={donutSegments} size={130} />
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-text)', lineHeight: 1 }}>{total}</span>
+                  <span style={{ fontSize: '0.6rem', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Total
+                  </span>
+                </div>
+              </div>
+              <div style={{ flex: 1 }}>
+                {categoryOrder.map((label) => {
+                  const segment = donutSegments.find((item) => item.label === label) || {
+                    count: 0,
+                    pct: 0,
+                    color: categoryColor(label),
+                  };
+                  return (
+                    <div key={label} style={{ marginBottom: '0.65rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                        <span
+                          style={{
+                            fontSize: '0.78rem',
+                            color: 'var(--color-text-secondary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: '50%',
+                              background: segment.color,
+                              display: 'inline-block',
+                              flexShrink: 0,
+                            }}
+                          />
+                          {label}
+                        </span>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 700, color: segment.color }}>{segment.count}</span>
+                      </div>
+                      <MiniBar value={segment.pct} color={segment.color} />
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            <div style={{ flex: 1 }}>
-              {donutSegments.map((seg) => (
-                <div key={seg.label} style={{ marginBottom: '0.65rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: seg.color, display: 'inline-block', flexShrink: 0 }} />
-                      {seg.label}
-                    </span>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: seg.color }}>{categoryCounts[seg.label] || 0}</span>
+          )}
+        </div>
+
+        <div className="card">
+          <div className="card-header">
+            <h3>Recent Assessments</h3>
+            <span className="badge badge-muted">Newest first</span>
+          </div>
+          {recent.loading ? (
+            <LoadingState label="Loading recent assessments…" rows={3} />
+          ) : recent.error ? (
+            <ErrorState error={recent.error} onRetry={recent.reload} />
+          ) : recentActivity.length === 0 ? (
+            <EmptyState
+              title="No assessments recorded"
+              message="Run an assessment from a business detail view to see activity here."
+            />
+          ) : (
+            <div className="timeline">
+              {recentActivity.map((item) => (
+                <div key={item.id} className="timeline-item">
+                  <div
+                    className="timeline-dot"
+                    style={{ borderColor: item.color, color: item.color, background: `${item.color}15` }}
+                    aria-hidden="true"
+                  >
+                    ⊙
                   </div>
-                  <MiniBar value={seg.pct} color={seg.color} />
+                  <div style={{ paddingTop: '2px' }}>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--color-text)', marginBottom: '0.15rem' }}>
+                      {item.text}
+                      {item.incomplete && (
+                        <span className="badge badge-simulated" style={{ marginLeft: '0.5rem' }}>
+                          Incomplete
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--color-text-tertiary)' }}>{item.time}</div>
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-
-        {/* Recent activity */}
-        <div className="card">
-          <div className="card-header">
-            <h3>Recent Activity</h3>
-            <span className="badge badge-muted">Last 7 days</span>
-          </div>
-          <div className="timeline">
-            {recentActivity.map((item, i) => (
-              <div key={i} className="timeline-item">
-                <div className="timeline-dot" style={{ borderColor: item.color, color: item.color, background: `${item.color}15` }}>
-                  {item.icon}
-                </div>
-                <div style={{ paddingTop: '2px' }}>
-                  <div style={{ fontSize: '0.82rem', color: 'var(--color-text)', marginBottom: '0.15rem' }}>{item.text}</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--color-text-tertiary)' }}>{item.time}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+          )}
         </div>
       </div>
 
@@ -230,75 +298,96 @@ export default function OverviewDashboard({ onSelectBusiness }) {
         <div className="card-header">
           <h3>MSME Portfolio</h3>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <span className="badge badge-simulated">&#9888; Simulated Data</span>
+            <span className={health.online ? 'badge badge-demo' : 'badge badge-simulated'}>
+              {health.online ? 'Open-Meteo live data' : 'Backend offline'}
+            </span>
           </div>
         </div>
 
-        <div style={{ overflowX: 'auto' }}>
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Business</th>
-                <th>Sector</th>
-                <th>Location</th>
-                <th>Score</th>
-                <th>Risk</th>
-                <th>Trend</th>
-                <th>Last Assessed</th>
-                <th style={{ textAlign: 'right' }}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {demoBusinesses.map((b) => {
-                const cat = getCategory(b.assessment.overallScore);
-                return (
-                  <tr
-                    key={b.id}
-                    className="clickable"
-                    onClick={() => onSelectBusiness(b)}
-                    onMouseEnter={() => setHoveredRow(b.id)}
-                    onMouseLeave={() => setHoveredRow(null)}
-                  >
-                    <td style={{ fontWeight: 600 }}>{b.name}</td>
-                    <td style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem' }}>
-                      {b.sector.replace('_', ' ')}
-                    </td>
-                    <td style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem' }}>{b.location}</td>
-                    <td>
-                      <span style={{ fontWeight: 800, fontSize: '1rem', color: cat.color }}>
-                        {b.assessment.overallScore}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`badge badge-${cat.variant}`}>{cat.label}</span>
-                    </td>
-                    <td>
-                      {/* Mini score bar */}
-                      <div style={{ width: 64 }}>
-                        <MiniBar value={b.assessment.overallScore} color={cat.color} />
-                      </div>
-                    </td>
-                    <td style={{ color: 'var(--color-text-tertiary)', fontSize: '0.78rem' }}>
-                      {b.assessment.lastAssessed}
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button
-                        className="btn btn-secondary btn-sm"
-                        onClick={(e) => { e.stopPropagation(); onSelectBusiness(b); }}
-                      >
-                        View &#8250;
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        {rows.length === 0 ? (
+          <EmptyState
+            title="Portfolio is empty"
+            message="Add an MSME profile (My Business) so it can appear in the lender portfolio."
+          />
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Business</th>
+                  <th>Industry</th>
+                  <th>Location</th>
+                  <th>Score</th>
+                  <th>Risk</th>
+                  <th>Trend</th>
+                  <th>Last Assessed</th>
+                  <th style={{ textAlign: 'right' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(({ business, industryLabel, latest }) => {
+                  const score = latest?.overallScore;
+                  const category = latest?.category;
+                  const color = score === undefined || score === null ? 'var(--color-text-tertiary)' : categoryColor(category);
+                  return (
+                    <tr
+                      key={business.id}
+                      className="clickable"
+                      onClick={() => onSelectBusiness(business)}
+                    >
+                      <td style={{ fontWeight: 600 }}>
+                        {business.name}
+                        {business.isDemo && (
+                          <span className="badge badge-simulated" style={{ marginLeft: '0.5rem' }}>
+                            Demo
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem' }}>{industryLabel}</td>
+                      <td style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem' }}>{business.location}</td>
+                      <td>
+                        <span style={{ fontWeight: 800, fontSize: '1rem', color }}>
+                          {score === undefined || score === null ? '—' : score}
+                        </span>
+                      </td>
+                      <td>
+                        {category ? (
+                          <span className={`badge badge-${getCategoryVariant(category)}`}>{category}</span>
+                        ) : (
+                          <span className="badge badge-muted">Not assessed</span>
+                        )}
+                      </td>
+                      <td>
+                        <div style={{ width: 64 }}>
+                          <MiniBar value={score ?? 0} color={color} />
+                        </div>
+                      </td>
+                      <td style={{ color: 'var(--color-text-tertiary)', fontSize: '0.78rem' }}>
+                        {latest?.assessedAt ? formatDate(latest.assessedAt) : '—'}
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onSelectBusiness(business);
+                          }}
+                        >
+                          View &#8250;
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         <div className="disclaimer" style={{ marginTop: '1rem' }}>
           <span className="disclaimer-icon">&#9888;</span>
-          All scores are illustrative demo values — not validated credit ratings or live climate observations.
+          Scores are illustrative prototype heuristics computed by the backend from Open-Meteo data where available — not
+          validated credit ratings or probabilities of default.
         </div>
       </div>
     </div>

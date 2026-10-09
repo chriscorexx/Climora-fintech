@@ -12,7 +12,8 @@ export default defineConfig({
     strictPort: true,
   },
   build: {
-    outDir: resolve('../dist'),
+    // Separate from electron-builder's default `dist/` output directory.
+    outDir: resolve('dist-renderer'),
     emptyOutDir: true,
   },
 });

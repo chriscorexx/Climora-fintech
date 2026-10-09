@@ -61,19 +61,21 @@ export default function Sidebar({ activePage, setActivePage, role, setRole }) {
       <div className="sidebar-section-label">
         {role === 'lender' ? 'Lender Workspace' : 'Owner Workspace'}
       </div>
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" aria-label={role === 'lender' ? 'Lender navigation' : 'Owner navigation'}>
         {nav.map((item) => (
-          <div
+          <button
             key={item.id}
+            type="button"
             className={`sidebar-nav-item ${activePage === item.id ? 'active' : ''}`}
             onClick={() => setActivePage(item.id)}
+            aria-current={activePage === item.id ? 'page' : undefined}
           >
-            <span className="nav-icon">{item.icon}</span>
+            <span className="nav-icon" aria-hidden="true">{item.icon}</span>
             <span>{item.label}</span>
             {item.badge && (
               <span className="nav-badge">{item.badge}</span>
             )}
-          </div>
+          </button>
         ))}
       </nav>
 
