@@ -1,6 +1,6 @@
 import React from 'react';
 import { MSMEProfile, UserRole, RiskCategory } from '../../types';
-import { Building2, ChevronDown, Plus, Printer, RefreshCw, Layers, Sun, Moon, Monitor } from 'lucide-react';
+import { Building2, ChevronDown, Plus, Printer, RefreshCw, Layers, Sun, Moon, Monitor, LayoutDashboard } from 'lucide-react';
 import { RiskBadge } from '../common/RiskBadge';
 import { useTheme } from '../common/ThemeProvider';
 import { THEME_MODES } from '../../core/theme';
@@ -23,6 +23,13 @@ interface TopBarProps {
 const MODE_ICONS = { light: Sun, dark: Moon, system: Monitor } as const;
 const MODE_LABELS = { light: 'Light', dark: 'Dark', system: 'System' } as const;
 
+const WORKSPACE_ICONS = { lender: Layers, msme_owner: Building2, command_center: LayoutDashboard } as const;
+const WORKSPACE_LABELS = {
+  lender: { full: 'Lender Workspace', short: 'Lender' },
+  msme_owner: { full: 'MSME Owner', short: 'Owner' },
+  command_center: { full: 'Command Center', short: 'Command' },
+} as const;
+
 export const TopBar: React.FC<TopBarProps> = ({
   role,
   onRoleChange,
@@ -43,7 +50,7 @@ export const TopBar: React.FC<TopBarProps> = ({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Brand & Tagline */}
         <div className="flex items-center gap-3">
-          <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-black border border-emerald-500/30 overflow-hidden shadow-sm">
+          <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-fin-sunken border border-emerald-500/30 overflow-hidden shadow-sm">
             <img
               src={climoraLogo}
               alt="Climora Logo"
@@ -53,7 +60,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-extrabold text-lg tracking-tight text-fin-text font-sans">CLIMORA</span>
-              <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+              <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                 IFC FIN-05
               </span>
             </div>
@@ -63,30 +70,26 @@ export const TopBar: React.FC<TopBarProps> = ({
           </div>
         </div>
 
-        {/* Center: Role Switcher */}
+        {/* Center: Workspace Switcher */}
         <div className="flex items-center bg-fin-card border border-fin-border p-1 rounded-xl self-start md:self-auto">
-          <button
-            onClick={() => onRoleChange('lender')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              role === 'lender'
-                ? 'bg-emerald-500 text-slate-950 font-semibold shadow-sm'
-                : 'text-fin-muted hover:text-fin-text'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>Lender Workspace</span>
-          </button>
-          <button
-            onClick={() => onRoleChange('msme_owner')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              role === 'msme_owner'
-                ? 'bg-emerald-500 text-slate-950 font-semibold shadow-sm'
-                : 'text-fin-muted hover:text-fin-text'
-            }`}
-          >
-            <Building2 className="w-3.5 h-3.5" />
-            <span>MSME Owner Workspace</span>
-          </button>
+          {(Object.keys(WORKSPACE_LABELS) as UserRole[]).map((workspace) => {
+            const Icon = WORKSPACE_ICONS[workspace];
+            return (
+              <button
+                key={workspace}
+                onClick={() => onRoleChange(workspace)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  role === workspace
+                    ? 'bg-emerald-500 text-neutral-950 font-semibold shadow-sm'
+                    : 'text-fin-muted hover:text-fin-text'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span className="hidden 2xl:inline">{WORKSPACE_LABELS[workspace].full}</span>
+                <span className="2xl:hidden">{WORKSPACE_LABELS[workspace].short}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Right: Appearance Mode, Active Enterprise Selector & Actions */}
@@ -110,7 +113,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                   aria-label={m === 'system' ? 'System appearance mode (follows device)' : `${label} appearance mode`}
                   aria-pressed={isActive}
                   className={`p-1.5 rounded-lg transition-all ${
-                    isActive ? 'bg-emerald-500 text-slate-950 shadow-sm' : 'text-fin-muted hover:text-fin-text'
+                    isActive ? 'bg-emerald-500 text-neutral-950 shadow-sm' : 'text-fin-muted hover:text-fin-text'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />

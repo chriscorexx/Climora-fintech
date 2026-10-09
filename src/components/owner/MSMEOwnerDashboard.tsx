@@ -104,19 +104,19 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
               (activeProfile.financials?.monthlyOperatingExpenses || 1)
             ).toFixed(1)} mo`}
             subtitle={`₹${((activeProfile.financials?.availableCashReserves ?? 0) / 100000).toFixed(1)}L in reserves`}
-            icon={<ShieldCheck className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />}
+            icon={<ShieldCheck className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />}
           />
           <MetricCard
             label="Resilience Progress"
             value={`${completedCount}/${assessment.mitigationRecommendations.length}`}
             subtitle="Completed climate mitigation measures"
-            icon={<Award className="w-4 h-4 text-amber-600 dark:text-amber-400" />}
+            icon={<Award className="w-4 h-4 text-amber-700 dark:text-amber-300" />}
           />
           <MetricCard
             label="Matched Subsidies"
             value={eligibleSchemes.length}
             subtitle="Central & State MSME schemes"
-            icon={<ExternalLink className="w-4 h-4 text-purple-600 dark:text-purple-400" />}
+            icon={<ExternalLink className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />}
           />
         </div>
       </div>
@@ -167,18 +167,18 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
                     key={idx}
                     className={`p-2 rounded-xl border flex flex-col items-center justify-between min-w-[70px] ${
                       isRain
-                        ? 'border-cyan-500/30 bg-cyan-500/10 dark:bg-cyan-950/20'
+                        ? 'border-neutral-400/40 bg-neutral-500/10 dark:bg-neutral-400/10'
                         : isHot
-                        ? 'border-amber-500/30 bg-amber-500/10 dark:bg-amber-950/20'
+                        ? 'border-amber-500/30 bg-amber-500/10 dark:bg-amber-500/15'
                         : 'border-fin-border bg-fin-inset/60'
                     }`}
                   >
                     <span className="text-[10px] font-semibold text-fin-muted uppercase">{dayName}</span>
                     <div className="my-1.5">
                       {isRain ? (
-                        <CloudRain className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                        <CloudRain className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
                       ) : isHot ? (
-                        <Flame className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                        <Flame className="w-4 h-4 text-amber-700 dark:text-amber-300" />
                       ) : (
                         <Droplets className="w-4 h-4 text-fin-muted" />
                       )}
@@ -220,7 +220,7 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
                     onClick={() => onToggleAction(mit.id)}
                     className={`p-4 rounded-xl border cursor-pointer transition-all ${
                       isCompleted
-                        ? 'border-emerald-500/40 bg-emerald-500/10 dark:bg-emerald-950/20'
+                        ? 'border-emerald-500/40 bg-emerald-500/10 dark:bg-emerald-500/15'
                         : 'border-fin-border bg-fin-inset/60 hover:border-fin-hover'
                     }`}
                   >
@@ -272,7 +272,7 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
                   Verified central & state resilience incentives matching your profile
                 </p>
               </div>
-              <span className="text-[10px] font-mono bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded font-semibold">
+              <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded font-semibold">
                 {eligibleSchemes.length} Eligible
               </span>
             </div>

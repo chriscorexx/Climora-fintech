@@ -111,7 +111,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/60 backdrop-blur-sm">
       <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-fin-card border border-fin-border shadow-2xl p-6">
         <div className="flex items-center justify-between pb-4 border-b border-fin-border">
           <div>
@@ -215,12 +215,12 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                   disabled={isGeocoding}
                   className="w-full py-1.5 px-3 rounded-lg bg-fin-inset hover:bg-fin-sunken text-fin-text font-medium flex items-center justify-center gap-1.5 transition-colors border border-fin-border"
                 >
-                  {isGeocoding ? <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" /> : <MapPin className="w-3.5 h-3.5 text-emerald-400" />}
+                  {isGeocoding ? <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600 dark:text-emerald-400" /> : <MapPin className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />}
                   <span>Geocode Location</span>
                 </button>
               </div>
             </div>
-            {geocodeMsg && <div className="text-[11px] font-mono text-emerald-400">{geocodeMsg}</div>}
+            {geocodeMsg && <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">{geocodeMsg}</div>}
           </div>
 
           {/* Section 3: Monthly Financial Indicators */}
@@ -282,7 +282,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
             <div className="text-[11px] font-mono uppercase text-fin-muted">Physical Resilience & Climate Mitigations</div>
             <div>
               <label className="text-fin-muted block mb-1">
-                Plinth Elevation Above Street Level: <span className="font-mono text-emerald-400 font-bold">{plinthHeight}m</span>
+                Plinth Elevation Above Street Level: <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{plinthHeight}m</span>
               </label>
               <input
                 type="range"
@@ -353,7 +353,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold transition-colors flex items-center gap-1.5 shadow-sm"
+              className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold transition-colors flex items-center gap-1.5 shadow-sm"
             >
               <Check className="w-4 h-4" />
               <span>Save & Recalculate Assessment</span>

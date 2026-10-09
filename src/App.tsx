@@ -15,6 +15,7 @@ import { assessMSMEClimateRisk } from './core/riskEngine';
 import { matchSchemesForProfile } from './core/schemeMatcher';
 import { apiClient } from './services/apiClient';
 import { TopBar } from './components/navigation/TopBar';
+import { CommandCenterDashboard } from './components/dashboard/CommandCenterDashboard';
 import { LenderDashboard } from './components/lender/LenderDashboard';
 import { MSMEOwnerDashboard } from './components/owner/MSMEOwnerDashboard';
 import { ProfileEditModal } from './components/owner/ProfileEditModal';
@@ -191,6 +192,23 @@ export const App: React.FC = () => {
                 climate={climate!}
                 onSelectProfile={handleSelectProfile}
                 onOpenReportModal={() => setIsReportModalOpen(true)}
+              />
+            ) : role === 'command_center' ? (
+              <CommandCenterDashboard
+                profiles={profiles}
+                activeProfile={activeProfile}
+                assessment={assessment}
+                climate={climate!}
+                matchedSchemes={matchedSchemes}
+                completedActionIds={completedActionIds}
+                onSelectProfile={handleSelectProfile}
+                onOpenReportModal={() => setIsReportModalOpen(true)}
+                onOpenEditModal={() => {
+                  setIsNewProfileModal(false);
+                  setIsEditModalOpen(true);
+                }}
+                onRefreshClimate={handleRefreshClimate}
+                isRefreshing={isLoadingClimate}
               />
             ) : (
               <MSMEOwnerDashboard

@@ -2,37 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Light theme (default tokens) */
+/* Light theme (default tokens) — neutral greyscale ramp */
 :root {
-  --fin-bg: 248 250 252;
+  --fin-bg: 250 250 252;
   --fin-card: 255 255 255;
-  --fin-elevated: 241 245 249;
-  --fin-inset: 241 245 249;
-  --fin-border: 226 232 240;
-  --fin-hover: 226 232 240;
-  --fin-muted: 100 116 139;
-  --fin-text: 15 23 42;
-  --fin-secondary: 51 65 85;
-  --fin-sunken: 226 232 240;
+  --fin-elevated: 245 245 247;
+  --fin-inset: 245 245 247;
+  --fin-border: 226 228 232;
+  --fin-hover: 229 231 235;
+  --fin-muted: 113 118 128;
+  --fin-text: 12 13 15;
+  --fin-secondary: 82 86 94;
+  --fin-sunken: 229 231 235;
+  --fin-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.05), 0 4px 16px -4px rgba(0, 0, 0, 0.08);
+  --fin-shadow-elevated: 0 8px 30px -6px rgba(0, 0, 0, 0.14);
   color-scheme: light;
 }
 
-/* Dark theme overrides (matches original Climora palette) */
+/* Dark theme overrides — pure black and neutral greys only (zero blue) */
 .dark {
-  --fin-bg: 9 13 22;
-  --fin-card: 15 22 38;
-  --fin-elevated: 23 34 57;
-  --fin-inset: 15 23 42;
-  --fin-border: 31 46 77;
-  --fin-hover: 38 56 94;
-  --fin-muted: 138 153 173;
-  --fin-text: 241 245 249;
-  --fin-secondary: 203 213 225;
-  --fin-sunken: 30 41 59;
+  --fin-bg: 0 0 0;
+  --fin-card: 10 10 10;
+  --fin-elevated: 20 20 20;
+  --fin-inset: 13 13 13;
+  --fin-border: 38 38 38;
+  --fin-hover: 51 51 51;
+  --fin-muted: 163 163 163;
+  --fin-text: 250 250 250;
+  --fin-secondary: 212 212 212;
+  --fin-sunken: 5 5 5;
+  --fin-shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.6);
+  --fin-shadow-elevated: 0 10px 30px -5px rgba(0, 0, 0, 0.75);
   color-scheme: dark;
 }
 
 @layer base {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--fin-border)) rgb(var(--fin-bg));
+  }
+
   body {
     background-color: rgb(var(--fin-bg));
     color: rgb(var(--fin-text));
@@ -64,11 +73,36 @@
   background: rgb(var(--fin-hover));
 }
 
+/* Print helpers (deterministic light output in both UI themes) */
+.print-surface {
+  background-color: #FFFFFF !important;
+  border-color: #E5E5E5 !important;
+}
+.print-muted-surface {
+  background-color: #F5F5F5 !important;
+  border-color: #E5E5E5 !important;
+}
+.print-strong-text {
+  color: #0A0A0A !important;
+}
+.print-muted-text {
+  color: #525252 !important;
+}
+.print-divider > * + * {
+  border-color: #E5E5E5 !important;
+}
+.print-scrim {
+  background: transparent !important;
+  position: static !important;
+  padding: 0 !important;
+  backdrop-filter: none !important;
+}
+
 /* Print Styles for Executive Credit Memo */
 @media print {
   body {
     background: #FFFFFF !important;
-    color: #0F172A !important;
+    color: #0A0A0A !important;
   }
   .no-print {
     display: none !important;

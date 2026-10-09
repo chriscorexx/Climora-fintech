@@ -5,8 +5,8 @@ export const THEME_MODES: ThemeMode[] = ['light', 'dark', 'system'];
 export const THEME_STORAGE_KEY = 'climora-ui-mode';
 
 export const THEME_COLORS: Record<ResolvedTheme, string> = {
-  light: '#F8FAFC',
-  dark: '#090D16',
+  light: '#FAFAFA',
+  dark: '#000000',
 };
 
 const DARK_QUERY = '(prefers-color-scheme: dark)';

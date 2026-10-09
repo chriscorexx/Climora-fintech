@@ -15,17 +15,17 @@ export const RiskBadge: React.FC<RiskBadgeProps> = ({ category, score, size = 'm
       label: 'Low Risk',
     },
     moderate: {
-      bg: 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400',
+      bg: 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300',
       dot: 'bg-amber-400',
       label: 'Moderate Risk',
     },
     high: {
-      bg: 'bg-orange-500/10 border-orange-500/30 text-orange-600 dark:text-orange-400',
+      bg: 'bg-orange-500/10 border-orange-500/30 text-orange-700 dark:text-orange-300',
       dot: 'bg-orange-400',
       label: 'High Risk',
     },
     severe: {
-      bg: 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400',
+      bg: 'bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300',
       dot: 'bg-rose-400',
       label: 'Severe Risk',
     },

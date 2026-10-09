@@ -23,8 +23,8 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 }) => {
   const borderClass = {
     default: 'border-fin-border hover:border-fin-hover',
-    alert: 'border-rose-500/40 bg-rose-500/10 dark:bg-rose-950/10',
-    highlight: 'border-emerald-500/40 bg-emerald-500/10 dark:bg-emerald-950/10',
+    alert: 'border-rose-500/40 bg-rose-500/10 dark:bg-rose-500/15',
+    highlight: 'border-emerald-500/40 bg-emerald-500/10 dark:bg-emerald-500/15',
   }[variant];
 
   return (
@@ -44,7 +44,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
                 ? 'text-fin-muted'
                 : change.isPositive
                 ? 'text-emerald-600 dark:text-emerald-400'
-                : 'text-rose-600 dark:text-rose-400'
+                : 'text-rose-700 dark:text-rose-300'
             }`}
           >
             {change.value}

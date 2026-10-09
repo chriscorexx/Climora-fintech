@@ -11,6 +11,8 @@ const STORAGE_KEYS = {
   UI_MODE: THEME_STORAGE_KEY,
 };
 
+const USER_ROLES: UserRole[] = ['lender', 'msme_owner', 'command_center'];
+
 export function getStoredProfiles(): MSMEProfile[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.PROFILES);
@@ -58,8 +60,10 @@ export function setActiveProfileId(id: string): void {
 
 export function getStoredRole(): UserRole {
   try {
-    const role = localStorage.getItem(STORAGE_KEYS.USER_ROLE);
-    return role === 'msme_owner' ? 'msme_owner' : 'lender';
+    const raw = localStorage.getItem(STORAGE_KEYS.USER_ROLE);
+    const parsed = normalizeRole(raw);
+    if (parsed) return parsed;
+    return raw === 'msme_owner' ? 'msme_owner' : 'lender';
   } catch {
     return 'lender';
   }
@@ -71,6 +75,11 @@ export function saveStoredRole(role: UserRole): void {
   } catch (err) {
     console.error('Failed to save user role:', err);
   }
+}
+
+export function normalizeRole(value: unknown): UserRole | null {
+  if (typeof value !== 'string') return null;
+  return (USER_ROLES as string[]).includes(value) ? (value as UserRole) : null;
 }
 
 export function getCompletedActionIds(): string[] {

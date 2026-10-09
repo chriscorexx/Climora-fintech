@@ -15,7 +15,7 @@ export type IndustryType =
 
 export type RiskCategory = 'low' | 'moderate' | 'high' | 'severe';
 
-export type UserRole = 'lender' | 'msme_owner';
+export type UserRole = 'lender' | 'msme_owner' | 'command_center';
 
 export interface LocationData {
   city: string;

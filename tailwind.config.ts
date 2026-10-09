@@ -33,8 +33,8 @@ const config: Config = {
         mono: ['JetBrains Mono', 'Fira Code', 'Courier New', 'monospace'],
       },
       boxShadow: {
-        'fin-card': '0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-        'fin-elevated': '0 10px 30px -5px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08)',
+        'fin-card': 'var(--fin-shadow-card)',
+        'fin-elevated': 'var(--fin-shadow-elevated)',
       }
     },
   },

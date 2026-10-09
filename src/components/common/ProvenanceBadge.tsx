@@ -25,8 +25,8 @@ export const ProvenanceBadge: React.FC<ProvenanceBadgeProps> = ({ isLive, provid
           </>
         ) : (
           <>
-            <Radio className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-            <span className="text-amber-600 dark:text-amber-400">Calibrated Baseline</span>
+            <Radio className="w-3 h-3 text-amber-700 dark:text-amber-300" />
+            <span className="text-amber-700 dark:text-amber-300">Calibrated Baseline</span>
           </>
         )}
       </span>
