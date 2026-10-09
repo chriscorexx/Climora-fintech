@@ -54,7 +54,7 @@ export default function SettingsPage() {
           ))}
         </div>
         <button className="btn btn-primary btn-sm" onClick={handleSave}>
-          {saved ? '&#10003; Saved' : 'Save Settings'}
+          {saved ? <>&#10003; Saved</> : 'Save Settings'}
         </button>
       </div>
 

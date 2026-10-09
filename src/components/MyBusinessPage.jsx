@@ -38,7 +38,7 @@ export default function MyBusinessPage() {
           className={`btn btn-sm ${editing ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setEditing(!editing)}
         >
-          {editing ? '&#10003; Save Changes' : '&#9998; Edit Profile'}
+          {editing ? <>&#10003; Save Changes</> : <>&#9998; Edit Profile</>}
         </button>
       </div>
 

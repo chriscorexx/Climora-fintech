@@ -155,7 +155,7 @@ export default function ImprovementRoadmapPage() {
                       <span className={`badge ${pm.badge}`}>{action.priority}</span>
                       <span className={`badge ${sm.badge}`}>{action.status}</span>
                       <span style={{ color: 'var(--color-text-tertiary)', fontSize: '0.9rem' }}>
-                        {isOpen ? '&#9650;' : '&#9660;'}
+                        {isOpen ? <>&#9650;</> : <>&#9660;</>}
                       </span>
                     </div>
                   </div>

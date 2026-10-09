@@ -35,7 +35,7 @@ export default function LoanApplicationsPage({ onSelectBusiness }) {
     ? demoLoanApplications
     : demoLoanApplications.filter(l => l.status === statusFilter);
 
-  const app = selected || demoLoanApplications[0];
+  const app = filtered.find(loan => loan.id === selected?.id) || filtered[0] || demoLoanApplications[0];
 
   const statusCounts = demoLoanApplications.reduce((acc, l) => {
     acc[l.status] = (acc[l.status] || 0) + 1;
@@ -65,7 +65,7 @@ export default function LoanApplicationsPage({ onSelectBusiness }) {
           {filtered.map(loan => {
             const meta = STATUS_META[loan.status] || STATUS_META['Draft'];
             const cat  = getCategory(loan.riskScore);
-            const isActive = selected?.id === loan.id;
+            const isActive = app.id === loan.id;
             return (
               <div
                 key={loan.id}
@@ -175,7 +175,7 @@ export default function LoanApplicationsPage({ onSelectBusiness }) {
               return (
                 <div key={i} className="timeline-item">
                   <div className="timeline-dot" style={{ borderColor: c, color: c, background: `${c}18` }}>
-                    {isLast ? '&#9679;' : i + 1}
+                    {isLast ? <>&#9679;</> : i + 1}
                   </div>
                   <div style={{ paddingTop: '1px' }}>
                     <div style={{ fontSize: '0.82rem', color: 'var(--color-text)' }}>{t.event}</div>

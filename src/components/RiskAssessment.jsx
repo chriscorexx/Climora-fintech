@@ -137,7 +137,7 @@ export default function RiskAssessment({ businessId, onBack }) {
               &#9654; Recalculate
             </button>
             <button className="btn btn-ghost btn-sm" onClick={() => setShowWeights(!showWeights)} style={{ display: 'block', width: '100%' }}>
-              {showWeights ? '&#9650; Hide' : '&#9660; Weights'}
+              {showWeights ? <>&#9650; Hide</> : <>&#9660; Weights</>}
             </button>
           </div>
         </div>
