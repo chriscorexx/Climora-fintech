@@ -9,9 +9,9 @@
 
 ## 1. Overview
 
-Climora is a desktop application built with **Electron** that bundles a **React**-based dashboard with a **Node.js** backend process. The application retrieves public climate and weather data for a given MSME location, computes an illustrative rule-based climate-risk score, persists results locally in **SQLite**, and presents an explainable assessment with mitigation recommendations.
+Climora is an application built with **TypeScript** across both frontend and backend layers, with support for an **Electron** desktop shell and standard web browser execution. The application bundles a **React + TypeScript** dashboard with a **Node.js + TypeScript** core engine. The application retrieves public climate and weather data for a given MSME location, computes an illustrative rule-based climate-risk score, persists results locally in **SQLite**, and presents an explainable assessment with mitigation recommendations.
 
-This is a single-process desktop application. No microservices, no separate API server, and no cloud deployment are required for the primary demo. External HTTP calls to weather APIs are made directly from the Node.js/Electron main process, not from the browser renderer.
+This is a single-runtime application. No external microservices or cloud servers are required for the primary demo. External HTTP calls to weather APIs are made with typed API clients in TypeScript.
 
 ---
 
@@ -21,10 +21,10 @@ This is a single-process desktop application. No microservices, no separate API 
 
 | Layer | Technology | Role |
 |---|---|---|
-| Desktop shell | **Electron** | Cross-platform desktop container (Windows, macOS, Linux). Hosts the React renderer and provides the Node.js main process for backend logic, file I/O, and external API calls. |
-| Renderer (UI) | **React** | Renders the dashboard, MSME profile forms, risk-score display, contributing-factor breakdown, and recommendations. Bundled with Vite or Webpack via `electron-forge` or `electron-builder`. |
-| Backend logic | **Node.js** | Runs in Electron's main process. Handles input validation, external API integration (Open-Meteo), risk-engine calculation, and all SQLite persistence. |
-| Persistence | **SQLite** | Local relational database stored in Electron's user data directory. Stores business profiles, assessment results, metadata, and assessment history. |
+| Desktop shell | **Electron (TypeScript)** | Cross-platform desktop container (Windows, macOS, Linux). Hosts the React renderer and provides the Node.js main process for backend logic, file I/O, and external API calls. |
+| Renderer (UI) | **React + TypeScript** | Renders the dashboard, MSME profile forms, risk-score display, contributing-factor breakdown, and recommendations. Bundled with Vite. |
+| Backend logic | **Node.js + TypeScript** | Handles input validation, external API integration (Open-Meteo), risk-engine calculation, and all SQLite persistence. |
+| Persistence | **SQLite** | Local relational database stored in user data directory. Stores business profiles, assessment results, metadata, and assessment history. |
 
 ### 2.2 Architecture Pattern
 
@@ -74,8 +74,8 @@ This is a single-process desktop application. No microservices, no separate API 
 |---|---|---|
 | **Context isolation** | `contextIsolation: true` | Isolates the renderer from the main process to prevent XSS from accessing Node.js APIs. |
 | **Node integration in renderer** | `nodeIntegration: false` | Disables direct Node.js access from React/HTML to reduce attack surface. |
-| **Preload script** | `preload.js` | Exposes a vetted, narrowly-scoped API surface via `contextBridge.exposeInMainWorld`. Only approved IPC channels are callable from the renderer. |
-| **Input validation** | Zod or Joi schemas in Node.js main | All user inputs (business name, location, coordinates, financial figures) are validated server-side before use. Never trust renderer-side validation alone. |
+| **Preload script** | `preload.ts` | Exposes a vetted, narrowly-scoped API surface via typed `contextBridge.exposeInMainWorld`. Only approved IPC channels are callable from the renderer. |
+| **Input validation** | Zod schemas in TypeScript | All user inputs (business name, location, coordinates, financial figures) are validated with strongly typed Zod schemas. Never trust renderer-side validation alone. |
 | **SQL injection** | Parameterized queries (`?` placeholders) | All SQLite operations use parameterized queries. No string concatenation in SQL. |
 | **API credential handling** | `process.env` via `.env` or Electron `safeStorage` | If any API keys are needed in future, they are loaded from environment variables or Electron secure storage — never hardcoded. |
 | **Network calls** | From main process only | External HTTP requests originate from Electron's main process, not the renderer, preventing CORS and reducing exposure. |
@@ -279,43 +279,41 @@ This risk score is an **illustrative prototype heuristic**. It is **not** a vali
 
 | Category | Tool | Purpose |
 |---|---|---|
-| **Package management** | npm (Node Package Manager) | Manages React, Electron, and Node.js dependencies. |
-| **Build tooling** | Vite or Webpack | Bundles the React renderer for Electron. |
-| **Electron packaging** | electron-forge or electron-builder | Creates distributable desktop app packages. |
+| **Language** | TypeScript 5+ | End-to-end type safety across domain models, UI, and backend logic. |
+| **Package management** | npm (Node Package Manager) | Manages dependencies. |
+| **Build tooling** | Vite | Ultra-fast bundling of React + TypeScript renderer. |
+| **Electron packaging** | electron-builder | Creates cross-platform desktop packages. |
 | **Version control** | Git | Local and feature-branch version control. |
 | **Remote repository** | GitHub | Hosted repository, collaboration, issue tracking, and CI. |
-| **UI/UX design** | Figma | Wireframes, mockups, and component design. |
-| **AI-assisted development** | Kilo Code, OpenCode | Code assistance and review. Not runtime dependencies. |
+| **UI/UX design** | Tailwind CSS + Lucide Icons | Clean FinTech design system. |
 
 ---
 
-## 8. Proposed Supporting Libraries
-
-> The following libraries are **proposed** based on common patterns for Electron + React + Node.js stacks. They have **not** been installed yet. Final selection will occur during implementation.
+## 8. Supporting Libraries
 
 ### 8.1 React / Renderer Libraries
 
 | Library | Purpose |
 |---|---|
-| `react`, `react-dom` | Core UI rendering. |
-| `react-router-dom` | Client-side routing between dashboard, profile, and history views. |
-| `zustand` or `react-context` | State management for the active profile and assessment state. |
-| `recharts` or `chart.js` | Visualization of risk scores and contributing-factor breakdowns. |
+| `react`, `react-dom` | Core UI rendering with React 18 & TypeScript. |
+| `lucide-react` | Institutional financial and environmental icons. |
+| `recharts` | Visualizations for risk scores, contributing hazards, and DSCR cashflow trends. |
+| `leaflet`, `react-leaflet` | Geospatial hazard mapping. |
 
-### 8.2 Node.js / Backend Libraries
+### 8.2 TypeScript / Backend Services
 
 | Library | Purpose |
 |---|---|
-| `better-sqlite3` or `sqlite3` | Synchronous SQLite access from the Node.js main process. `better-sqlite3` is preferred for performance and synchronous simplicity in Electron. |
-| `zod` or `joi` | Schema-based input validation for all user inputs. |
-| `node-fetch` or built-in `fetch` (Node 18+) | HTTP requests to the Open-Meteo API. |
+| `better-sqlite3` / `sql.js` | Embedded local SQLite persistence for business profiles and assessments. |
+| `zod` | Strongly typed schema-based input validation. |
+| Built-in `fetch` | HTTP requests to the Open-Meteo API. |
 
 ### 8.3 Electron / Packaging Libraries
 
 | Library | Purpose |
 |---|---|
 | `electron` | Core Electron framework. |
-| `electron-forge` or `electron-builder` | Application packaging and distribution. |
+| `electron-builder` | Desktop application packaging. |
 
 ---
 

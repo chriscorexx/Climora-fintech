@@ -1,74 +1,52 @@
 {
   "name": "climora",
-  "version": "0.1.0",
-  "description": "Climate-adjusted risk scoring and loan readiness for MSMEs",
-  "main": "electron/main.js",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Climora — Climate-Adjusted Risk Scoring & FinTech Platform for MSMEs",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
-    "dev": "concurrently \"npm:dev:web\" \"wait-on tcp:5173 && npm run dev:electron\"",
-    "dev:web": "vite",
-    "dev:electron": "ELECTRON_RENDERER_URL=http://localhost:5173 node scripts/dev-electron.mjs",
-    "build": "vite build && electron-builder build",
-    "lint": "eslint src/ electron/ scripts/ --fix",
+    "dev": "concurrently -k -p \"[{name}]\" -n \"SERVER,WEB,DESKTOP\" -c \"cyan,magenta,green\" \"npm run dev:server\" \"npm run dev:client\" \"node scripts/dev-electron.mjs\"",
+    "dev:web": "concurrently -k -p \"[{name}]\" -n \"SERVER,CLIENT\" -c \"cyan,magenta\" \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:client": "vite",
+    "dev:server": "tsx watch server/src/server.ts",
+    "desktop": "node scripts/dev-electron.mjs",
+    "server": "tsx server/src/server.ts",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
     "test": "vitest run"
   },
-  "allowScripts": {
-    "electron": "postinstall",
-    "esbuild": "postinstall",
-    "electron@33.2.0": true,
-    "esbuild@0.21.5": true,
-    "better-sqlite3@9.6.0": true
-  },
-  "build": {
-    "appId": "com.climora.app",
-    "productName": "Climora",
-    "directories": {
-      "output": "release"
-    },
-    "files": [
-      "dist-renderer/**/*",
-      "electron/**/*",
-      "node_modules/**/*",
-      "package.json"
-    ],
-    "extraMetadata": {
-      "main": "electron/main.js"
-    }
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/chriscorexx/Climora-fintech"
-  },
-  "keywords": [
-    "climate-risk",
-    "msme",
-    "lending",
-    "electron",
-    "react",
-    "node.js",
-    "sqlite"
-  ],
-  "author": "Climora Team",
-  "license": "MIT",
-  "devDependencies": {
-    "@types/react": "^18.3.11",
-    "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^5.1.0",
-    "concurrently": "^9.1.2",
-    "electron": "^33.2.0",
-    "electron-builder": "^25.0.0",
-    "eslint": "^9.12.1",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-react": "^7.37.2",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "vite": "^5.4.11",
-    "vitest": "^2.1.0",
-    "wait-on": "^8.0.1"
-  },
   "dependencies": {
-    "better-sqlite3": "^9.6.0",
+    "clsx": "^2.1.1",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.7",
+    "express": "^5.3.0",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.453.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "zod": "^3.25.76"
+    "react-leaflet": "^4.2.1",
+    "recharts": "^2.13.0",
+    "tailwind-merge": "^2.5.4",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/leaflet": "^1.9.14",
+    "@types/node": "^22.8.1",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^10.0.6",
+    "electron": "^44.7.0",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14",
+    "tsx": "^4.23.15",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.3",
+    "wait-on": "^9.5.1"
   }
 }

@@ -390,19 +390,19 @@ The application should show the source, date, coverage, and limitations of its i
 
 ## 12. Technology Stack
 
-The prototype will use an Electron desktop application with a React interface and Node.js logic.
+The prototype uses a unified **TypeScript** architecture with a **React + TypeScript** interface and **Node.js + TypeScript** core engine, supporting both web and Electron desktop execution.
 
-* **Electron:** Desktop application framework.
-* **React:** Dashboard and user interface.
+* **TypeScript:** Unified language across frontend and backend for strong typing and data reliability.
+* **React + TypeScript:** Dashboard and user interface with Tailwind CSS.
 * **Vite:** Frontend development and build tooling.
-* **Node.js:** Climate-data requests, assessment calculations, and application logic in the Electron main process.
-* **Open-Meteo API:** Weather-related indicators.
-* **SQLite (optional):** Local storage for demo assessments and improvement progress.
-* **Kilo CLI:** AI-assisted development workflow.
+* **Node.js + TypeScript:** Climate-data requests, assessment calculations, and application logic.
+* **Open-Meteo API:** Live weather, flood, and geocoding indicators with sample-data fallback.
+* **SQLite:** Local storage for business profiles, assessments, and resilience progress.
+* **Electron:** Desktop application container with secure typed preload bridge (`preload.ts`).
 
 No separate FastAPI backend is required for the initial version.
 
-The Electron application should use a secure preload script and a narrowly scoped IPC bridge. Keep context isolation enabled and Node integration disabled in the renderer; do not expose unrestricted Node.js access to the React interface.
+The application uses typed interfaces and context isolation; do not expose unrestricted Node.js access to the React interface.
 
 ## 13. Hackathon MVP Scope
 

@@ -10,8 +10,8 @@ Build a cross-platform desktop prototype, built with Electron, that helps lender
 The application is a single desktop Electron app with no separate server or microservices:
 
 - **Electron** hosts the application as a cross-platform desktop shell.
-- **React** (in the renderer process) provides the dashboard UI, profile forms, and results display.
-- **Node.js** (in Electron's main process) handles input validation, external API integration (Open-Meteo), the risk-scoring engine, and SQLite database access.
+- **React + TypeScript** (in the renderer process) provides the dashboard UI, profile forms, and results display.
+- **Node.js + TypeScript** (in Electron's main process or local services) handles input validation, external API integration (Open-Meteo), the risk-scoring engine, and SQLite database access.
 - **SQLite** stores business profiles, assessment results, and history locally.
 - **No Python, FastAPI, or server deployment** is required for the MVP.
 
