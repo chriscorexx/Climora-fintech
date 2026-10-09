@@ -1,147 +1,187 @@
 import React, { useState } from 'react';
 import { demoBusinesses, businessSectors } from '../data/demoData.js';
-import { Badge, Input } from './ui.jsx';
+
+function getCategory(score) {
+  if (score <= 24) return { label: 'Low',       badge: 'badge-low',       color: 'var(--color-low)'       };
+  if (score <= 49) return { label: 'Moderate',  badge: 'badge-moderate',  color: 'var(--color-moderate)'  };
+  if (score <= 74) return { label: 'High',       badge: 'badge-high',      color: 'var(--color-high)'      };
+  return              { label: 'Very High',  badge: 'badge-very-high', color: 'var(--color-very-high)' };
+}
+
+function fmt(n) {
+  if (!n) return '—';
+  return '$' + (n / 1000000).toFixed(1) + 'M';
+}
 
 export default function PortfolioPage({ onSelectBusiness }) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sectorFilter, setSectorFilter] = useState('all');
-  const [riskFilter, setRiskFilter] = useState('all');
+  const [search, setSearch]       = useState('');
+  const [sectorF, setSectorF]     = useState('all');
+  const [riskF, setRiskF]         = useState('all');
+  const [view, setView]           = useState('table'); // 'table' | 'cards'
 
-  const getCategory = (score) => {
-    if (score <= 24) return 'Low';
-    if (score <= 49) return 'Moderate';
-    if (score <= 74) return 'High';
-    return 'Very High';
-  };
-
-  const getCategoryBadgeVariant = (category) => {
-    const map = { Low: 'low', Moderate: 'moderate', High: 'high', 'Very High': 'veryHigh' };
-    return map[category] || 'default';
-  };
-
-  const filtered = demoBusinesses.filter((b) => {
-    const matchesSearch =
-      b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSector = sectorFilter === 'all' || b.sector === sectorFilter;
-    const matchesRisk =
-      riskFilter === 'all' || getCategory(b.assessment.overallScore) === riskFilter;
-    return matchesSearch && matchesSector && matchesRisk;
+  const filtered = demoBusinesses.filter(b => {
+    const q = search.toLowerCase();
+    const matchSearch = !q || b.name.toLowerCase().includes(q) || b.location.toLowerCase().includes(q);
+    const matchSector = sectorF === 'all' || b.sector === sectorF;
+    const matchRisk   = riskF   === 'all' || getCategory(b.assessment.overallScore).label === riskF;
+    return matchSearch && matchSector && matchRisk;
   });
 
   return (
     <div>
-      <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-        <Input
-          placeholder="Search by business name or location..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="search-input"
-          style={{ width: '280px' }}
-        />
-        <select
-          className="input"
-          style={{ width: '160px' }}
-          value={sectorFilter}
-          onChange={(e) => setSectorFilter(e.target.value)}
-        >
+      {/* Controls */}
+      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+        <div style={{ position: 'relative', flex: '1 1 220px', maxWidth: 280 }}>
+          <span style={{ position: 'absolute', left: '0.65rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-tertiary)', pointerEvents: 'none' }}>&#9906;</span>
+          <input
+            className="input"
+            style={{ paddingLeft: '1.8rem' }}
+            placeholder="Search by name or location..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+
+        <select className="select" style={{ width: 160 }} value={sectorF} onChange={e => setSectorF(e.target.value)}>
           <option value="all">All Sectors</option>
-          {Object.entries(businessSectors).map(([key, val]) => (
-            <option key={key} value={key}>{val.label}</option>
+          {Object.entries(businessSectors).map(([k, v]) => (
+            <option key={k} value={k}>{v.label}</option>
           ))}
         </select>
-        <select
-          className="input"
-          style={{ width: '160px' }}
-          value={riskFilter}
-          onChange={(e) => setRiskFilter(e.target.value)}
-        >
+
+        <select className="select" style={{ width: 150 }} value={riskF} onChange={e => setRiskF(e.target.value)}>
           <option value="all">All Risk Levels</option>
-          <option value="Low">Low</option>
-          <option value="Moderate">Moderate</option>
-          <option value="High">High</option>
-          <option value="Very High">Very High</option>
+          {['Low', 'Moderate', 'High', 'Very High'].map(r => (
+            <option key={r} value={r}>{r}</option>
+          ))}
         </select>
-        <Badge variant="demo">Showing {filtered.length} of {demoBusinesses.length} businesses</Badge>
+
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.4rem' }}>
+          <button className={`btn btn-sm ${view === 'table' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setView('table')}>
+            &#8803; Table
+          </button>
+          <button className={`btn btn-sm ${view === 'cards' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setView('cards')}>
+            &#9638; Cards
+          </button>
+        </div>
+
+        <span className="badge badge-primary">
+          {filtered.length} / {demoBusinesses.length} businesses
+        </span>
       </div>
 
       {filtered.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
-          <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1rem' }}>No businesses match your current filters.</p>
-          <button
-            className="btn btn-secondary"
-            onClick={() => {
-              setSearchQuery('');
-              setSectorFilter('all');
-              setRiskFilter('all');
-            }}
-          >
-            Clear Filters
-          </button>
+        <div className="card">
+          <div className="empty-state">
+            <div className="empty-state-icon">&#9906;</div>
+            <h3>No results</h3>
+            <p>No businesses match the current filters. Try clearing your search or filter.</p>
+            <button className="btn btn-secondary btn-sm" style={{ marginTop: '0.75rem' }} onClick={() => { setSearch(''); setSectorF('all'); setRiskF('all'); }}>
+              Clear filters
+            </button>
+          </div>
+        </div>
+      ) : view === 'cards' ? (
+        <div className="grid-auto-lg">
+          {filtered.map(b => {
+            const cat = getCategory(b.assessment.overallScore);
+            return (
+              <div
+                key={b.id}
+                className="card"
+                style={{ cursor: 'pointer', borderLeft: `3px solid ${cat.color}` }}
+                onClick={() => onSelectBusiness(b)}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                  <div>
+                    <div style={{ fontWeight: 700, marginBottom: '0.2rem' }}>{b.name}</div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-tertiary)' }}>
+                      {businessSectors[b.sector]?.label || b.sector}
+                    </div>
+                  </div>
+                  <span className={`badge ${cat.badge}`}>{cat.label}</span>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)', marginBottom: '0.75rem' }}>
+                  &#9906; {b.location}
+                </div>
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.75rem' }}>
+                  <div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Revenue</div>
+                    <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{fmt(b.revenue)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Employees</div>
+                    <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{b.employeeCount}</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '1.4rem', fontWeight: 800, color: cat.color }}>{b.assessment.overallScore}</span>
+                  <div className="progress-track" style={{ flex: 1, marginLeft: '0.75rem', height: 6 }}>
+                    <div className="progress-fill" style={{ width: `${b.assessment.overallScore}%`, background: cat.color }} />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : (
-        <div className="card">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Business</th>
-                <th>Sector</th>
-                <th>Location</th>
-                <th>Employees</th>
-                <th>Revenue</th>
-                <th>Risk Score</th>
-                <th>Category</th>
-                <th style={{ textAlign: 'right' }}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((business) => (
-                <tr
-                  key={business.id}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => onSelectBusiness(business)}
-                >
-                  <td style={{ fontWeight: 500, color: 'var(--color-text)' }}>{business.name}</td>
-                  <td style={{ color: 'var(--color-text-secondary)' }}>{businessSectors[business.sector]?.label || business.sector}</td>
-                  <td style={{ color: 'var(--color-text-secondary)' }}>{business.location}</td>
-                  <td style={{ color: 'var(--color-text-secondary)' }}>{business.employeeCount}</td>
-                  <td style={{ color: 'var(--color-text-secondary)' }}>${business.revenue?.toLocaleString()}</td>
-                  <td>
-                    <span style={{
-                      fontSize: '0.9rem',
-                      fontWeight: 700,
-                      color: business.assessment.overallScore <= 24
-                        ? 'var(--color-low)'
-                        : business.assessment.overallScore <= 49
-                          ? 'var(--color-moderate)'
-                          : business.assessment.overallScore <= 74
-                            ? 'var(--color-high)'
-                            : 'var(--color-very-high)',
-                    }}>
-                      {business.assessment.overallScore}
-                    </span>
-                  </td>
-                  <td><Badge variant={getCategoryBadgeVariant(getCategory(business.assessment.overallScore))}>{getCategory(business.assessment.overallScore)}</Badge></td>
-                  <td style={{ textAlign: 'right' }}>
-                    <button
-                      className="btn btn-secondary btn-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelectBusiness(business);
-                      }}
-                    >
-                      View Assessment
-                    </button>
-                  </td>
+        <div className="card" style={{ padding: 0 }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Business</th>
+                  <th>Sector</th>
+                  <th>Location</th>
+                  <th>Employees</th>
+                  <th>Revenue</th>
+                  <th>Score</th>
+                  <th>Category</th>
+                  <th>Last Assessed</th>
+                  <th style={{ textAlign: 'right' }}>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.map(b => {
+                  const cat = getCategory(b.assessment.overallScore);
+                  return (
+                    <tr key={b.id} className="clickable" onClick={() => onSelectBusiness(b)}>
+                      <td style={{ fontWeight: 600 }}>{b.name}</td>
+                      <td style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem' }}>
+                        {businessSectors[b.sector]?.label || b.sector}
+                      </td>
+                      <td style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem' }}>{b.location}</td>
+                      <td style={{ color: 'var(--color-text-secondary)' }}>{b.employeeCount}</td>
+                      <td style={{ color: 'var(--color-text-secondary)' }}>{fmt(b.revenue)}</td>
+                      <td>
+                        <span style={{ fontWeight: 800, fontSize: '1rem', color: cat.color }}>
+                          {b.assessment.overallScore}
+                        </span>
+                      </td>
+                      <td><span className={`badge ${cat.badge}`}>{cat.label}</span></td>
+                      <td style={{ color: 'var(--color-text-tertiary)', fontSize: '0.78rem' }}>
+                        {b.assessment.lastAssessed}
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={e => { e.stopPropagation(); onSelectBusiness(b); }}
+                        >
+                          View &#8250;
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
-      <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'var(--color-bg-tertiary)', borderRadius: 'var(--radius-md)' }}>
-        <Badge variant="simulated">Note: Displayed data is simulated demo data, not live climate observations.</Badge>
+      <div className="disclaimer" style={{ marginTop: '1rem' }}>
+        <span className="disclaimer-icon">&#9888;</span>
+        All data shown is simulated demo data. Risk scores are illustrative values — not validated credit ratings or live climate observations.
       </div>
     </div>
   );

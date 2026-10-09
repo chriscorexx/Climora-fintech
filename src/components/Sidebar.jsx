@@ -1,34 +1,93 @@
 import React from 'react';
+import logoSrc from '../assets/logo.jpg';
 
-export default function Sidebar({ activePage, setActivePage }) {
-  const navItems = [
-    { id: 'overview', label: 'Overview', icon: 'M' },
-    { id: 'portfolio', label: 'MSME Portfolio', icon: 'B' },
-    { id: 'assessment', label: 'Risk Assessments', icon: 'A' },
-    { id: 'reports', label: 'Reports', icon: 'R' },
-    { id: 'settings', label: 'Settings', icon: 'S' },
-  ];
+const LENDER_NAV = [
+  { id: 'overview',     label: 'Overview',          icon: '⊞',  badge: null },
+  { id: 'portfolio',    label: 'MSME Portfolio',     icon: '◫',  badge: null },
+  { id: 'assessment',   label: 'Risk Assessments',   icon: '◈',  badge: null },
+  { id: 'loanApps',     label: 'Loan Applications',  icon: '⊟',  badge: '3'  },
+  { id: 'reports',      label: 'Reports',            icon: '⊜',  badge: null },
+  { id: 'settings',     label: 'Settings',           icon: '⊙',  badge: null },
+];
+
+const OWNER_NAV = [
+  { id: 'ownerDashboard',   label: 'My Dashboard',       icon: '⊞',  badge: null },
+  { id: 'myBusiness',       label: 'My Business',        icon: '◫',  badge: null },
+  { id: 'climateExposure',  label: 'Climate Exposure',   icon: '◈',  badge: null },
+  { id: 'loanReadiness',    label: 'Loan Readiness',     icon: '⊟',  badge: null },
+  { id: 'roadmap',          label: 'Improvement Roadmap',icon: '◉',  badge: '2'  },
+  { id: 'documents',        label: 'Documents',          icon: '⊜',  badge: null },
+  { id: 'history',          label: 'Assessment History', icon: '⊙',  badge: null },
+];
+
+export default function Sidebar({ activePage, setActivePage, role, setRole }) {
+  const nav = role === 'lender' ? LENDER_NAV : OWNER_NAV;
+
+  const userName  = role === 'lender' ? 'Alex Rivera'    : 'Maria Santos';
+  const userInitials = role === 'lender' ? 'AR' : 'MS';
+  const userRole  = role === 'lender' ? 'Credit Analyst' : 'Business Owner';
+
+  const handleRoleSwitch = (r) => {
+    setRole(r);
+    setActivePage(r === 'lender' ? 'overview' : 'ownerDashboard');
+  };
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-header">
-        <div className="logo">
-          <div className="logo-icon">C</div>
-          <span className="logo-text">Climora</span>
-        </div>
+      {/* Logo */}
+      <div className="sidebar-logo">
+        <img src={logoSrc} alt="Climora logo" />
+        <span className="sidebar-logo-text">Climora</span>
+        <span className="sidebar-logo-badge">DEMO</span>
+      </div>
+
+      {/* Role switcher */}
+      <div className="role-switcher">
+        <button
+          className={`role-btn ${role === 'lender' ? 'active' : ''}`}
+          onClick={() => handleRoleSwitch('lender')}
+        >
+          ⊛ Lender
+        </button>
+        <button
+          className={`role-btn ${role === 'owner' ? 'active' : ''}`}
+          onClick={() => handleRoleSwitch('owner')}
+        >
+          ⊚ Owner
+        </button>
+      </div>
+
+      {/* Navigation */}
+      <div className="sidebar-section-label">
+        {role === 'lender' ? 'Lender Workspace' : 'Owner Workspace'}
       </div>
       <nav className="sidebar-nav">
-        {navItems.map((item) => (
+        {nav.map((item) => (
           <div
             key={item.id}
             className={`sidebar-nav-item ${activePage === item.id ? 'active' : ''}`}
             onClick={() => setActivePage(item.id)}
           >
-            <span className="icon">{item.icon}</span>
-            {item.label}
+            <span className="nav-icon">{item.icon}</span>
+            <span>{item.label}</span>
+            {item.badge && (
+              <span className="nav-badge">{item.badge}</span>
+            )}
           </div>
         ))}
       </nav>
+
+      {/* Footer user */}
+      <div className="sidebar-footer">
+        <div className="sidebar-user">
+          <div className="user-avatar">{userInitials}</div>
+          <div className="user-info">
+            <div className="user-name">{userName}</div>
+            <div className="user-role">{userRole}</div>
+          </div>
+          <span style={{ color: 'var(--color-text-tertiary)', fontSize: '0.75rem' }}>&#8942;</span>
+        </div>
+      </div>
     </aside>
   );
 }
