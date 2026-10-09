@@ -5,27 +5,28 @@
   "main": "electron/main.js",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm:dev:web\" \"wait-on http://localhost:5173 && ELECTRON_RENDERER_URL=http://localhost:5173 electron .\"",
+    "dev": "concurrently \"npm:dev:web\" \"wait-on tcp:5173 && npm run dev:electron\"",
     "dev:web": "vite",
-    "dev:electron": "ELECTRON_RENDERER_URL=http://localhost:5173 electron .",
+    "dev:electron": "ELECTRON_RENDERER_URL=http://localhost:5173 node scripts/dev-electron.mjs",
     "build": "vite build && electron-builder build",
-    "lint": "eslint src/ electron/ --fix",
+    "lint": "eslint src/ electron/ scripts/ --fix",
     "test": "vitest run"
   },
   "allowScripts": {
     "electron": "postinstall",
     "esbuild": "postinstall",
     "electron@33.2.0": true,
-    "esbuild@0.21.5": true
+    "esbuild@0.21.5": true,
+    "better-sqlite3@9.6.0": true
   },
   "build": {
     "appId": "com.climora.app",
     "productName": "Climora",
     "directories": {
-      "output": "dist"
+      "output": "release"
     },
     "files": [
-      "dist/**/*",
+      "dist-renderer/**/*",
       "electron/**/*",
       "node_modules/**/*",
       "package.json"
@@ -59,12 +60,15 @@
     "eslint": "^9.12.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "vite": "^5.4.11",
     "vitest": "^2.1.0",
     "wait-on": "^8.0.1"
   },
   "dependencies": {
+    "better-sqlite3": "^9.6.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "zod": "^3.25.76"
   }
 }

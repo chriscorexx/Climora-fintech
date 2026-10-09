@@ -14,23 +14,37 @@ import LoanReadinessPage from './components/LoanReadinessPage.jsx';
 import ImprovementRoadmapPage from './components/ImprovementRoadmapPage.jsx';
 import DocumentsPage from './components/DocumentsPage.jsx';
 import AssessmentHistoryPage from './components/AssessmentHistoryPage.jsx';
+import { useData } from './services/DataProvider.jsx';
+import { ErrorState, LoadingState } from './components/ui.jsx';
 
 export default function App() {
+  const { health, loading, error, refresh, businesses, currentBusiness, selectBusiness } = useData();
   const [role, setRole] = useState('lender'); // 'lender' | 'owner'
   const [activePage, setActivePage] = useState('overview');
-  const [selectedBusiness, setSelectedBusiness] = useState(null);
-  const [appInfo, setAppInfo] = useState({ version: '0.1.0' });
+  const [selectedId, setSelectedId] = useState(null);
 
   useEffect(() => {
     if (window.climora?.getAppInfo) {
-      window.climora.getAppInfo().then(setAppInfo);
+      window.climora.getAppInfo().then(() => {}).catch(() => {});
     }
   }, []);
 
+  const selectedBusiness =
+    businesses.find((business) => business.id === selectedId) || (role === 'owner' ? currentBusiness : null);
+
   const handleBusinessSelect = (business) => {
-    setSelectedBusiness(business);
+    setSelectedId(business?.id || null);
+    selectBusiness(business?.id || null);
     setActivePage('assessment');
   };
+
+  if (loading) {
+    return <LoadingState label="Connecting to the Climora backend…" rows={4} />;
+  }
+
+  if (error && !health.online) {
+    return <ErrorState error={{ message: error, isNetworkError: true }} onRetry={refresh} />;
+  }
 
   const renderPage = () => {
     switch (activePage) {

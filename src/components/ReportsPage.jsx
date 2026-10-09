@@ -1,91 +1,180 @@
 import React, { useState } from 'react';
-import { demoBusinesses } from '../data/demoData.js';
+import { useData } from '../services/DataProvider.jsx';
+import { api } from '../services/apiClient.js';
+import { useAsync } from '../hooks/useAsync.js';
+import { formatDate, formatDimension, formatIndustry, formatMoney } from '../services/mappers.js';
+import { EmptyState, ErrorState, LoadingState } from './ui.jsx';
 
-function getCategory(score) {
-  if (score <= 24) return 'Low';
-  if (score <= 49) return 'Moderate';
-  if (score <= 74) return 'High';
-  return 'Very High';
+const DISCLAIMER = [
+  'This report is generated from an illustrative prototype heuristic',
+  'scoring model. It is not a validated credit rating, a probability',
+  'of default, or an official financial assessment, and must not be',
+  'used as the sole basis for any lending decision.',
+].join('\n');
+
+function slug(value) {
+  return String(value || 'report').replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '').toLowerCase();
 }
 
-function generateTextReport(b) {
-  const dims = b.assessment.dimensions;
-  return [
+/** Builds a plain-text assessment report from a backend assessment record. */
+function generateTextReport(business, assessment, factors) {
+  const lines = [
     '================================================',
     '  CLIMORA — ILLUSTRATIVE CLIMATE RISK REPORT',
     '================================================',
     '',
-    `Business Name  : ${b.name}`,
-    `Sector         : ${b.sector.replace('_', ' ')}`,
-    `Location       : ${b.location}`,
-    `Employees      : ${b.employeeCount}`,
-    `Annual Revenue : $${b.revenue?.toLocaleString()}`,
+    `Business Name  : ${business.name}`,
+    `Industry       : ${formatIndustry(business.industry, business.sectors)}`,
+    `Location       : ${business.location}`,
+    business.state ? `State          : ${business.state}` : null,
+    `Employees      : ${business.employeeCount ?? '—'}`,
+    `Annual Turnover: ${formatMoney(business.annualTurnover)}`,
+    `Annual Expenses: ${formatMoney(business.annualExpenses)}`,
     '',
     '-- ILLUSTRATIVE RISK SCORE ----------------------',
-    `Overall Score  : ${b.assessment.overallScore} / 100`,
-    `Category       : ${getCategory(b.assessment.overallScore)}`,
-    `Last Assessed  : ${b.assessment.lastAssessed}`,
+  ].filter(Boolean);
+
+  if (!assessment) {
+    lines.push('Overall Score  : not assessed yet');
+    lines.push('Run an assessment to populate this report.');
+    return lines.join('\n');
+  }
+
+  lines.push(
+    `Overall Score  : ${assessment.overallScore} / 100`,
+    `Category       : ${assessment.category}`,
+    `Assessed       : ${formatDate(assessment.createdAt)}`,
+    `Assessment ID  : ${assessment.id}`,
+    `Complete       : ${assessment.isIncomplete ? 'no — missing ' + (assessment.missingDimensions || []).join(', ') : 'yes'}`,
     '',
-    '-- DIMENSION BREAKDOWN --------------------------',
-    `Flood Exposure         : ${dims.flood}  (weight 30%)`,
-    `Heavy Rainfall         : ${dims.rainfall}  (weight 25%)`,
-    `Extreme Heat           : ${dims.heat}  (weight 20%)`,
-    `Business Vulnerability : ${dims.business}  (weight 15%)`,
-    `Financial Resilience   : ${dims.financial}  (weight 10%)`,
+    '-- DIMENSION BREAKDOWN --------------------------'
+  );
+
+  for (const factor of factors) {
+    if (factor.score === null || factor.score === undefined) {
+      lines.push(`${formatDimension(factor.dimension).padEnd(24)} : no data (excluded from score)`);
+    } else {
+      lines.push(
+        `${formatDimension(factor.dimension).padEnd(24)} : ${String(factor.score).padStart(3)}  (weight ${Math.round((factor.effectiveWeight ?? factor.baseWeight ?? 0) * 100)}%)`,
+        `  why: ${factor.explanation}`
+      );
+    }
+  }
+
+  lines.push(
+    '',
+    '-- METHODOLOGY ----------------------------------',
+    assessment.methodology || '',
     '',
     '-- DATA NOTE ------------------------------------',
-    b.assessment.dataNote,
+    assessment.dataNote || '',
     '',
-    '-- DISCLAIMER -----------------------------------',
-    'This score is an illustrative prototype heuristic,',
-    'not a validated credit rating or probability of',
-    'default. It must not be used as the sole basis',
-    'for any lending decision.',
-    '================================================',
-    `Generated: ${new Date().toISOString().slice(0, 10)}`,
-  ].join('\n');
+    '-- DISCLAIMER -----------------------------------'
+  );
+
+  for (const line of DISCLAIMER.split('\n')) lines.push(line);
+
+  lines.push('================================================', `Generated: ${new Date().toISOString()}`);
+  return lines.join('\n');
 }
 
-function generateCSV(businesses) {
-  const header = 'Business,Sector,Location,Employees,Revenue,Overall Score,Category,Flood,Rainfall,Heat,Business,Financial,Last Assessed';
-  const rows = businesses.map(b => {
-    const d = b.assessment.dimensions;
+function generateCSV(rows) {
+  const header = [
+    'Business',
+    'Industry',
+    'Location',
+    'State',
+    'Size',
+    'Employees',
+    'Annual Turnover',
+    'Overall Score',
+    'Category',
+    'Complete',
+    'Flood',
+    'Rainfall',
+    'Heat',
+    'Business',
+    'Financial',
+    'Last Assessed',
+  ];
+  const body = rows.map((row) => {
+    const dimensions = row.dimensions || {};
+    const value = (key) => (dimensions[key] === undefined || dimensions[key] === null ? '' : dimensions[key]);
     return [
-      `"${b.name}"`, b.sector, `"${b.location}"`, b.employeeCount, b.revenue,
-      b.assessment.overallScore, getCategory(b.assessment.overallScore),
-      d.flood, d.rainfall, d.heat, d.business, d.financial,
-      b.assessment.lastAssessed,
+      `"${row.business.name}"`,
+      formatIndustry(row.business.industry, null),
+      `"${row.business.location || ''}"`,
+      `"${row.business.state || ''}"`,
+      row.business.businessSize || '',
+      row.business.employeeCount ?? '',
+      row.business.annualTurnover ?? '',
+      row.score ?? '',
+      row.category || 'Not assessed',
+      row.isIncomplete ? 'no' : 'yes',
+      value('flood'),
+      value('rainfall'),
+      value('heat'),
+      value('business'),
+      value('financial'),
+      row.assessedAt || '',
     ].join(',');
   });
-  return [header, ...rows].join('\n');
+  return [header.join(','), ...body].join('\n');
 }
 
 export default function ReportsPage() {
-  const [selectedId, setSelectedId] = useState(demoBusinesses[0].id);
-  const [preview, setPreview]       = useState('');
+  const { dashboard, businesses, sectors, health } = useData();
+  const [selectedId, setSelectedId] = useState('');
+  const [preview, setPreview] = useState('');
   const [previewType, setPreviewType] = useState(null);
 
-  const selected = demoBusinesses.find(b => b.id === selectedId);
+  const metrics = dashboard?.metrics || null;
+  const scoreByBusiness = new Map();
+  for (const entry of metrics?.latestAssessmentByBusiness || []) scoreByBusiness.set(entry.businessId, entry);
 
-  const handleTextPreview = () => {
-    setPreview(generateTextReport(selected));
-    setPreviewType('text');
-  };
+  const rows = (metrics?.businesses?.length ? metrics.businesses : businesses).map((business) => {
+    const latest = scoreByBusiness.get(business.id);
+    return {
+      business,
+      score: latest?.overallScore ?? null,
+      category: latest?.category ?? null,
+      assessedAt: latest?.createdAt ?? null,
+      isIncomplete: latest?.isIncomplete ?? true,
+      dimensions: {},
+    };
+  });
 
-  const handleCSVPreview = () => {
-    setPreview(generateCSV(demoBusinesses));
-    setPreviewType('csv');
-  };
+  const selected = rows.find((row) => row.business.id === selectedId) || rows[0] || null;
+
+  // Full factors for the selected business (history list omits them).
+  const detailState = useAsync(
+    () => (selected ? api.listBusinessAssessments(selected.business.id, { limit: 1 }) : Promise.resolve(null)),
+    { deps: [selected?.business.id], immediate: Boolean(selected) }
+  );
+  const latestAssessment = detailState.data?.assessments?.[0] || null;
+  const factors = latestAssessment?.factors || [];
 
   const handleDownload = (content, filename, mime) => {
     const blob = new Blob([content], { type: mime });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = filename;
-    a.click();
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.click();
     URL.revokeObjectURL(url);
   };
+
+  if (!selected) {
+    return (
+      <div className="card">
+        <EmptyState
+          title="Nothing to export"
+          message="Create an MSME profile and run an assessment to generate reports."
+        />
+      </div>
+    );
+  }
+
 
   return (
     <div>
@@ -93,45 +182,80 @@ export default function ReportsPage() {
       <div className="card mb-3">
         <div className="card-header">
           <h3>Assessment Report — Single Business</h3>
-          <span className="badge badge-demo">Text / CSV</span>
+          <span className="badge badge-demo">Text export</span>
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '1rem' }}>
+          <label className="sr-only" htmlFor="report-business">
+            Business to report on
+          </label>
           <select
+            id="report-business"
             className="select"
             style={{ flex: '1 1 200px', maxWidth: 300 }}
-            value={selectedId}
-            onChange={e => { setSelectedId(e.target.value); setPreview(''); setPreviewType(null); }}
+            value={selected.business.id}
+            onChange={(event) => {
+              setSelectedId(event.target.value);
+              setPreview('');
+              setPreviewType(null);
+            }}
           >
-            {demoBusinesses.map(b => (
-              <option key={b.id} value={b.id}>{b.name}</option>
+            {rows.map((row) => (
+              <option key={row.business.id} value={row.business.id}>
+                {row.business.name}
+              </option>
             ))}
           </select>
-          <button className="btn btn-secondary btn-sm" onClick={handleTextPreview}>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => {
+              setPreview(
+                generateTextReport({ ...selected.business, sectors }, latestAssessment, factors)
+              );
+              setPreviewType('text');
+            }}
+          >
             &#9654; Preview Report
           </button>
           <button
             className="btn btn-primary btn-sm"
-            onClick={() => handleDownload(generateTextReport(selected), `${selected.name.replace(/\s+/g, '_')}_report.txt`, 'text/plain')}
+            onClick={() =>
+              handleDownload(
+                generateTextReport({ ...selected.business, sectors }, latestAssessment, factors),
+                `${slug(selected.business.name)}_risk_report.txt`,
+                'text/plain'
+              )
+            }
           >
             &#8595; Download .txt
           </button>
         </div>
 
+        <p style={{ fontSize: '0.78rem', color: 'var(--color-text-tertiary)', marginBottom: '0.75rem' }}>
+          {latestAssessment
+            ? `Latest assessment: ${formatDate(latestAssessment.createdAt)} · score ${latestAssessment.overallScore}/100 (${latestAssessment.category})`
+            : 'This business has no recorded assessment yet — the report will state that explicitly.'}
+        </p>
+
+        {detailState.loading && <LoadingState label="Loading latest assessment…" rows={2} />}
+        {detailState.error && <ErrorState error={detailState.error} onRetry={detailState.reload} />}
+
         {previewType === 'text' && preview && (
-          <pre style={{
-            background: 'var(--color-bg)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            padding: '1rem',
-            fontSize: '0.75rem',
-            color: 'var(--color-text-secondary)',
-            fontFamily: "'Courier New', monospace",
-            overflowX: 'auto',
-            whiteSpace: 'pre',
-            maxHeight: 320,
-            overflowY: 'auto',
-          }}>
+          <pre
+            style={{
+              background: 'var(--color-bg)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
+              padding: '1rem',
+              fontSize: '0.75rem',
+              color: 'var(--color-text-secondary)',
+              fontFamily: "'Courier New', monospace",
+              overflowX: 'auto',
+              whiteSpace: 'pre',
+              maxHeight: 320,
+              overflowY: 'auto',
+            }}
+          >
             {preview}
           </pre>
         )}
@@ -144,37 +268,77 @@ export default function ReportsPage() {
           <span className="badge badge-demo">CSV</span>
         </div>
         <p style={{ fontSize: '0.83rem', color: 'var(--color-text-secondary)', marginBottom: '1rem' }}>
-          Export all {demoBusinesses.length} demo businesses with their risk scores and dimension breakdowns as a CSV file.
+          Export all {rows.length} businesses with their illustrative risk scores and the portfolio metrics computed by
+          the backend.
         </p>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <button className="btn btn-secondary btn-sm" onClick={handleCSVPreview}>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => {
+              setPreview(generateCSV(rows));
+              setPreviewType('csv');
+            }}
+          >
             &#9654; Preview CSV
           </button>
-          <button
-            className="btn btn-primary btn-sm"
-            onClick={() => handleDownload(generateCSV(demoBusinesses), 'climora_portfolio.csv', 'text/csv')}
-          >
+          <button className="btn btn-primary btn-sm" onClick={() => handleDownload(generateCSV(rows), 'climora_portfolio.csv', 'text/csv')}>
             &#8595; Download CSV
           </button>
+          <span className={health.online ? 'badge badge-demo' : 'badge badge-simulated'}>
+            {health.online ? 'Live data' : 'Backend offline'}
+          </span>
         </div>
 
         {previewType === 'csv' && preview && (
-          <pre style={{
-            marginTop: '1rem',
-            background: 'var(--color-bg)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            padding: '1rem',
-            fontSize: '0.72rem',
-            color: 'var(--color-text-secondary)',
-            fontFamily: "'Courier New', monospace",
-            overflowX: 'auto',
-            whiteSpace: 'pre',
-            maxHeight: 240,
-            overflowY: 'auto',
-          }}>
+          <pre
+            style={{
+              marginTop: '1rem',
+              background: 'var(--color-bg)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
+              padding: '1rem',
+              fontSize: '0.72rem',
+              color: 'var(--color-text-secondary)',
+              fontFamily: "'Courier New', monospace",
+              overflowX: 'auto',
+              whiteSpace: 'pre',
+              maxHeight: 240,
+              overflowY: 'auto',
+            }}
+          >
             {preview}
           </pre>
+        )}
+      </div>
+
+      {/* ── Portfolio summary ── */}
+      <div className="card mb-3">
+        <div className="card-header">
+          <h3>Portfolio Summary</h3>
+          <span className="badge badge-muted">From /api/dashboard</span>
+        </div>
+        {metrics ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem' }}>
+            {[
+              { label: 'Portfolio size', value: metrics.portfolioSize },
+              { label: 'Assessed', value: metrics.assessedBusinesses },
+              { label: 'Average score', value: metrics.averageRiskScore },
+              { label: 'Elevated risk', value: metrics.highRiskBusinesses },
+              { label: 'Incomplete', value: metrics.incompleteAssessments },
+              { label: 'Assessments (30d)', value: metrics.assessmentsLast30Days },
+              { label: 'Saved schemes', value: metrics.savedSchemes },
+              { label: 'Open actions', value: metrics.openImprovementActions },
+            ].map((item) => (
+              <div key={item.label} style={{ background: 'var(--color-bg-tertiary)', borderRadius: 'var(--radius-md)', padding: '0.75rem' }}>
+                <div style={{ fontSize: '0.68rem', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  {item.label}
+                </div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 800 }}>{item.value ?? '—'}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={{ fontSize: '0.83rem', color: 'var(--color-text-secondary)' }}>Dashboard metrics unavailable.</p>
         )}
       </div>
 
@@ -182,14 +346,16 @@ export default function ReportsPage() {
       <div className="card">
         <div className="card-header">
           <h3>Report Templates</h3>
-          <span className="badge badge-muted">Coming soon</span>
+          <span className="badge badge-muted">Not implemented</span>
         </div>
         <div className="grid-3" style={{ gap: '0.75rem' }}>
-          {['Lender Review Summary', 'Loan Readiness Pack', 'Improvement Progress Report'].map(t => (
-            <div key={t} style={{ padding: '1rem', background: 'var(--color-bg-tertiary)', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
+          {['Lender Review Summary', 'Loan Readiness Pack', 'Improvement Progress Report'].map((template) => (
+            <div key={template} style={{ padding: '1rem', background: 'var(--color-bg-tertiary)', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem', opacity: 0.5 }}>&#9671;</div>
-              <div style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.3rem' }}>{t}</div>
-              <button className="btn btn-secondary btn-xs" disabled>Coming soon</button>
+              <div style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.3rem' }}>{template}</div>
+              <button className="btn btn-secondary btn-xs" disabled>
+                Not implemented
+              </button>
             </div>
           ))}
         </div>
@@ -197,7 +363,8 @@ export default function ReportsPage() {
 
       <div className="disclaimer" style={{ marginTop: '1.25rem' }}>
         <span className="disclaimer-icon">&#9888;</span>
-        All exported reports contain simulated demo data and illustrative risk scores. They are not validated financial assessments and must not be presented as official credit reports.
+        Exported reports contain illustrative prototype scores computed from Open-Meteo data where available. They are
+        not validated financial assessments and must not be presented as official credit reports.
       </div>
     </div>
   );

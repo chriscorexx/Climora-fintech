@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { demoBusinesses } from '../data/demoData.js';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useData } from '../services/DataProvider.jsx';
+import { api } from '../services/apiClient.js';
 
 const PAGE_TITLES = {
   // Lender
@@ -20,31 +21,44 @@ const PAGE_TITLES = {
 };
 
 export default function TopBar({ activePage, role, onBusinessSelect, selectedBusinessId }) {
-  const [search, setSearch]   = useState('');
+  const { businesses, health, checkHealth } = useData();
+  const [search, setSearch] = useState('');
   const [results, setResults] = useState([]);
   const [showDrop, setShowDrop] = useState(false);
+  const [searching, setSearching] = useState(false);
 
   const info = PAGE_TITLES[activePage] || { title: activePage, sub: '' };
-  const showSearch = ['overview', 'portfolio'].includes(activePage);
+  const showSearch = ['overview', 'portfolio', 'assessment', 'loanApps'].includes(activePage);
 
-  const handleSearch = (e) => {
-    const q = e.target.value;
-    setSearch(q);
-    if (q.length < 1) { setResults([]); setShowDrop(false); return; }
-    const hits = demoBusinesses.filter(
-      (b) =>
-        b.name.toLowerCase().includes(q.toLowerCase()) ||
-        b.location.toLowerCase().includes(q.toLowerCase())
-    );
-    setResults(hits);
-    setShowDrop(true);
-  };
+  // Debounced server-side search against the backend business list.
+  useEffect(() => {
+    const query = search.trim();
+    if (query.length < 1) {
+      setResults([]);
+      setSearching(false);
+      return undefined;
+    }
+    setSearching(true);
+    const timer = setTimeout(async () => {
+      try {
+        const payload = await api.listBusinesses({ search: query, limit: 8 });
+        setResults(payload?.businesses || []);
+      } catch {
+        setResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [search]);
 
-  const pick = (b) => {
+  const quickPicks = useMemo(() => businesses.slice(0, 6), [businesses]);
+
+  const pick = (business) => {
     setSearch('');
     setResults([]);
     setShowDrop(false);
-    if (onBusinessSelect) onBusinessSelect(b);
+    if (onBusinessSelect) onBusinessSelect(business);
   };
 
   return (
@@ -71,26 +85,40 @@ export default function TopBar({ activePage, role, onBusinessSelect, selectedBus
             transform: 'translateY(-50%)', color: 'var(--color-text-tertiary)',
             fontSize: '0.85rem', pointerEvents: 'none',
           }}>&#9906;</span>
+          <label className="sr-only" htmlFor="global-business-search">
+            Search businesses
+          </label>
           <input
+            id="global-business-search"
             type="text"
             className="input"
             style={{ paddingLeft: '1.8rem' }}
             placeholder="Search businesses..."
             value={search}
-            onChange={handleSearch}
+            onChange={(e) => { setSearch(e.target.value); setShowDrop(true); }}
             onBlur={() => setTimeout(() => setShowDrop(false), 150)}
-            onFocus={() => results.length > 0 && setShowDrop(true)}
+            onFocus={() => setShowDrop(true)}
+            aria-expanded={showDrop && (results.length > 0 || search.trim().length > 0)}
+            role="combobox"
+            aria-controls="global-search-results"
           />
-          {showDrop && results.length > 0 && (
-            <div style={{
+          {showDrop && (search.trim().length > 0 || results.length > 0) && (
+            <div id="global-search-results" role="listbox" style={{
               position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
               background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)',
               borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-md)',
               zIndex: 200, overflow: 'hidden',
             }}>
-              {results.slice(0, 5).map((b) => (
+              {searching && (
+                <div style={{ padding: '0.6rem 0.9rem', fontSize: '0.8rem', color: 'var(--color-text-tertiary)' }}>
+                  Searching…
+                </div>
+              )}
+              {results.map((b) => (
                 <div
                   key={b.id}
+                  role="option"
+                  aria-selected={selectedBusinessId === b.id}
                   style={{
                     padding: '0.6rem 0.9rem', cursor: 'pointer',
                     borderBottom: '1px solid var(--color-border)',
@@ -104,17 +132,56 @@ export default function TopBar({ activePage, role, onBusinessSelect, selectedBus
                   <div style={{ fontSize: '0.72rem', color: 'var(--color-text-tertiary)' }}>{b.location}</div>
                 </div>
               ))}
+              {!searching && results.length === 0 && search.trim().length > 0 && (
+                <div style={{ padding: '0.6rem 0.9rem', fontSize: '0.8rem', color: 'var(--color-text-tertiary)' }}>
+                  No businesses match “{search}”.
+                </div>
+              )}
             </div>
           )}
         </div>
       )}
 
+      {/* Quick business switcher for single-tenant views */}
+      {!showSearch && quickPicks.length > 1 && (
+        <label className="sr-only" htmlFor="quick-business-select">
+          Active business
+        </label>
+      )}
+      {!showSearch && quickPicks.length > 1 && (
+        <select
+          id="quick-business-select"
+          className="select"
+          style={{ width: 200 }}
+          value={selectedBusinessId || ''}
+          onChange={(event) => {
+            const found = businesses.find((business) => business.id === event.target.value);
+            if (found) pick(found);
+          }}
+        >
+          <option value="" disabled>
+            Select business…
+          </option>
+          {businesses.map((business) => (
+            <option key={business.id} value={business.id}>
+              {business.name}
+            </option>
+          ))}
+        </select>
+      )}
+
       {/* Actions */}
       <div className="top-bar-actions">
-        <div className="demo-pill">
-          <span className="demo-pulse" />
-          Demo Mode
-        </div>
+        <button
+          type="button"
+          className="demo-pill"
+          onClick={checkHealth}
+          title="Click to re-check the backend connection"
+          style={{ cursor: 'pointer', border: 'none', fontFamily: 'inherit' }}
+        >
+          <span className="demo-pulse" style={{ background: health.online ? 'var(--color-success)' : 'var(--color-danger)' }} />
+          {health.online ? 'Backend live' : 'Backend offline'}
+        </button>
 
         {/* Notification bell */}
         <div className="icon-btn" title="Notifications">
