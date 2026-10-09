@@ -1,22 +1,30 @@
-help.txt
-ref.txt
-# Node.js dependencies
+# Dependencies & build output
 node_modules/
+dist/
+coverage/
+.electron-builder/
 
 # Environment secrets
 .env
 .env.*
 !.env.example
 
-# Build output
-dist/
-coverage/
-
 # Local databases
 *.db
 *.sqlite
 *.sqlite3
 
+# Local agent tooling / skills
+.agents/
+.kilocode/
+.opencode/
+.idea/
+.vscode/
+
+# Scratch / notes
+help.txt
+ref.txt
+
 # Logs
-npm-debug.log*
 *.log
+npm-debug.log*
