@@ -136,6 +136,26 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
               />
             </div>
 
+            {/* Real-Time Live Environmental Telemetry Banner */}
+            <div className="mt-4 p-3 rounded-xl bg-slate-900/90 border border-emerald-500/25 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="font-mono text-[11px] text-emerald-400 font-semibold uppercase tracking-wider">
+                  Live Telemetry ({climate.location.resolvedAddress})
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-slate-300 tabular-nums">
+                <span>🌡️ {climate.currentConditions.temperatureC}°C</span>
+                <span>💧 {climate.currentConditions.relativeHumidityPct}% Hum.</span>
+                <span>💨 {climate.currentConditions.windSpeedKmh} km/h</span>
+                <span>🌧️ Peak 7d: {climate.extremes.maxDailyPrecipitationMm}mm</span>
+                <span>🌊 River Flow: {climate.forecast7Days[0]?.riverDischargeM3s ? `${climate.forecast7Days[0].riverDischargeM3s} m³/s` : 'Monitored'}</span>
+              </div>
+            </div>
+
             {/* Gauge & Key Drivers */}
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center py-6 border-b border-fin-border">
               <div className="sm:col-span-5 flex justify-center">

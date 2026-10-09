@@ -137,7 +137,26 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
               <span className="text-[10px] font-mono text-slate-400">Open-Meteo live feed</span>
             </div>
 
-            <div className="grid grid-cols-7 gap-2 pt-4 overflow-x-auto text-center">
+            {/* Live Atmospheric Telemetry */}
+            <div className="my-3 p-3 rounded-xl bg-slate-900/90 border border-emerald-500/25 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="font-mono text-[11px] text-emerald-400 font-semibold uppercase tracking-wider">
+                  Current Atmospheric Reading
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-slate-300 tabular-nums">
+                <span>🌡️ {climate.currentConditions.temperatureC}°C ({climate.currentConditions.weatherDescription})</span>
+                <span>💧 {climate.currentConditions.relativeHumidityPct}% Hum.</span>
+                <span>💨 {climate.currentConditions.windSpeedKmh} km/h Wind</span>
+                <span>🌧️ {climate.currentConditions.precipitationMm}mm Rain</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-7 gap-2 pt-2 overflow-x-auto text-center">
               {climate.forecast7Days.slice(0, 7).map((day, idx) => {
                 const dayName = new Date(day.date).toLocaleDateString([], { weekday: 'short' });
                 const isRain = day.precipitationSumMm > 5;
