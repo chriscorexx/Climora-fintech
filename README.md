@@ -36,25 +36,44 @@ Climora provides a dashboard that allows users to:
 4. Calculate an illustrative climate-adjusted risk score.
 5. Display the result with explanations and recommended interventions.
 
+## Architecture
+
+Climora is a cross-platform desktop application built with Electron. The React-based renderer renders the dashboard UI, while a Node.js backend (running in Electron's main process) handles input validation, external API integration, the climate-risk scoring engine, and SQLite persistence. See [TECH_STACK.md](TECH_STACK.md) for full architecture, security, and data-flow details.
+
 ## Getting Started
 
 The project is currently in the planning and documentation stage.
 
 ### Prerequisites
 
-* Python 3
-* Node.js and npm
+* Node.js 18+ and npm
 * Git
 * A GitHub account
 
+### Project Structure
 
-These commands describe the intended project structure. They will work once the corresponding backend and frontend files have been created.
+```
+climora/
+├── electron/          # Electron main process, preload bridge, SQLite
+├── src/               # React renderer (dashboard, forms, results)
+├── data/              # Sample data and local SQLite database
+├── *.md              # Project documentation (root level)
+│   ├── DATA_SOURCES.md
+│   ├── RISK_SCORING.md
+│   ├── MVP_SCOPE.md
+│   ├── ProblemStatement.md
+│   └── TECH_STACK.md
+├── package.json
+└── electron-builder/  # Packaging configuration
+```
+
+These paths describe the intended project structure. They will work once the corresponding source files have been created.
 
 ## Data Sources
 
-* [Open-Meteo](https://open-meteo.com/)
-* [World Bank Climate Change Knowledge Portal](https://climateknowledgeportal.worldbank.org/download-data)
-* [World Bank Global Flood Exposure Dataset](https://datacatalog.worldbank.org/search/dataset/0062763/global-flood-exposure-gridded-exposure-headcounts-bycountry)
+Primary weather provider: [Open-Meteo](https://open-meteo.com/) (free, CC BY 4.0, no API key required for non-commercial use).
+
+See [DATA_SOURCES.md](DATA_SOURCES.md) for the full list including supplementary datasets (World Bank, HDX) and alternative providers (Visual Crossing, Meteostat).
 
 ## Responsible Use
 
@@ -70,4 +89,4 @@ Its risk score and scoring weights are illustrative assumptions, not a scientifi
 
 **Challenge:** Real-Time Climate Risk Scoring for MSMEs
 
-**Team Size:** 3 members
+**Team Size:** 4 members

@@ -94,4 +94,4 @@ The platform is intended to support human review, climate preparedness, and earl
 * **Domain:** FinTech × ClimateTech
 * **Challenge:** Real-Time Climate Risk Scoring for MSMEs
 * **Primary Focus:** Climate-adjusted financial risk assessment
-* **Team Size:** 3 members
+* **Team Size:** 4 members
