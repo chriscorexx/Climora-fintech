@@ -57,7 +57,7 @@ Because this is a 24-hour hackathon:
 
 ## 4. Data Handling
 
-* Fetch external data through the FastAPI backend where practical.
+* Fetch external data through the node.js backend where practical.
 * Validate API responses and handle missing values.
 * Display the source and retrieval date when available.
 * Do not invent observations or present sample data as live data.

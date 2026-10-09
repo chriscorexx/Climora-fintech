@@ -42,7 +42,7 @@ The project is currently in the planning and documentation stage.
 
 ### Prerequisites
 
-* Python 3
+* Electron
 * Node.js and npm
 * Git
 * A GitHub account
@@ -70,4 +70,4 @@ Its risk score and scoring weights are illustrative assumptions, not a scientifi
 
 **Challenge:** Real-Time Climate Risk Scoring for MSMEs
 
-**Team Size:** 3 members
+**Team Size:** 4 members
