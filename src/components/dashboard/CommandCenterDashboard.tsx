@@ -390,6 +390,7 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
                     fill={palette.rain}
                     radius={[4, 4, 0, 0]}
                     maxBarSize={26}
+                    isAnimationActive={false}
                   />
                   <Line
                     yAxisId="temp"
@@ -399,6 +400,7 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
                     stroke={palette.tempHigh}
                     strokeWidth={2}
                     dot={{ r: 3 }}
+                    isAnimationActive={false}
                   />
                   <Line
                     yAxisId="temp"
@@ -409,6 +411,7 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
                     strokeWidth={2}
                     strokeDasharray="4 3"
                     dot={{ r: 2 }}
+                    isAnimationActive={false}
                   />
                 </ComposedChart>
               </ResponsiveContainer>

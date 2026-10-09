@@ -46,7 +46,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   const { mode, setMode } = useTheme();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-fin-border bg-fin-bg/95 backdrop-blur-md px-4 lg:px-8 py-3">
+    <header className="no-print sticky top-0 z-40 border-b border-fin-border bg-fin-bg/95 backdrop-blur-md px-4 lg:px-8 py-3">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Brand & Tagline */}
         <div className="flex items-center gap-3">

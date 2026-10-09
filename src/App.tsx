@@ -174,7 +174,7 @@ export const App: React.FC = () => {
       />
 
       {/* Main Workspace Body */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+      <main className="no-print flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
         {isLoadingClimate && !climate ? (
           <div className="h-96 flex flex-col items-center justify-center gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-emerald-600 dark:text-emerald-400" />
