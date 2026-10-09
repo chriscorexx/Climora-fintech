@@ -1,2 +1,22 @@
 help.txt
 ref.txt
+# Node.js dependencies
+node_modules/
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+coverage/
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+npm-debug.log*
+*.log
