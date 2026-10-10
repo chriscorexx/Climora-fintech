@@ -147,12 +147,20 @@ isn't — the web app works without it.
 
 ## 7. Deployment
 
+### Hosted website (Vercel — recommended)
+
+Deploy straight from the `main` branch with **zero manual settings** — the repo ships `vercel.json`
+(build command, `dist` output, SPA rewrite, immutable asset caching). See **`DEPLOY_VERCEL.md`** for
+the full manual guide. Summary: import the repo → Vercel detects Vite → Deploy; every push to `main`
+redeploys automatically and PRs get preview URLs. Set `VITE_COMMAND_CENTER_PASSWORD` as an
+environment variable if you want a custom Command Center password (inlined at build time).
+
 ### Hosted website (Render)
 
-See **`DEPLOY_RENDER.md`** for the full manual guide. Summary: create a **Static Site** from this
-repo with build command `npm ci && npm run build`, publish directory `dist`, and the SPA rewrite
-`/*` → `/index.html`. A ready-to-use `render.yaml` Blueprint is included. The prebuilt static site
-is also kept in `website/` for drag-and-drop/static hosting (`npm run build:website` regenerates it).
+See **`DEPLOY_RENDER.md`** for the Render Static Site guide (build command `npm ci && npm run build`,
+publish directory `dist`, SPA rewrite `/*` → `/index.html`). A ready-to-use `render.yaml` Blueprint
+is included. The prebuilt static site is also kept in `website/` for drag-and-drop/static hosting
+(`npm run build:website` regenerates it).
 
 ### Desktop binaries
 
@@ -205,8 +213,10 @@ climora/
 ├── .github/workflows/  # Release CI (linux/win/mac matrix)
 ├── *_SPEC.md / *.md    # Domain docs (risk scoring, data sources, scope, access, command center)
 ├── BUILDING.md         # Desktop binary build guide
-├── DEPLOY_RENDER.md    # Web deployment guide
+├── DEPLOY_VERCEL.md    # Web deployment guide (Vercel)
+├── DEPLOY_RENDER.md    # Web deployment guide (Render)
 ├── render.yaml         # Render Blueprint
+├── vercel.json         # Vercel project configuration
 └── package.json
 ```
 
@@ -217,6 +227,7 @@ climora/
 | Document                                                                                  | Contents                                                                |
 | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | `DEPLOY_RENDER.md`                                                                        | Manual web deployment on Render (static site, env vars, SPA rewrites)   |
+| `DEPLOY_VERCEL.md`                                                                        | Manual web deployment on Vercel (import, env vars, SPA rewrites)        |
 | `BUILDING.md`                                                                             | Desktop binaries: commands, platform matrix, icons, CI, troubleshooting |
 | `ACCESS.md`                                                                               | Auth model, role isolation, Command Center password, security caveats   |
 | `COMMAND_CENTER.md`                                                                       | Command Center access + section-by-section walkthrough                  |
