@@ -1,5 +1,4 @@
 import { getDatabase } from './database';
-import { SAMPLE_MSME_PROFILES } from '../../../src/core/sampleData';
 import { SCHEMES_CATALOGUE } from '../../../src/core/schemeMatcher';
 
 export function seedDatabaseIfEmpty(): void {
@@ -30,44 +29,6 @@ export function seedDatabaseIfEmpty(): void {
         s.supportType,
         s.maxBenefitSummary,
         s.officialSourceUrl
-      );
-    }
-  }
-
-  // 2. Check & Seed Businesses
-  const bizCountRow = db.prepare('SELECT COUNT(*) as count FROM businesses').get() as { count: number };
-  if (bizCountRow.count === 0) {
-    const insertBiz = db.prepare(`
-      INSERT INTO businesses (
-        id, name, udyam_number, industry, business_size, business_stage,
-        location, city, state, latitude, longitude,
-        monthly_revenue, monthly_operating_expenses, monthly_debt_obligations, available_cash_reserves,
-        requested_loan_amount, loan_tenure_months, operations_json, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    for (const b of SAMPLE_MSME_PROFILES) {
-      insertBiz.run(
-        b.id,
-        b.name,
-        b.udyamNumber || null,
-        b.industry,
-        b.businessSize,
-        b.businessStage,
-        b.location.address || `${b.location.city}, ${b.location.state}`,
-        b.location.city,
-        b.location.state,
-        b.location.latitude,
-        b.location.longitude,
-        b.financials.monthlyRevenue,
-        b.financials.monthlyOperatingExpenses,
-        b.financials.existingMonthlyDebtObligations,
-        b.financials.availableCashReserves,
-        b.financials.requestedLoanAmount || 2500000,
-        b.financials.loanTenureMonths || 36,
-        JSON.stringify(b.operations),
-        b.createdAt,
-        b.updatedAt
       );
     }
   }
