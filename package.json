@@ -15,6 +15,7 @@
     "desktop": "node scripts/dev-electron.mjs",
     "server": "tsx server/src/server.ts",
     "build": "tsc && vite build",
+    "build:website": "npm run build && node -e \"const fs=require('fs');fs.rmSync('website',{recursive:true,force:true});fs.cpSync('dist','website',{recursive:true});console.log('website/ updated from dist/')\"",
     "package": "npm run build && electron-builder",
     "dist": "npm run build && electron-builder",
     "dist:win": "electron-builder --win",
