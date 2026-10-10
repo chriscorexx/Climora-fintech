@@ -48,22 +48,24 @@ release/
 
 ## Platform requirements matrix
 
-| Host OS                           | Linux binaries               | Windows binaries             | macOS binaries   |
-| --------------------------------- | ---------------------------- | ---------------------------- | ---------------- |
-| Linux (this repo's verified path) | ✅ verified (AppImage + deb) | ⚠️ needs `wine` or CI (NSIS) | ❌ not supported |
-| Windows                           | ✅ (with WSL/docker caveats) | ✅                           | ❌               |
-| macOS                             | ✅                           | ⚠️ needs `wine` or CI        | ✅ (x64 + arm64) |
+| Host OS                           | Linux binaries               | Windows binaries              | macOS binaries   |
+| --------------------------------- | ---------------------------- | ----------------------------- | ---------------- |
+| Linux (this repo's verified path) | ✅ verified (AppImage + deb) | ✅ verified via `wine` (NSIS) | ❌ not supported |
+| Windows                           | ✅ (with WSL/docker caveats) | ✅                            | ❌               |
+| macOS                             | ✅                           | ⚠️ needs `wine` or CI         | ✅ (x64 + arm64) |
 
 - **macOS builds require a macOS host** — there is no reliable cross-compilation path for signed
-  `.dmg` output. Use a Mac or GitHub Actions `macos-latest` runner.
-- **Windows builds** run on Windows natively; on Linux/macOS they require `wine` installed, or use
-  CI (simplest).
+  `.dmg` output. Use a Mac, or push a `v*` tag / run `.github/workflows/release.yml` on GitHub
+  Actions (`macos-latest`), which builds all three platforms and publishes a draft release.
+- **Windows builds** run natively on Windows; on Linux they were verified with `wine` installed
+  (`/usr/bin/wine`), producing `release/Climora Setup 1.0.0.exe`.
 - Code signing is intentionally **disabled** (hackathon build). macOS users may need to right-click →
   Open the first time; Windows SmartScreen will show an "unknown publisher" warning.
 
 ## Verified on this machine (Linux x64)
 
 - `npx electron-builder --linux` → `release/Climora-1.0.0.AppImage` (121 MB), `release/climora_1.0.0_amd64.deb` (96 MB)
+- `npx electron-builder --win` (via `wine`) → `release/Climora Setup 1.0.0.exe` (107 MB)
 - Headless smoke test (`xvfb-run -a release/Climora-1.0.0.AppImage --no-sandbox`): app launches and
   stays running with no crash; `app.asar` contains `dist/index.html`, `dist/assets/*`, `electron/*`, and `package.json`.
 - The desktop app opens directly on the login screen (landing page is browser-only, by design).
