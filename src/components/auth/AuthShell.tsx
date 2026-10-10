@@ -6,12 +6,20 @@ interface AuthShellProps {
   subtitle: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  headerAction?: React.ReactNode;
 }
 
-export const AuthShell: React.FC<AuthShellProps> = ({ title, subtitle, children, footer }) => {
+export const AuthShell: React.FC<AuthShellProps> = ({
+  title,
+  subtitle,
+  children,
+  footer,
+  headerAction,
+}) => {
   return (
     <div className="min-h-screen bg-fin-bg text-fin-text flex flex-col items-center justify-center p-4 font-sans">
       <div className="w-full max-w-md">
+        {headerAction && <div className="mb-3 flex justify-start">{headerAction}</div>}
         <div className="flex flex-col items-center gap-3 mb-6">
           <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-fin-sunken border border-emerald-500/30 overflow-hidden shadow-sm">
             <img src={climoraLogo} alt="Climora Logo" className="w-full h-full object-cover" />

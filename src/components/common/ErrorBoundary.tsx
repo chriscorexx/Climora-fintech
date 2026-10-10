@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, RotateCcw } from 'lucide-react';
+import climoraLogo from '../../assets/Climora-logo.jpg';
 
 interface Props {
   children: ReactNode;
@@ -45,7 +46,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="flex items-center justify-center gap-3 mx-auto">
               <div className="w-11 h-11 rounded-xl bg-fin-sunken border border-fin-border overflow-hidden shadow-sm">
                 <img
-                  src="/Climora-logo.jpg"
+                  src={climoraLogo}
                   alt="Climora Logo"
                   className="w-full h-full object-cover"
                 />

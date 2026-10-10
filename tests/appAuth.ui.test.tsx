@@ -32,11 +32,34 @@ function typeInto(label: string, value: string) {
   fireEvent.change(screen.getByLabelText(label), { target: { value } });
 }
 
+function isElectronUserAgent(): boolean {
+  return typeof navigator !== 'undefined' && /Electron/i.test(navigator.userAgent);
+}
+
+async function openLogin() {
+  fireEvent.click((await screen.findAllByRole('button', { name: 'Launch App' }))[0]);
+  expect(await screen.findByText('Sign in to Climora')).toBeInTheDocument();
+}
+
 describe('App authentication gate (jsdom UI harness)', () => {
   beforeEach(() => {
     cleanup();
     logout();
     (globalThis.localStorage as unknown as MemoryStorage).clear();
+  });
+
+  it('shows the landing page before sign-in in a regular browser', async () => {
+    expect(isElectronUserAgent()).toBe(false);
+    render(
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>,
+    );
+    expect(
+      (await screen.findAllByText('Real-Time Climate Risk & Underwriting for MSMEs')).length,
+    ).toBeGreaterThan(0);
+    expect(screen.queryByText('Sign in to Climora')).not.toBeInTheDocument();
+    expect(getSession()).toBeNull();
   });
 
   it('shows only the sign-in page when there is no session', async () => {
@@ -45,7 +68,7 @@ describe('App authentication gate (jsdom UI harness)', () => {
         <App />
       </ThemeProvider>,
     );
-    expect(await screen.findByText('Sign in to Climora')).toBeInTheDocument();
+    await openLogin();
     expect(screen.queryByText('MSME Underwriting Pipeline')).not.toBeInTheDocument();
     expect(getSession()).toBeNull();
   });
@@ -56,10 +79,15 @@ describe('App authentication gate (jsdom UI harness)', () => {
         <App />
       </ThemeProvider>,
     );
-    fireEvent.click(await screen.findByRole('button', { name: 'Create an account' }));
+    await openLogin();
+    fireEvent.click(screen.getByRole('button', { name: 'Create an account' }));
     expect(await screen.findByText('Create your Climora account')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
     expect(await screen.findByText('Sign in to Climora')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to home' }));
+    expect(
+      (await screen.findAllByText('Real-Time Climate Risk & Underwriting for MSMEs')).length,
+    ).toBeGreaterThan(0);
   });
 
   it('routes a registered lender into the lender workspace with a persisted session', async () => {
@@ -69,7 +97,8 @@ describe('App authentication gate (jsdom UI harness)', () => {
       </ThemeProvider>,
     );
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Create an account' }));
+    await openLogin();
+    fireEvent.click(screen.getByRole('button', { name: 'Create an account' }));
     expect(await screen.findByText('Create your Climora account')).toBeInTheDocument();
 
     typeInto('Full Name', 'Ananya Sharma');
@@ -94,9 +123,10 @@ describe('App authentication gate (jsdom UI harness)', () => {
       </ThemeProvider>,
     );
 
+    await openLogin();
     typeInto('Email Address', 'nobody@climora.in');
     typeInto('Password', 'climora2026');
-    fireEvent.click(await screen.findByRole('button', { name: 'Sign In' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Sign In' }));
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
     expect(screen.getByRole('alert')).toHaveTextContent('Invalid email or password.');

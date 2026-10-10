@@ -3,6 +3,10 @@ node_modules/
 dist/
 coverage/
 
+# Packaging artifacts (contains binary icons)
+release/
+build/
+
 # Local databases
 *.db
 

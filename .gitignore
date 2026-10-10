@@ -4,6 +4,11 @@ dist/
 coverage/
 .electron-builder/
 
+# Electron packaging output (keep source icons)
+release/
+build/*
+!build/icons/
+
 # Environment secrets
 .env
 .env.*

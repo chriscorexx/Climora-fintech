@@ -16,9 +16,11 @@ import { normalizeProfile } from './core/profileUtils';
 import { mergeProfiles } from './core/portfolio';
 import { getVisibleProfiles, applyProfileOwner } from './core/profileOwnership';
 import { AuthUser, getSession, logout } from './core/auth';
+import { isElectronApp } from './core/platform';
 import { isCommandCenterUnlocked, setCommandCenterUnlocked } from './core/commandCenter';
 import { recordProfileScore } from './core/scoreHistory';
 import { TopBar } from './components/navigation/TopBar';
+import { LandingPage } from './components/landing/LandingPage';
 import { PasswordGate } from './components/auth/PasswordGate';
 import { DashboardSkeleton } from './components/common/DashboardSkeleton';
 import { NoProfilesState } from './components/common/NoProfilesState';
@@ -48,11 +50,13 @@ const RegisterPage = lazy(() =>
   import('./components/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })),
 );
 
-type AuthView = 'login' | 'register';
+type AuthView = 'landing' | 'login' | 'register';
+
+const IS_DESKTOP_APP = isElectronApp();
 
 export const App: React.FC = () => {
   const [session, setSession] = useState<AuthUser | null>(() => getSession());
-  const [authView, setAuthView] = useState<AuthView>('login');
+  const [authView, setAuthView] = useState<AuthView>(() => (IS_DESKTOP_APP ? 'login' : 'landing'));
 
   const [profiles, setProfiles] = useState<MSMEProfile[]>(() =>
     getStoredProfiles().map(normalizeProfile),
@@ -182,7 +186,7 @@ export const App: React.FC = () => {
   const handleLogout = useCallback(() => {
     logout();
     setSession(null);
-    setAuthView('login');
+    setAuthView(IS_DESKTOP_APP ? 'login' : 'landing');
     setCommandCenterView(false);
     setShowPasswordGate(false);
   }, []);
@@ -253,20 +257,27 @@ export const App: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
-  // Unauthenticated: auth pages only
+  // Unauthenticated: landing (browser only) or auth pages
   if (!session) {
+    const isDesktop = isElectronApp();
+    const showLanding = authView === 'landing' && !isDesktop;
+    const goToLanding = () => setAuthView('landing');
     return (
       <div className="min-h-screen bg-fin-bg text-fin-text font-sans">
         <Suspense fallback={<DashboardSkeleton />}>
-          {authView === 'login' ? (
-            <LoginPage
-              onAuthenticated={handleAuthenticated}
-              onNavigateToRegister={() => setAuthView('register')}
-            />
-          ) : (
+          {showLanding ? (
+            <LandingPage onLaunchApp={() => setAuthView('login')} />
+          ) : authView === 'register' ? (
             <RegisterPage
               onAuthenticated={handleAuthenticated}
               onNavigateToLogin={() => setAuthView('login')}
+              onBackToHome={isDesktop ? undefined : goToLanding}
+            />
+          ) : (
+            <LoginPage
+              onAuthenticated={handleAuthenticated}
+              onNavigateToRegister={() => setAuthView('register')}
+              onBackToHome={isDesktop ? undefined : goToLanding}
             />
           )}
         </Suspense>

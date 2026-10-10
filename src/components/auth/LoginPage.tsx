@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import {
   AuthErrorBanner,
   AuthShell,
@@ -11,9 +12,14 @@ import { AuthUser, login } from '../../core/auth';
 interface LoginPageProps {
   onAuthenticated: (user: AuthUser) => void;
   onNavigateToRegister: () => void;
+  onBackToHome?: () => void;
 }
 
-export const LoginPage: React.FC<LoginPageProps> = ({ onAuthenticated, onNavigateToRegister }) => {
+export const LoginPage: React.FC<LoginPageProps> = ({
+  onAuthenticated,
+  onNavigateToRegister,
+  onBackToHome,
+}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -46,6 +52,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onAuthenticated, onNavigat
     <AuthShell
       title="Sign in to Climora"
       subtitle="Access your climate risk workspace and portfolio."
+      headerAction={
+        onBackToHome ? (
+          <button
+            type="button"
+            onClick={onBackToHome}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-fin-muted hover:text-fin-text transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg px-1"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Back to home
+          </button>
+        ) : undefined
+      }
       footer={
         <p className="text-xs text-fin-muted">
           New to Climora?{' '}

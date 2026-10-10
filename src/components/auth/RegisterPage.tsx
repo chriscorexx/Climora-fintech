@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, Layers } from 'lucide-react';
+import { ArrowLeft, Building2, Layers } from 'lucide-react';
 import {
   AuthErrorBanner,
   AuthShell,
@@ -12,6 +12,7 @@ import { AuthRole, AuthUser, PASSWORD_MIN_LENGTH, register } from '../../core/au
 interface RegisterPageProps {
   onAuthenticated: (user: AuthUser) => void;
   onNavigateToLogin: () => void;
+  onBackToHome?: () => void;
 }
 
 const ROLE_OPTIONS: Array<{
@@ -37,6 +38,7 @@ const ROLE_OPTIONS: Array<{
 export const RegisterPage: React.FC<RegisterPageProps> = ({
   onAuthenticated,
   onNavigateToLogin,
+  onBackToHome,
 }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -75,6 +77,18 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({
     <AuthShell
       title="Create your Climora account"
       subtitle="Register as a lender or MSME owner to access your workspace."
+      headerAction={
+        onBackToHome ? (
+          <button
+            type="button"
+            onClick={onBackToHome}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-fin-muted hover:text-fin-text transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg px-1"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Back to home
+          </button>
+        ) : undefined
+      }
       footer={
         <p className="text-xs text-fin-muted">
           Already have an account?{' '}
