@@ -371,7 +371,12 @@ export const App: React.FC = () => {
 
       {/* Main Workspace Body */}
       <main className="no-print flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-        <Suspense fallback={<DashboardSkeleton />}>{renderWorkspace()}</Suspense>
+        <div
+          key={commandCenterView ? 'command-center' : session.role}
+          className="animate-fade-in-up"
+        >
+          <Suspense fallback={<DashboardSkeleton />}>{renderWorkspace()}</Suspense>
+        </div>
       </main>
 
       {/* Footer */}

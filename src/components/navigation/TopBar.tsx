@@ -199,7 +199,7 @@ export const TopBar: React.FC<TopBarProps> = ({
               <div
                 role="menu"
                 aria-label="Select benchmark enterprise"
-                className="absolute right-0 mt-1 w-72 rounded-xl bg-fin-card border border-fin-border shadow-2xl py-2 z-50"
+                className="absolute right-0 mt-1 w-72 rounded-xl bg-fin-card border border-fin-border shadow-2xl py-2 z-50 animate-fade-in-down"
               >
                 <div className="px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-fin-muted border-b border-fin-border mb-1">
                   Select Benchmark Enterprise
@@ -296,7 +296,7 @@ export const TopBar: React.FC<TopBarProps> = ({
               <div
                 role="menu"
                 aria-label="User menu"
-                className="absolute right-0 mt-1 w-64 rounded-xl bg-fin-card border border-fin-border shadow-2xl py-2 z-50"
+                className="absolute right-0 mt-1 w-64 rounded-xl bg-fin-card border border-fin-border shadow-2xl py-2 z-50 animate-fade-in-down"
               >
                 <div className="px-3 py-2 border-b border-fin-border mb-1">
                   <div className="text-xs font-bold text-fin-text truncate">{session.name}</div>

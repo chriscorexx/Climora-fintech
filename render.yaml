@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: climora-web
+    runtime: static
+    branch: More-Happening
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    pullRequestPreviewsEnabled: true
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_COMMAND_CENTER_PASSWORD
+        sync: false

@@ -29,11 +29,15 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 
   return (
     <div
-      className={`rounded-xl bg-fin-card border p-4 shadow-fin-card transition-all ${borderClass}`}
+      className={`rounded-xl bg-fin-card border p-4 shadow-fin-card transition-all duration-300 hover:-translate-y-1 hover:shadow-fin-elevated ${borderClass}`}
     >
       <div className="flex items-center justify-between text-xs font-medium text-fin-muted tracking-wide uppercase">
         <span>{label}</span>
-        {icon && <div className="text-fin-muted">{icon}</div>}
+        {icon && (
+          <div className="text-fin-muted transition-transform duration-300 hover:scale-110">
+            {icon}
+          </div>
+        )}
       </div>
       <div className="mt-2 flex items-baseline gap-2">
         <span className="font-mono text-2xl font-bold tracking-tight text-fin-text tabular-nums">

@@ -1,6 +1,5 @@
 import { MSMEProfile, UserRole } from '../types';
 import { THEME_STORAGE_KEY, type ThemeMode } from './theme';
-import { SAMPLE_MSME_PROFILES } from './sampleData';
 import { normalizeProfile } from './profileUtils';
 
 const STORAGE_KEYS = {
@@ -13,21 +12,27 @@ const STORAGE_KEYS = {
 
 const USER_ROLES: UserRole[] = ['lender', 'msme_owner', 'command_center'];
 
+const LEGACY_SAMPLE_PROFILE_IDS = new Set([
+  'msme_001',
+  'msme_002',
+  'msme_003',
+  'msme_004',
+  'msme_005',
+]);
+
+function isLegacySampleProfile(profile: MSMEProfile): boolean {
+  return !profile.ownerId && LEGACY_SAMPLE_PROFILE_IDS.has(profile.id);
+}
+
 export function getStoredProfiles(): MSMEProfile[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.PROFILES);
-    if (!raw) {
-      const initial = SAMPLE_MSME_PROFILES.map(normalizeProfile);
-      localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(initial));
-      return initial;
-    }
+    if (!raw) return [];
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed.map(normalizeProfile);
-    }
-    return SAMPLE_MSME_PROFILES.map(normalizeProfile);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map(normalizeProfile).filter((p) => !isLegacySampleProfile(p));
   } catch {
-    return SAMPLE_MSME_PROFILES.map(normalizeProfile);
+    return [];
   }
 }
 

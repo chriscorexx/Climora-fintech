@@ -156,8 +156,8 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ onClose, onSave, init
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/60 backdrop-blur-sm">
-      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-fin-card border border-fin-border shadow-2xl p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/60 backdrop-blur-sm animate-fade-in">
+      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-fin-card border border-fin-border shadow-2xl p-6 animate-scale-in">
         <div className="flex items-center justify-between pb-4 border-b border-fin-border">
           <div>
             <h2 className="text-base font-bold text-fin-text tracking-tight">

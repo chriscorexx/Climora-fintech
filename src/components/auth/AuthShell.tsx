@@ -21,10 +21,10 @@ export const AuthShell: React.FC<AuthShellProps> = ({
       <div className="w-full max-w-md">
         {headerAction && <div className="mb-3 flex justify-start">{headerAction}</div>}
         <div className="flex flex-col items-center gap-3 mb-6">
-          <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-fin-sunken border border-emerald-500/30 overflow-hidden shadow-sm">
+          <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-fin-sunken border border-emerald-500/30 overflow-hidden shadow-sm animate-scale-in transition-transform duration-500 hover:scale-110">
             <img src={climoraLogo} alt="Climora Logo" className="w-full h-full object-cover" />
           </div>
-          <div className="text-center">
+          <div className="text-center animate-fade-in-up [animation-delay:100ms]">
             <div className="flex items-center justify-center gap-2">
               <span className="font-extrabold text-2xl tracking-tight text-fin-text">CLIMORA</span>
               <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
@@ -37,7 +37,7 @@ export const AuthShell: React.FC<AuthShellProps> = ({
           </div>
         </div>
 
-        <div className="rounded-2xl bg-fin-card border border-fin-border shadow-fin-card p-6 sm:p-8">
+        <div className="rounded-2xl bg-fin-card border border-fin-border shadow-fin-card p-6 sm:p-8 animate-fade-in-up [animation-delay:160ms]">
           <h1 className="text-lg font-bold text-fin-text tracking-tight">{title}</h1>
           <p className="text-xs text-fin-muted mt-1 mb-5">{subtitle}</p>
           {children}
@@ -92,7 +92,7 @@ export const AuthTextField: React.FC<TextFieldProps> = ({
           autoComplete={autoComplete}
           aria-invalid={error ? true : undefined}
           aria-describedby={errorId}
-          className={`w-full px-3 py-2 rounded-lg bg-fin-inset border text-fin-text placeholder-fin-muted focus:outline-none focus:ring-2 focus:ring-emerald-500/60 ${
+          className={`w-full px-3 py-2 rounded-lg bg-fin-inset border text-fin-text placeholder-fin-muted transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/60 ${
             error ? 'border-rose-500/60' : 'border-fin-border'
           } ${trailing ? 'pr-10' : ''}`}
         />
@@ -124,7 +124,7 @@ export const PasswordToggle: React.FC<PasswordToggleProps> = ({
       onClick={onToggle}
       aria-label={visible ? 'Hide password' : 'Show password'}
       aria-pressed={visible}
-      className="p-1 rounded-md text-fin-muted hover:text-fin-text hover:bg-fin-hover transition-colors"
+      className="p-1 rounded-md text-fin-muted hover:text-fin-text hover:bg-fin-hover transition-all duration-200 active:scale-90"
     >
       {visible ? (
         <svg
@@ -168,7 +168,7 @@ export const AuthErrorBanner: React.FC<AuthErrorBannerProps> = ({ message }) => 
   return (
     <div
       role="alert"
-      className="mb-4 rounded-xl border border-rose-500/40 bg-rose-500/10 dark:bg-rose-500/15 px-3 py-2.5 text-xs text-rose-700 dark:text-rose-300"
+      className="mb-4 rounded-xl border border-rose-500/40 bg-rose-500/10 dark:bg-rose-500/15 px-3 py-2.5 text-xs text-rose-700 dark:text-rose-300 animate-fade-in"
     >
       {message}
     </div>
@@ -190,7 +190,7 @@ export const AuthSubmitButton: React.FC<SubmitButtonProps> = ({
     <button
       type="submit"
       disabled={isLoading}
-      className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold text-sm transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-70"
+      className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold text-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-fin-elevated active:translate-y-0 active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm disabled:opacity-70"
     >
       {isLoading && (
         <svg

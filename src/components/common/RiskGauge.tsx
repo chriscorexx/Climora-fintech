@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { RiskCategory } from '../../types';
 
 interface RiskGaugeProps {
@@ -25,10 +25,14 @@ export const RiskGauge: React.FC<RiskGaugeProps> = ({ score, category, size = 18
   }[category];
 
   // Calculate needle coordinate
-  const radian = ((180 - angle) * Math.PI) / 180;
   const needleLength = radius - 8;
-  const needleX = center + needleLength * Math.cos(radian);
-  const needleY = center - needleLength * Math.sin(radian);
+
+  // Animate the needle sweep from zero on mount and whenever the score changes
+  const [displayedAngle, setDisplayedAngle] = useState(0);
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setDisplayedAngle(angle));
+    return () => cancelAnimationFrame(raf);
+  }, [angle]);
 
   return (
     <div className="flex flex-col items-center justify-center">
@@ -84,15 +88,23 @@ export const RiskGauge: React.FC<RiskGaugeProps> = ({ score, category, size = 18
         )}
 
         {/* Center Needle & Pivot */}
-        <line
-          x1={center}
-          y1={center}
-          x2={needleX}
-          y2={needleY}
-          className="stroke-fin-text transition-all duration-700 ease-out"
-          strokeWidth="3"
-          strokeLinecap="round"
-        />
+        <g
+          style={{
+            transform: `rotate(${displayedAngle}deg)`,
+            transformOrigin: `${center}px ${center}px`,
+            transition: 'transform 900ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        >
+          <line
+            x1={center}
+            y1={center}
+            x2={center - needleLength}
+            y2={center}
+            className="stroke-fin-text"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+        </g>
         <circle cx={center} cy={center} r="6" className="fill-fin-text" />
         <circle cx={center} cy={center} r="3" className="fill-fin-bg" />
       </svg>

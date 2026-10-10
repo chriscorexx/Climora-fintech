@@ -109,7 +109,7 @@ describe('App authentication gate (jsdom UI harness)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Create Account' }));
 
     await waitFor(
-      () => expect(screen.getByText('MSME Underwriting Pipeline')).toBeInTheDocument(),
+      () => expect(screen.getByText('No visible enterprise profiles')).toBeInTheDocument(),
       { timeout: 10000 },
     );
     expect(screen.queryByText('Sign in to Climora')).not.toBeInTheDocument();

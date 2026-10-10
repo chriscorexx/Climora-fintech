@@ -178,7 +178,8 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
                 return (
                   <div
                     key={idx}
-                    className={`p-2 rounded-xl border flex flex-col items-center justify-between min-w-[70px] ${
+                    style={{ animationDelay: `${idx * 60}ms` }}
+                    className={`p-2 rounded-xl border flex flex-col items-center justify-between min-w-[70px] animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-fin-card ${
                       isRain
                         ? 'border-neutral-400/40 bg-neutral-500/10 dark:bg-neutral-400/10'
                         : isHot
