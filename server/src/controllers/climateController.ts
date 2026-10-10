@@ -7,7 +7,9 @@ const bizRepo = new BusinessRepository();
 export const geocodeLocation = async (req: Request, res: Response) => {
   const query = req.query.q as string;
   if (!query) {
-    return res.status(400).json({ success: false, error: { message: 'Query parameter q is required' } });
+    return res
+      .status(400)
+      .json({ success: false, error: { message: 'Query parameter q is required' } });
   }
 
   const result = await geocodeCity(query);
@@ -27,7 +29,7 @@ export const getClimateForBusiness = async (req: Request, res: Response) => {
   const climate = await fetchClimateIndicators(
     business.location.latitude,
     business.location.longitude,
-    business.location.city
+    business.location.city,
   );
 
   res.json({ success: true, data: { climate } });

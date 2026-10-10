@@ -22,16 +22,20 @@ export class ScenarioRepository {
       scenario.stressedDSCR,
       scenario.netCashflowDeficitInr,
       scenario.insolvencyRisk,
-      new Date().toISOString()
+      new Date().toISOString(),
     );
 
     return scenario;
   }
 
   getByBusinessId(businessId: string): any[] {
-    return this.db.prepare(`
+    return this.db
+      .prepare(
+        `
       SELECT * FROM scenarios WHERE business_id = ? ORDER BY created_at DESC
-    `).all(businessId);
+    `,
+      )
+      .all(businessId);
   }
 
   delete(id: string): boolean {

@@ -19,8 +19,11 @@ export const getHealth = (_req: Request, res: Response) => {
 
 export const getDashboardSummary = (_req: Request, res: Response) => {
   const businesses = bizRepo.getAll();
-  const totalVolume = businesses.reduce((acc, b) => acc + (b.financials.requestedLoanAmount || 2500000), 0);
-  
+  const totalVolume = businesses.reduce(
+    (acc, b) => acc + (b.financials.requestedLoanAmount || 2500000),
+    0,
+  );
+
   res.json({
     success: true,
     data: {

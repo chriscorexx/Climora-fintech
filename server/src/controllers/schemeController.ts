@@ -35,7 +35,9 @@ export const matchSchemesForBusiness = (req: Request, res: Response) => {
 export const saveSchemeForBusiness = (req: Request, res: Response) => {
   const { schemeId, businessId, notes } = req.body;
   if (!schemeId || !businessId) {
-    return res.status(400).json({ success: false, error: { message: 'schemeId and businessId are required' } });
+    return res
+      .status(400)
+      .json({ success: false, error: { message: 'schemeId and businessId are required' } });
   }
 
   schemeRepo.saveForBusiness(schemeId, businessId, notes);

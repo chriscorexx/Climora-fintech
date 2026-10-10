@@ -21,7 +21,9 @@ export const getBusinessById = (req: Request, res: Response) => {
 export const createBusiness = (req: Request, res: Response) => {
   const body = req.body;
   if (!body.name || !body.industry || !body.city) {
-    return res.status(400).json({ success: false, error: { message: 'name, industry, and city are required' } });
+    return res
+      .status(400)
+      .json({ success: false, error: { message: 'name, industry, and city are required' } });
   }
 
   const newProfile: MSMEProfile = {

@@ -19,7 +19,7 @@ export const runAssessmentForBusiness = async (req: Request, res: Response) => {
     const climate = await fetchClimateIndicators(
       business.location.latitude,
       business.location.longitude,
-      business.location.city
+      business.location.city,
     );
 
     const assessment = assessMSMEClimateRisk(business, climate);

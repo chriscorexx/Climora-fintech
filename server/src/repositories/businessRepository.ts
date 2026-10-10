@@ -56,7 +56,7 @@ export class BusinessRepository {
       profile.financials.loanTenureMonths || 36,
       JSON.stringify(profile.operations),
       profile.createdAt,
-      profile.updatedAt
+      profile.updatedAt,
     );
 
     return profile;
@@ -103,7 +103,7 @@ export class BusinessRepository {
       merged.financials.loanTenureMonths || 36,
       JSON.stringify(merged.operations),
       merged.updatedAt,
-      id
+      id,
     );
 
     return merged;

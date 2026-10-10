@@ -5,7 +5,9 @@ export function seedDatabaseIfEmpty(): void {
   const db = getDatabase();
 
   // 1. Check & Seed Schemes
-  const schemeCountRow = db.prepare('SELECT COUNT(*) as count FROM schemes').get() as { count: number };
+  const schemeCountRow = db.prepare('SELECT COUNT(*) as count FROM schemes').get() as {
+    count: number;
+  };
   if (schemeCountRow.count === 0) {
     const insertScheme = db.prepare(`
       INSERT INTO schemes (
@@ -28,7 +30,7 @@ export function seedDatabaseIfEmpty(): void {
         JSON.stringify(s.eligibilityCriteria),
         s.supportType,
         s.maxBenefitSummary,
-        s.officialSourceUrl
+        s.officialSourceUrl,
       );
     }
   }

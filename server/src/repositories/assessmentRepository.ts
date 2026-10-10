@@ -24,7 +24,7 @@ export class AssessmentRepository {
       JSON.stringify(assessment.explainabilitySummary),
       JSON.stringify(assessment.loanDecisionSupport),
       assessment.provenance.isLive ? 1 : 0,
-      assessment.timestamp
+      assessment.timestamp,
     );
 
     const insertFactor = this.db.prepare(`
@@ -41,7 +41,7 @@ export class AssessmentRepository {
         dim.score,
         dim.baseWeight,
         dim.effectiveWeight,
-        dim.contributingFactors.join('; ')
+        dim.contributingFactors.join('; '),
       );
     }
 
@@ -49,9 +49,13 @@ export class AssessmentRepository {
   }
 
   getByBusinessId(businessId: string): RiskAssessment[] {
-    const rows = this.db.prepare(`
+    const rows = this.db
+      .prepare(
+        `
       SELECT * FROM assessments WHERE business_id = ? ORDER BY created_at DESC
-    `).all(businessId) as any[];
+    `,
+      )
+      .all(businessId) as any[];
 
     return rows.map((r) => this.mapRowToAssessment(r));
   }
@@ -63,9 +67,13 @@ export class AssessmentRepository {
   }
 
   private mapRowToAssessment(row: any): RiskAssessment {
-    const factorRows = this.db.prepare(`
+    const factorRows = this.db
+      .prepare(
+        `
       SELECT * FROM assessment_factors WHERE assessment_id = ?
-    `).all(row.id) as any[];
+    `,
+      )
+      .all(row.id) as any[];
 
     const dimensionScores: any = {};
     for (const f of factorRows) {

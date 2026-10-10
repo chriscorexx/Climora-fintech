@@ -1,4 +1,3 @@
-
 # Climora — MVP Scope
 
 ## 1. Goal
@@ -19,8 +18,8 @@ See [TECH_STACK.md](TECH_STACK.md) for full architecture, security, and data-flo
 
 ## 3. Target Users
 
-* **Primary:** Bank credit officers and risk analysts.
-* **Secondary:** MSME owners who want to understand their climate exposure.
+- **Primary:** Bank credit officers and risk analysts.
+- **Secondary:** MSME owners who want to understand their climate exposure.
 
 ## 4. Core Features (Must Have)
 
@@ -33,39 +32,39 @@ See [TECH_STACK.md](TECH_STACK.md) for full architecture, security, and data-flo
 
 ## 5. Optional Features (If Time Permits)
 
-* Interactive map showing business locations.
-* Compare risk profiles across multiple MSMEs.
-* Export a simple risk report (JSON or PDF).
-* Simulated portfolio-level risk dashboard for lenders.
+- Interactive map showing business locations.
+- Compare risk profiles across multiple MSMEs.
+- Export a simple risk report (JSON or PDF).
+- Simulated portfolio-level risk dashboard for lenders.
 
 ## 6. Out of Scope
 
-* Production-grade credit scoring.
-* Predicting actual loan defaults.
-* Direct integration with banking systems.
-* Automatic loan approvals or rejections.
-* Claims of validated climate-risk predictions.
-* Cloud deployment, server-side infrastructure, or microservices.
-* Paid API integrations requiring API keys.
+- Production-grade credit scoring.
+- Predicting actual loan defaults.
+- Direct integration with banking systems.
+- Automatic loan approvals or rejections.
+- Claims of validated climate-risk predictions.
+- Cloud deployment, server-side infrastructure, or microservices.
+- Paid API integrations requiring API keys.
 
 ## 7. Constraints
 
-* Hackathon duration: 24 hours.
-* Team size: 4 members.
-* Use public or sample data only. Open-Meteo is free and does not require an API key for non-commercial use.
-* Prioritize a working end-to-end desktop demonstration over a large feature set.
-* No external services or cloud infrastructure required.
+- Hackathon duration: 24 hours.
+- Team size: 4 members.
+- Use public or sample data only. Open-Meteo is free and does not require an API key for non-commercial use.
+- Prioritize a working end-to-end desktop demonstration over a large feature set.
+- No external services or cloud infrastructure required.
 
 ## 8. Data Sources
 
-| Source | Type | Purpose |
-|---|---|---|
-| Open-Meteo Forecast API | Live API | Temperature, precipitation, wind for heavy-rainfall and extreme-heat dimensions |
-| Open-Meteo Flood API | Live API | Simulated river discharge for flood-exposure dimension |
-| Open-Meteo Geocoding API | Live API | Resolve location names to coordinates |
-| Open-Meteo Historical API | Reference API | Context for recent climate patterns |
-| World Bank Climate/Flood Datasets | Downloadable dataset | Reference only; requires preprocessing |
-| Sample data | Synthetic fallback | Clearly labelled; used when APIs are unavailable |
+| Source                            | Type                 | Purpose                                                                         |
+| --------------------------------- | -------------------- | ------------------------------------------------------------------------------- |
+| Open-Meteo Forecast API           | Live API             | Temperature, precipitation, wind for heavy-rainfall and extreme-heat dimensions |
+| Open-Meteo Flood API              | Live API             | Simulated river discharge for flood-exposure dimension                          |
+| Open-Meteo Geocoding API          | Live API             | Resolve location names to coordinates                                           |
+| Open-Meteo Historical API         | Reference API        | Context for recent climate patterns                                             |
+| World Bank Climate/Flood Datasets | Downloadable dataset | Reference only; requires preprocessing                                          |
+| Sample data                       | Synthetic fallback   | Clearly labelled; used when APIs are unavailable                                |
 
 See [DATA_SOURCES.md](DATA_SOURCES.md) for full details.
 

@@ -1,4 +1,3 @@
-
 # Climora — Real-Time Climate Risk Scoring for MSMEs
 
 **Tagline:** Turning Climate Data into Business Resilience.
@@ -33,15 +32,15 @@ Imagine two businesses with similar revenue, expenses, and repayment histories.
 
 **Business A — Lower flood exposure**
 
-* Located in an area with relatively low flood exposure.
-* Maintains emergency inventory and backup suppliers.
-* Has sufficient funds to cover routine operating expenses.
+- Located in an area with relatively low flood exposure.
+- Maintains emergency inventory and backup suppliers.
+- Has sufficient funds to cover routine operating expenses.
 
 **Business B — Higher flood exposure**
 
-* Located in a flood-prone area.
-* Depends on deliveries that may be interrupted by flooding.
-* Has limited emergency funds and could struggle during a prolonged closure.
+- Located in a flood-prone area.
+- Depends on deliveries that may be interrupted by flooding.
+- Has limited emergency funds and could struggle during a prolonged closure.
 
 Although their financial records may look similar, Business B could face greater climate-related financial disruption.
 
@@ -79,24 +78,24 @@ Climora provides two connected experiences through a single application.
 
 Helps lenders and credit-risk analysts:
 
-* Review MSME profiles and preliminary climate-risk assessments.
-* Identify businesses exposed to significant climate hazards.
-* Understand the main contributors to each risk score.
-* Review financial resilience and operational vulnerabilities.
-* Explore recommended mitigation measures.
-* Monitor assessments and changes in available climate information.
-* Support more informed human-led lending reviews.
+- Review MSME profiles and preliminary climate-risk assessments.
+- Identify businesses exposed to significant climate hazards.
+- Understand the main contributors to each risk score.
+- Review financial resilience and operational vulnerabilities.
+- Explore recommended mitigation measures.
+- Monitor assessments and changes in available climate information.
+- Support more informed human-led lending reviews.
 
 ### B. MSME Owner Dashboard
 
 Helps business owners:
 
-* Understand their business's climate vulnerabilities.
-* View the financial and operational indicators used in their assessment.
-* Understand potential loan-readiness weaknesses.
-* Receive a personalized improvement roadmap.
-* Track completed actions and progress over time.
-* Prepare supporting documents and information for a future lender review.
+- Understand their business's climate vulnerabilities.
+- View the financial and operational indicators used in their assessment.
+- Understand potential loan-readiness weaknesses.
+- Receive a personalized improvement roadmap.
+- Track completed actions and progress over time.
+- Prepare supporting documents and information for a future lender review.
 
 The two experiences should share relevant assessment information while respecting appropriate access permissions and protecting sensitive financial data.
 
@@ -130,9 +129,9 @@ If a loan is rejected or additional requirements are identified, provide a Loan 
 
 Climora combines three important ideas:
 
-* **Financial risk:** Indicators of potential financial difficulty and repayment pressure.
-* **Climate-adjusted risk:** Climate hazards are considered alongside financial and operational information.
-* **Dynamic assessment:** The assessment can be refreshed when new weather information, hazard data, or business details become available.
+- **Financial risk:** Indicators of potential financial difficulty and repayment pressure.
+- **Climate-adjusted risk:** Climate hazards are considered alongside financial and operational information.
+- **Dynamic assessment:** The assessment can be refreshed when new weather information, hazard data, or business details become available.
 
 Example:
 
@@ -165,10 +164,10 @@ The weighted result is:
 
 Suggested illustrative categories:
 
-* 0–24: Lower risk
-* 25–49: Moderate risk
-* 50–74: High risk
-* 75–100: Very high risk
+- 0–24: Lower risk
+- 25–49: Moderate risk
+- 50–74: High risk
+- 75–100: Very high risk
 
 These weights and thresholds are provisional and must be tested and calibrated before any real-world lending use.
 
@@ -196,24 +195,24 @@ Climora maps those reasons to relevant actions. It must distinguish between an a
 
 Examples include:
 
-* Low cash-flow coverage.
-* High existing debt obligations.
-* Insufficient financial records.
-* Limited emergency reserves.
-* High exposure to a relevant climate hazard.
-* Lack of a business continuity or disaster recovery plan.
-* Missing business, ownership, tax, or other required documentation.
+- Low cash-flow coverage.
+- High existing debt obligations.
+- Insufficient financial records.
+- Limited emergency reserves.
+- High exposure to a relevant climate hazard.
+- Lack of a business continuity or disaster recovery plan.
+- Missing business, ownership, tax, or other required documentation.
 
 **Step 3 — Generate a personalized roadmap**
 
 Each recommendation includes:
 
-* The issue to address.
-* Why it matters.
-* A practical next step.
-* Suggested supporting documents or evidence.
-* A priority level.
-* A progress status.
+- The issue to address.
+- Why it matters.
+- A practical next step.
+- Suggested supporting documents or evidence.
+- A priority level.
+- A progress status.
 
 **Step 4 — Track improvement**
 
@@ -254,17 +253,17 @@ The dashboard is the central interface of Climora. It should provide an overview
 
 **Top summary cards**
 
-* Total MSMEs assessed.
-* Businesses with elevated climate exposure.
-* Assessments requiring review.
-* Loan applications awaiting follow-up.
+- Total MSMEs assessed.
+- Businesses with elevated climate exposure.
+- Assessments requiring review.
+- Loan applications awaiting follow-up.
 
 **Climate-risk overview**
 
-* Risk-category distribution.
-* Breakdown by industry.
-* Breakdown by location, where reliable geographic data is available.
-* Most common identified climate hazards.
+- Risk-category distribution.
+- Breakdown by industry.
+- Breakdown by location, where reliable geographic data is available.
+- Most common identified climate hazards.
 
 **Assessment table**
 
@@ -282,15 +281,15 @@ Selecting a business opens its full assessment, score breakdown, data sources, u
 
 The page should include:
 
-* Business profile and location.
-* Overall illustrative risk score.
-* Individual hazard scores.
-* Financial resilience indicators.
-* Operational dependency indicators.
-* Explanation of the highest-contributing factors.
-* Available data sources and last-updated timestamps.
-* Suggested mitigation actions.
-* Missing-data and uncertainty warnings.
+- Business profile and location.
+- Overall illustrative risk score.
+- Individual hazard scores.
+- Financial resilience indicators.
+- Operational dependency indicators.
+- Explanation of the highest-contributing factors.
+- Available data sources and last-updated timestamps.
+- Suggested mitigation actions.
+- Missing-data and uncertainty warnings.
 
 Use charts to explain the assessment rather than presenting a score without context.
 
@@ -298,10 +297,10 @@ Use charts to explain the assessment rather than presenting a score without cont
 
 **Summary cards**
 
-* Current loan-readiness status.
-* Improvement actions completed.
-* High-priority actions remaining.
-* Supporting documents prepared.
+- Current loan-readiness status.
+- Improvement actions completed.
+- High-priority actions remaining.
+- Supporting documents prepared.
 
 **Main sections**
 
@@ -318,12 +317,12 @@ Loan readiness should be presented as a preparation checklist or transparent ind
 
 When an application is rejected, the owner sees:
 
-* The recorded outcome and lender-provided reasons, where available.
-* A clear distinction between confirmed reasons and additional potential weaknesses.
-* Recommended next steps.
-* Priority levels and progress tracking.
-* Suggested supporting evidence.
-* A summary for a future discussion with a lender.
+- The recorded outcome and lender-provided reasons, where available.
+- A clear distinction between confirmed reasons and additional potential weaknesses.
+- Recommended next steps.
+- Priority levels and progress tracking.
+- Suggested supporting evidence.
+- A summary for a future discussion with a lender.
 
 The dashboard should avoid blaming the business owner or presenting climate exposure as an immutable personal failing. It should focus on practical, achievable ways to reduce vulnerability and improve readiness.
 
@@ -331,32 +330,32 @@ The dashboard should avoid blaming the business owner or presenting climate expo
 
 Use a professional financial-technology interface:
 
-* Dark navy or charcoal background with restrained teal or blue accents.
-* Clear typography and accessible contrast.
-* Simple charts and concise explanations.
-* Neutral status indicators for ordinary information and distinct warning colours only when meaningful.
-* Consistent navigation for lender and business-owner views.
+- Dark navy or charcoal background with restrained teal or blue accents.
+- Clear typography and accessible contrast.
+- Simple charts and concise explanations.
+- Neutral status indicators for ordinary information and distinct warning colours only when meaningful.
+- Consistent navigation for lender and business-owner views.
 
 Suggested sidebar:
 
 **Lender view**
 
-* Overview
-* MSME Assessments
-* Climate Risk
-* Loan Applications
-* Reports
-* Settings
+- Overview
+- MSME Assessments
+- Climate Risk
+- Loan Applications
+- Reports
+- Settings
 
 **Business-owner view**
 
-* My Dashboard
-* My Business
-* Climate Exposure
-* Loan Readiness
-* Improvement Roadmap
-* Documents
-* Assessment History
+- My Dashboard
+- My Business
+- Climate Exposure
+- Loan Readiness
+- Improvement Roadmap
+- Documents
+- Assessment History
 
 ## 11. Data Sources
 
@@ -392,13 +391,13 @@ The application should show the source, date, coverage, and limitations of its i
 
 The prototype uses a unified **TypeScript** architecture with a **React + TypeScript** interface and **Node.js + TypeScript** core engine, supporting both web and Electron desktop execution.
 
-* **TypeScript:** Unified language across frontend and backend for strong typing and data reliability.
-* **React + TypeScript:** Dashboard and user interface with Tailwind CSS.
-* **Vite:** Frontend development and build tooling.
-* **Node.js + TypeScript:** Climate-data requests, assessment calculations, and application logic.
-* **Open-Meteo API:** Live weather, flood, and geocoding indicators with sample-data fallback.
-* **SQLite:** Local storage for business profiles, assessments, and resilience progress.
-* **Electron:** Desktop application container with secure typed preload bridge (`preload.ts`).
+- **TypeScript:** Unified language across frontend and backend for strong typing and data reliability.
+- **React + TypeScript:** Dashboard and user interface with Tailwind CSS.
+- **Vite:** Frontend development and build tooling.
+- **Node.js + TypeScript:** Climate-data requests, assessment calculations, and application logic.
+- **Open-Meteo API:** Live weather, flood, and geocoding indicators with sample-data fallback.
+- **SQLite:** Local storage for business profiles, assessments, and resilience progress.
+- **Electron:** Desktop application container with secure typed preload bridge (`preload.ts`).
 
 No separate FastAPI backend is required for the initial version.
 
@@ -423,21 +422,21 @@ The aim is to demonstrate one complete, understandable workflow rather than a la
 
 ### Optional features
 
-* Interactive hazard map.
-* Exportable assessment report.
-* Document upload.
-* Assessment history and trend charts.
-* Portfolio comparisons across industries or locations.
-* Notifications when updated information materially changes an assessment.
+- Interactive hazard map.
+- Exportable assessment report.
+- Document upload.
+- Assessment history and trend charts.
+- Portfolio comparisons across industries or locations.
+- Notifications when updated information materially changes an assessment.
 
 ### Out of scope for the first prototype
 
-* A production-grade credit-scoring model.
-* Claims of validated default prediction.
-* Direct integration with bank lending systems.
-* Automated loan rejection or approval.
-* Guaranteed loan-approval predictions.
-* Complete satellite, utility, insurance, and supply-chain integrations.
+- A production-grade credit-scoring model.
+- Claims of validated default prediction.
+- Direct integration with bank lending systems.
+- Automated loan rejection or approval.
+- Guaranteed loan-approval predictions.
+- Complete satellite, utility, insurance, and supply-chain integrations.
 
 ## 14. Responsible Use
 
@@ -447,13 +446,13 @@ Its climate-risk score must not be represented as an official credit rating or a
 
 The application should:
 
-* Explain the factors behind each score.
-* Display the provenance and limitations of its data.
-* Flag missing or stale information.
-* Separate lender-recorded rejection reasons from inferred improvement opportunities.
-* Protect financial and personal information.
-* Allow a human reviewer to assess context and correct inaccurate inputs.
-* Present recommendations as support for business resilience and loan preparation rather than guaranteed approval criteria.
+- Explain the factors behind each score.
+- Display the provenance and limitations of its data.
+- Flag missing or stale information.
+- Separate lender-recorded rejection reasons from inferred improvement opportunities.
+- Protect financial and personal information.
+- Allow a human reviewer to assess context and correct inaccurate inputs.
+- Present recommendations as support for business resilience and loan preparation rather than guaranteed approval criteria.
 
 ## 15. Expected Outcome
 

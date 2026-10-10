@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -6,14 +6,18 @@
     <link rel="apple-touch-icon" href="/Climora-logo.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Climora — Climate-Adjusted Risk Scoring for MSMEs</title>
-    <meta name="description" content="Institutional climate risk scoring, cashflow stress testing, and subsidy matching for MSME lending." />
+    <meta
+      name="description"
+      content="Institutional climate risk scoring, cashflow stress testing, and subsidy matching for MSME lending."
+    />
     <meta name="theme-color" content="#000000" />
     <script>
       (function () {
         try {
           var mode = localStorage.getItem('climora-ui-mode');
           if (mode !== 'light' && mode !== 'dark' && mode !== 'system') mode = 'system';
-          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var prefersDark =
+            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
           var isDark = mode === 'dark' || (mode === 'system' && prefersDark);
           var root = document.documentElement;
           root.classList.toggle('dark', isDark);
@@ -23,12 +27,22 @@
         } catch (e) {}
       })();
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
   </head>
-  <body class="bg-fin-bg text-fin-text antialiased selection:bg-emerald-500/25 selection:text-emerald-950 dark:selection:text-emerald-100">
+  <body
+    class="bg-fin-bg text-fin-text antialiased selection:bg-emerald-500/25 selection:text-emerald-950 dark:selection:text-emerald-100"
+  >
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

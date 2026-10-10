@@ -2,6 +2,7 @@
 node_modules/
 dist/
 coverage/
+website/
 
 # Packaging artifacts (contains binary icons)
 release/

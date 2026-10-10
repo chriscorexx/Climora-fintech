@@ -1,4 +1,3 @@
-
 # Climora — Risk Scoring Methodology
 
 ## 1. Purpose
@@ -52,10 +51,10 @@ The financial resilience dimension should represent vulnerability, so a less res
 
 ## 4. Risk Categories
 
-* **0–24:** Low
-* **25–49:** Moderate
-* **50–74:** High
-* **75–100:** Very High
+- **0–24:** Low
+- **25–49:** Moderate
+- **50–74:** High
+- **75–100:** Very High
 
 These thresholds are provisional and are intended only for the hackathon prototype.
 
@@ -63,19 +62,19 @@ These thresholds are provisional and are intended only for the hackathon prototy
 
 For each assessment, show:
 
-* Overall score and category.
-* Individual dimension scores.
-* Main factors contributing to the score.
-* Data sources and assessment date.
-* Recommended mitigation actions.
-* Missing data and limitations.
+- Overall score and category.
+- Individual dimension scores.
+- Main factors contributing to the score.
+- Data sources and assessment date.
+- Recommended mitigation actions.
+- Missing data and limitations.
 
 ## 6. Missing or Uncertain Data
 
-* Do not silently treat missing values as zero risk.
-* Clearly mark unavailable indicators.
-* If a dimension cannot be assessed, either exclude it and proportionally reweight the available dimensions or show that the assessment is incomplete.
-* Distinguish observed weather data from historical climate indicators and modelled flood exposure.
+- Do not silently treat missing values as zero risk.
+- Clearly mark unavailable indicators.
+- If a dimension cannot be assessed, either exclude it and proportionally reweight the available dimensions or show that the assessment is incomplete.
+- Distinguish observed weather data from historical climate indicators and modelled flood exposure.
 
 ## 7. Responsible Use
 

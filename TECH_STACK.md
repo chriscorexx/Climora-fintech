@@ -19,12 +19,12 @@ This is a single-runtime application. No external microservices or cloud servers
 
 ### 2.1 Runtime & Shell
 
-| Layer | Technology | Role |
-|---|---|---|
+| Layer         | Technology                | Role                                                                                                                                                                          |
+| ------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Desktop shell | **Electron (TypeScript)** | Cross-platform desktop container (Windows, macOS, Linux). Hosts the React renderer and provides the Node.js main process for backend logic, file I/O, and external API calls. |
-| Renderer (UI) | **React + TypeScript** | Renders the dashboard, MSME profile forms, risk-score display, contributing-factor breakdown, and recommendations. Bundled with Vite. |
-| Backend logic | **Node.js + TypeScript** | Handles input validation, external API integration (Open-Meteo), risk-engine calculation, and all SQLite persistence. |
-| Persistence | **SQLite** | Local relational database stored in user data directory. Stores business profiles, assessment results, metadata, and assessment history. |
+| Renderer (UI) | **React + TypeScript**    | Renders the dashboard, MSME profile forms, risk-score display, contributing-factor breakdown, and recommendations. Bundled with Vite.                                         |
+| Backend logic | **Node.js + TypeScript**  | Handles input validation, external API integration (Open-Meteo), risk-engine calculation, and all SQLite persistence.                                                         |
+| Persistence   | **SQLite**                | Local relational database stored in user data directory. Stores business profiles, assessment results, metadata, and assessment history.                                      |
 
 ### 2.2 Architecture Pattern
 
@@ -70,15 +70,15 @@ This is a single-runtime application. No external microservices or cloud servers
 
 ### 2.3 Security Architecture
 
-| Concern | Setting | Rationale |
-|---|---|---|
-| **Context isolation** | `contextIsolation: true` | Isolates the renderer from the main process to prevent XSS from accessing Node.js APIs. |
-| **Node integration in renderer** | `nodeIntegration: false` | Disables direct Node.js access from React/HTML to reduce attack surface. |
-| **Preload script** | `preload.ts` | Exposes a vetted, narrowly-scoped API surface via typed `contextBridge.exposeInMainWorld`. Only approved IPC channels are callable from the renderer. |
-| **Input validation** | Zod schemas in TypeScript | All user inputs (business name, location, coordinates, financial figures) are validated with strongly typed Zod schemas. Never trust renderer-side validation alone. |
-| **SQL injection** | Parameterized queries (`?` placeholders) | All SQLite operations use parameterized queries. No string concatenation in SQL. |
-| **API credential handling** | `process.env` via `.env` or Electron `safeStorage` | If any API keys are needed in future, they are loaded from environment variables or Electron secure storage — never hardcoded. |
-| **Network calls** | From main process only | External HTTP requests originate from Electron's main process, not the renderer, preventing CORS and reducing exposure. |
+| Concern                          | Setting                                            | Rationale                                                                                                                                                            |
+| -------------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Context isolation**            | `contextIsolation: true`                           | Isolates the renderer from the main process to prevent XSS from accessing Node.js APIs.                                                                              |
+| **Node integration in renderer** | `nodeIntegration: false`                           | Disables direct Node.js access from React/HTML to reduce attack surface.                                                                                             |
+| **Preload script**               | `preload.ts`                                       | Exposes a vetted, narrowly-scoped API surface via typed `contextBridge.exposeInMainWorld`. Only approved IPC channels are callable from the renderer.                |
+| **Input validation**             | Zod schemas in TypeScript                          | All user inputs (business name, location, coordinates, financial figures) are validated with strongly typed Zod schemas. Never trust renderer-side validation alone. |
+| **SQL injection**                | Parameterized queries (`?` placeholders)           | All SQLite operations use parameterized queries. No string concatenation in SQL.                                                                                     |
+| **API credential handling**      | `process.env` via `.env` or Electron `safeStorage` | If any API keys are needed in future, they are loaded from environment variables or Electron secure storage — never hardcoded.                                       |
+| **Network calls**                | From main process only                             | External HTTP requests originate from Electron's main process, not the renderer, preventing CORS and reducing exposure.                                              |
 
 ---
 
@@ -101,15 +101,16 @@ This is a single-runtime application. No external microservices or cloud servers
 
 Open-Meteo aggregates open weather model output from national meteorological services (ECMWF, NOAA, DWD, Météo-France, and others). It provides multiple free-to-use APIs under **CC BY 4.0** licensing (attribution required). No API key is required for non-commercial/free use; commercial use requires a paid plan with an API key.
 
-| API Endpoint | Purpose | Key Variables |
-|---|---|---|
-| **Forecast API** (`https://api.open-meteo.com/v1/forecast`) | Current conditions and up-to-16-day forecast | `temperature_2m_max`, `temperature_2m_min`, `precipitation_sum`, `rain_sum`, `weather_code`, `wind_speed_10m_max` |
-| **Historical Weather API** (`https://archive-api.open-meteo.com/v1/archive`) | Past weather (1940–present, ERA5/ERA5-Land reanalysis) | Same variables as forecast; useful for computing recent normals |
-| **Flood API** (`https://flood-api.open-meteo.com/v1/flood`) | Simulated river discharge (GloFAS, 5 km resolution, 1984–present + up to 7 months forecast) | `river_discharge`, `river_discharge_max`, ensemble percentiles |
-| **Climate API** (`https://climate-api.open-meteo.com/v1/climate`) | Climate projections (1950–2050, CMIP6 downscaled to 10 km) | `temperature_2m_max`, `precipitation_sum`, long-term trends |
-| **Geocoding API** (`https://geocoding-api.open-meteo.com/v1/search`) | Resolve city/location names to lat/lng coordinates | `latitude`, `longitude`, `elevation`, `timezone`, `country` |
+| API Endpoint                                                                 | Purpose                                                                                     | Key Variables                                                                                                     |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Forecast API** (`https://api.open-meteo.com/v1/forecast`)                  | Current conditions and up-to-16-day forecast                                                | `temperature_2m_max`, `temperature_2m_min`, `precipitation_sum`, `rain_sum`, `weather_code`, `wind_speed_10m_max` |
+| **Historical Weather API** (`https://archive-api.open-meteo.com/v1/archive`) | Past weather (1940–present, ERA5/ERA5-Land reanalysis)                                      | Same variables as forecast; useful for computing recent normals                                                   |
+| **Flood API** (`https://flood-api.open-meteo.com/v1/flood`)                  | Simulated river discharge (GloFAS, 5 km resolution, 1984–present + up to 7 months forecast) | `river_discharge`, `river_discharge_max`, ensemble percentiles                                                    |
+| **Climate API** (`https://climate-api.open-meteo.com/v1/climate`)            | Climate projections (1950–2050, CMIP6 downscaled to 10 km)                                  | `temperature_2m_max`, `precipitation_sum`, long-term trends                                                       |
+| **Geocoding API** (`https://geocoding-api.open-meteo.com/v1/search`)         | Resolve city/location names to lat/lng coordinates                                          | `latitude`, `longitude`, `elevation`, `timezone`, `country`                                                       |
 
 **Primary demo approach:**
+
 - Use the **Forecast API** for current weather conditions (temperature, precipitation) to drive the heavy-rainfall and extreme-heat dimensions.
 - Use the **Flood API** for river discharge to drive the flood-exposure dimension.
 - Use the **Geocoding API** to resolve location names to coordinates.
@@ -121,20 +122,20 @@ Open-Meteo aggregates open weather model output from national meteorological ser
 
 ### 4.2 Supplementary / Alternative Weather Sources
 
-| Source | URL | Notes |
-|---|---|---|
-| **Visual Crossing** | `https://www.visualcrossing.com/weather-data/` | Single Timeline API for historical, current, and forecast data. Free tier: 1,000 records/day, no credit card. Paid plans for higher volume. Requires API key. |
-| **Meteostat** | `https://dev.meteostat.net/` | Free access to historical weather and climate data via JSON API and CSV downloads. No API key required for basic usage. Primarily historical/observation-based. |
+| Source              | URL                                            | Notes                                                                                                                                                           |
+| ------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Visual Crossing** | `https://www.visualcrossing.com/weather-data/` | Single Timeline API for historical, current, and forecast data. Free tier: 1,000 records/day, no credit card. Paid plans for higher volume. Requires API key.   |
+| **Meteostat**       | `https://dev.meteostat.net/`                   | Free access to historical weather and climate data via JSON API and CSV downloads. No API key required for basic usage. Primarily historical/observation-based. |
 
 **Strategy:** Open-Meteo is the primary and only integrated provider for the hackathon MVP. Visual Crossing and Meteostat are documented as alternatives if Open-Meteo is unavailable or rate-limited. Only one provider should be prioritized to avoid complexity in a 24-hour window.
 
 ### 4.3 Climate & Flood Datasets
 
-| Dataset | Source | URL | Notes |
-|---|---|---|---|
-| World Bank Climate Change Knowledge Portal | World Bank | `https://climateknowledgeportal.worldbank.org/download-data` | Country-level climate indicators and projections. Requires preprocessing for geographic matching. |
-| World Bank Global Flood Exposure Dataset | World Bank | `https://datacatalog.worldbank.org/dataset/0062763` | Gridded population flood exposure headcounts by country. Requires preprocessing to extract location-specific exposure. |
-| HDX Flood Datasets | UN OCHA | `https://data.humdata.org/dataset/?vocab_Topics=flooding` | Various flood hazard maps and exposure datasets. Require preprocessing and geographic matching. |
+| Dataset                                    | Source     | URL                                                          | Notes                                                                                                                  |
+| ------------------------------------------ | ---------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| World Bank Climate Change Knowledge Portal | World Bank | `https://climateknowledgeportal.worldbank.org/download-data` | Country-level climate indicators and projections. Requires preprocessing for geographic matching.                      |
+| World Bank Global Flood Exposure Dataset   | World Bank | `https://datacatalog.worldbank.org/dataset/0062763`          | Gridded population flood exposure headcounts by country. Requires preprocessing to extract location-specific exposure. |
+| HDX Flood Datasets                         | UN OCHA    | `https://data.humdata.org/dataset/?vocab_Topics=flooding`    | Various flood hazard maps and exposure datasets. Require preprocessing and geographic matching.                        |
 
 **Important:** These datasets are downloaded as bulk files (CSV, GeoJSON, raster). They require **preprocessing and geographic matching** to associate a business location with its relevant climate or flood risk context. They are not real-time APIs and are intended for supplementary context only.
 
@@ -144,13 +145,13 @@ Open-Meteo aggregates open weather model output from national meteorological ser
 
 ### 4.5 Data Source Types: Definitions and Differences
 
-| Type | Definition | Source Example | Use in Climora |
-|---|---|---|---|
-| **Forecasts** | Short-term predictions (up to 16 days) from numerical weather models. Best for current weather conditions and near-term outlook. | Open-Meteo Forecast API | Drives real-time heavy-rainfall and extreme-heat dimensions. |
-| **Observations / Historical Weather** | Recorded or reanalyzed weather data (past conditions from 1940 onward). Represents what actually happened. | Open-Meteo Historical Weather API, Meteostat | Context for recent averages; not the sole basis for risk. |
-| **Climate Projections** | Long-term modeled scenarios of future climate conditions (e.g., 1950–2050) based on representative concentration pathways. Represents trends, not daily weather. | Open-Meteo Climate API, World Bank Climate Knowledge Portal | Context for long-term exposure trends. Not used as real-time scoring input. |
-| **Flood Exposure Data** | Geospatial datasets showing population or asset exposure to flood hazards, or simulated river discharge. Represents hazard exposure, not direct business risk. | Open-Meteo Flood API, World Bank Global Flood Exposure Dataset, HDX flood maps | Drives the flood-exposure dimension. The Flood API (river discharge) is the primary input. |
-| **Sample Data** | Synthetic, hardcoded fallback values clearly labelled as illustrative. | Bundled in codebase | Used only when an external source is unavailable. Clearly marked as sample, never presented as live. |
+| Type                                  | Definition                                                                                                                                                       | Source Example                                                                 | Use in Climora                                                                                       |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| **Forecasts**                         | Short-term predictions (up to 16 days) from numerical weather models. Best for current weather conditions and near-term outlook.                                 | Open-Meteo Forecast API                                                        | Drives real-time heavy-rainfall and extreme-heat dimensions.                                         |
+| **Observations / Historical Weather** | Recorded or reanalyzed weather data (past conditions from 1940 onward). Represents what actually happened.                                                       | Open-Meteo Historical Weather API, Meteostat                                   | Context for recent averages; not the sole basis for risk.                                            |
+| **Climate Projections**               | Long-term modeled scenarios of future climate conditions (e.g., 1950–2050) based on representative concentration pathways. Represents trends, not daily weather. | Open-Meteo Climate API, World Bank Climate Knowledge Portal                    | Context for long-term exposure trends. Not used as real-time scoring input.                          |
+| **Flood Exposure Data**               | Geospatial datasets showing population or asset exposure to flood hazards, or simulated river discharge. Represents hazard exposure, not direct business risk.   | Open-Meteo Flood API, World Bank Global Flood Exposure Dataset, HDX flood maps | Drives the flood-exposure dimension. The Flood API (river discharge) is the primary input.           |
+| **Sample Data**                       | Synthetic, hardcoded fallback values clearly labelled as illustrative.                                                                                           | Bundled in codebase                                                            | Used only when an external source is unavailable. Clearly marked as sample, never presented as live. |
 
 ---
 
@@ -220,14 +221,14 @@ The risk engine is implemented as a set of pure functions in the Node.js main pr
 
 ### 6.1 Risk Dimensions and Weights
 
-| Dimension | Weight | Data Source |
-|---|---|---|
-| Flood Exposure | 30% | Open-Meteo Flood API (river discharge) or sample data |
-| Heavy Rainfall | 25% | Open-Meteo Forecast API (`precipitation_sum`, `rain_sum`) |
-| Extreme Heat | 20% | Open-Meteo Forecast API (`temperature_2m_max`) |
-| Business Vulnerability | 15% | User-provided business type classification |
-| Financial Vulnerability | 10% | User-provided revenue/expenses (optional) |
-| **Total** | **100%** | |
+| Dimension               | Weight   | Data Source                                               |
+| ----------------------- | -------- | --------------------------------------------------------- |
+| Flood Exposure          | 30%      | Open-Meteo Flood API (river discharge) or sample data     |
+| Heavy Rainfall          | 25%      | Open-Meteo Forecast API (`precipitation_sum`, `rain_sum`) |
+| Extreme Heat            | 20%      | Open-Meteo Forecast API (`temperature_2m_max`)            |
+| Business Vulnerability  | 15%      | User-provided business type classification                |
+| Financial Vulnerability | 10%      | User-provided revenue/expenses (optional)                 |
+| **Total**               | **100%** |                                                           |
 
 ### 6.2 Scoring Formula
 
@@ -239,12 +240,12 @@ Each dimension is normalized to a 0–100 scale before weighting.
 
 ### 6.3 Risk Categories
 
-| Score Range | Category |
-|---|---|
-| 0–24 | Low |
-| 25–49 | Moderate |
-| 50–74 | High |
-| 75–100 | Very High |
+| Score Range | Category  |
+| ----------- | --------- |
+| 0–24        | Low       |
+| 25–49       | Moderate  |
+| 50–74       | High      |
+| 75–100      | Very High |
 
 Thresholds are provisional and for the hackathon prototype only.
 
@@ -277,15 +278,15 @@ This risk score is an **illustrative prototype heuristic**. It is **not** a vali
 
 ## 7. Development Tools
 
-| Category | Tool | Purpose |
-|---|---|---|
-| **Language** | TypeScript 5+ | End-to-end type safety across domain models, UI, and backend logic. |
-| **Package management** | npm (Node Package Manager) | Manages dependencies. |
-| **Build tooling** | Vite | Ultra-fast bundling of React + TypeScript renderer. |
-| **Electron packaging** | electron-builder | Creates cross-platform desktop packages. |
-| **Version control** | Git | Local and feature-branch version control. |
-| **Remote repository** | GitHub | Hosted repository, collaboration, issue tracking, and CI. |
-| **UI/UX design** | Tailwind CSS + Lucide Icons | Clean FinTech design system. |
+| Category               | Tool                        | Purpose                                                             |
+| ---------------------- | --------------------------- | ------------------------------------------------------------------- |
+| **Language**           | TypeScript 5+               | End-to-end type safety across domain models, UI, and backend logic. |
+| **Package management** | npm (Node Package Manager)  | Manages dependencies.                                               |
+| **Build tooling**      | Vite                        | Ultra-fast bundling of React + TypeScript renderer.                 |
+| **Electron packaging** | electron-builder            | Creates cross-platform desktop packages.                            |
+| **Version control**    | Git                         | Local and feature-branch version control.                           |
+| **Remote repository**  | GitHub                      | Hosted repository, collaboration, issue tracking, and CI.           |
+| **UI/UX design**       | Tailwind CSS + Lucide Icons | Clean FinTech design system.                                        |
 
 ---
 
@@ -293,26 +294,26 @@ This risk score is an **illustrative prototype heuristic**. It is **not** a vali
 
 ### 8.1 React / Renderer Libraries
 
-| Library | Purpose |
-|---|---|
-| `react`, `react-dom` | Core UI rendering with React 18 & TypeScript. |
-| `lucide-react` | Institutional financial and environmental icons. |
-| `recharts` | Visualizations for risk scores, contributing hazards, and DSCR cashflow trends. |
-| `leaflet`, `react-leaflet` | Geospatial hazard mapping. |
+| Library                    | Purpose                                                                         |
+| -------------------------- | ------------------------------------------------------------------------------- |
+| `react`, `react-dom`       | Core UI rendering with React 18 & TypeScript.                                   |
+| `lucide-react`             | Institutional financial and environmental icons.                                |
+| `recharts`                 | Visualizations for risk scores, contributing hazards, and DSCR cashflow trends. |
+| `leaflet`, `react-leaflet` | Geospatial hazard mapping.                                                      |
 
 ### 8.2 TypeScript / Backend Services
 
-| Library | Purpose |
-|---|---|
+| Library                     | Purpose                                                                  |
+| --------------------------- | ------------------------------------------------------------------------ |
 | `better-sqlite3` / `sql.js` | Embedded local SQLite persistence for business profiles and assessments. |
-| `zod` | Strongly typed schema-based input validation. |
-| Built-in `fetch` | HTTP requests to the Open-Meteo API. |
+| `zod`                       | Strongly typed schema-based input validation.                            |
+| Built-in `fetch`            | HTTP requests to the Open-Meteo API.                                     |
 
 ### 8.3 Electron / Packaging Libraries
 
-| Library | Purpose |
-|---|---|
-| `electron` | Core Electron framework. |
+| Library            | Purpose                        |
+| ------------------ | ------------------------------ |
+| `electron`         | Core Electron framework.       |
 | `electron-builder` | Desktop application packaging. |
 
 ---
@@ -322,6 +323,7 @@ This risk score is an **illustrative prototype heuristic**. It is **not** a vali
 A small, clearly labelled sample dataset is included for demonstration and offline testing. Sample data is **never** presented as live or real weather. When sample data is used, the UI and stored assessment metadata explicitly indicate: "Sample data — for demonstration only; not live weather or climate data."
 
 Sample data covers:
+
 - Representative temperature, precipitation, and river discharge values for a few global cities.
 - Business-type vulnerability mappings.
 - Pre-defined mitigation recommendations.
@@ -332,17 +334,18 @@ Sample data covers:
 
 During initial inspection, the following inconsistencies were identified between the agreed technology stack and existing documentation. **All have been resolved:**
 
-| File | Issue Found (Before Fix) | Resolution Applied |
-|---|---|---|
-| `README.md:45` | Listed **Python 3** as a prerequisite; no Python needed; backend is Node.js. | Replaced with Node.js 18+ prerequisite; added architecture section describing Electron + React + Node.js + SQLite. |
-| `README.md:75` | Listed data sources as bare bullet links without categorization. | Replaced with categorized reference (primary provider + link to DATA_SOURCES.md); added project structure. |
-| `README.md:92` | Stated **"Team Size: 3 members"**. | Changed to 4 members. |
-| `ProblemStatement.md:97` | Stated **"Team Size: 3 members"**. | Changed to 4 members. |
-| `MVP_SCOPE.md:40` | Stated **"Team size: 3 members"**. | Changed to 4 members; added architecture section describing Electron desktop app. |
-| `DATA_SOURCES.md:20` | Referenced **"FastAPI backend"** for accessing the Open-Meteo API. | Replaced with Node.js backend; full rewrite to categorize sources by type (API, dataset, reference). |
-| `DATA_SOURCES.md:60` | Referenced **"FastAPI backend"** for fetching external data. | Replaced with Node.js backend; added data-type summary table. |
+| File                     | Issue Found (Before Fix)                                                     | Resolution Applied                                                                                                 |
+| ------------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `README.md:45`           | Listed **Python 3** as a prerequisite; no Python needed; backend is Node.js. | Replaced with Node.js 18+ prerequisite; added architecture section describing Electron + React + Node.js + SQLite. |
+| `README.md:75`           | Listed data sources as bare bullet links without categorization.             | Replaced with categorized reference (primary provider + link to DATA_SOURCES.md); added project structure.         |
+| `README.md:92`           | Stated **"Team Size: 3 members"**.                                           | Changed to 4 members.                                                                                              |
+| `ProblemStatement.md:97` | Stated **"Team Size: 3 members"**.                                           | Changed to 4 members.                                                                                              |
+| `MVP_SCOPE.md:40`        | Stated **"Team size: 3 members"**.                                           | Changed to 4 members; added architecture section describing Electron desktop app.                                  |
+| `DATA_SOURCES.md:20`     | Referenced **"FastAPI backend"** for accessing the Open-Meteo API.           | Replaced with Node.js backend; full rewrite to categorize sources by type (API, dataset, reference).               |
+| `DATA_SOURCES.md:60`     | Referenced **"FastAPI backend"** for fetching external data.                 | Replaced with Node.js backend; added data-type summary table.                                                      |
 
 **Summary of resolutions:**
+
 1. **Python / FastAPI references** — All removed from active documentation. The only remaining mentions are in this consistency table (documenting the fix) and a single statement in MVP_SCOPE stating "No Python, FastAPI required."
 2. **Team size = 3** — Changed to 4 in `README.md`, `ProblemStatement.md`, and `MVP_SCOPE.md`.
 

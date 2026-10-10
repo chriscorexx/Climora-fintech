@@ -25,18 +25,22 @@ export class SchemeRepository {
       schemeId,
       businessId,
       notes || null,
-      new Date().toISOString()
+      new Date().toISOString(),
     );
     return res.changes > 0;
   }
 
   getSavedByBusiness(businessId: string): any[] {
-    return this.db.prepare(`
+    return this.db
+      .prepare(
+        `
       SELECT s.*, ss.prep_status, ss.notes as saved_notes, ss.created_at as saved_at
       FROM saved_schemes ss
       JOIN schemes s ON s.id = ss.scheme_id
       WHERE ss.business_id = ?
-    `).all(businessId);
+    `,
+      )
+      .all(businessId);
   }
 
   private mapRowToScheme(row: any) {

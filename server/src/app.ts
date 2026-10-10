@@ -17,7 +17,7 @@ app.use(
       return callback(null, true); // Dev-friendly permissive
     },
     credentials: true,
-  })
+  }),
 );
 
 app.use(express.json());

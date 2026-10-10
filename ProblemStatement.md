@@ -1,4 +1,3 @@
-
 # Problem Statement — Climora
 
 ## 1. Problem Overview
@@ -23,29 +22,29 @@ The system should identify relevant climate risks, explain their potential impac
 
 **Banks and Lending Institutions**
 
-* Assess climate-related risks before and during the lending relationship.
-* Identify businesses exposed to significant climate hazards.
-* Support more informed credit-risk reviews.
-* Identify borrowers who may benefit from early intervention.
+- Assess climate-related risks before and during the lending relationship.
+- Identify businesses exposed to significant climate hazards.
+- Support more informed credit-risk reviews.
+- Identify borrowers who may benefit from early intervention.
 
 **Credit-Risk Analysts**
 
-* Examine climate exposure alongside financial indicators.
-* Understand the factors contributing to a business's risk assessment.
-* Compare the relative climate vulnerabilities of businesses.
+- Examine climate exposure alongside financial indicators.
+- Understand the factors contributing to a business's risk assessment.
+- Compare the relative climate vulnerabilities of businesses.
 
 ### Secondary Users
 
 **MSME Owners**
 
-* Understand the climate hazards that may affect their businesses.
-* Identify operational vulnerabilities.
-* Receive recommendations for preparedness and business continuity.
+- Understand the climate hazards that may affect their businesses.
+- Identify operational vulnerabilities.
+- Receive recommendations for preparedness and business continuity.
 
 **Insurance Companies and Development-Finance Institutions**
 
-* Gain additional insight into climate-related business exposure.
-* Support risk monitoring and resilience planning.
+- Gain additional insight into climate-related business exposure.
+- Support risk monitoring and resilience planning.
 
 ## 4. Proposed Solution
 
@@ -68,11 +67,11 @@ The platform will also provide risk indicators and practical recommendations to 
 
 ## 6. Expected Outcomes
 
-* Improved visibility into climate-related business vulnerabilities.
-* Clearer explanations of climate factors that may affect financial resilience.
-* Better-informed risk reviews by financial institutions.
-* Identification of businesses that may require additional monitoring or preparedness support.
-* Increased awareness of climate risks among MSME owners.
+- Improved visibility into climate-related business vulnerabilities.
+- Clearer explanations of climate factors that may affect financial resilience.
+- Better-informed risk reviews by financial institutions.
+- Identification of businesses that may require additional monitoring or preparedness support.
+- Increased awareness of climate risks among MSME owners.
 
 ## 7. Project Scope
 
@@ -90,8 +89,8 @@ The platform is intended to support human review, climate preparedness, and earl
 
 ## 9. Project Details
 
-* **Project Name:** Climora
-* **Domain:** FinTech × ClimateTech
-* **Challenge:** Real-Time Climate Risk Scoring for MSMEs
-* **Primary Focus:** Climate-adjusted financial risk assessment
-* **Team Size:** 4 members
+- **Project Name:** Climora
+- **Domain:** FinTech × ClimateTech
+- **Challenge:** Real-Time Climate Risk Scoring for MSMEs
+- **Primary Focus:** Climate-adjusted financial risk assessment
+- **Team Size:** 4 members

@@ -13,7 +13,8 @@ export const runScenario = (req: Request, res: Response) => {
     return res.status(404).json({ success: false, error: { message: 'Business not found' } });
   }
 
-  const { hazardType, durationDays, intensityPct, facilityInundation, powerGridOutageDays } = req.body;
+  const { hazardType, durationDays, intensityPct, facilityInundation, powerGridOutageDays } =
+    req.body;
 
   const result = simulateCashflowStress(business, {
     hazardType: hazardType || 'flash_flood',

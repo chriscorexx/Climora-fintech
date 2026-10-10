@@ -2,16 +2,18 @@ import path from 'path';
 
 export const config = {
   port: Number(process.env.PORT) || 5000,
-  corsOrigins: (process.env.CORS_ORIGIN || 'http://localhost:5173,http://127.0.0.1:5173').split(','),
+  corsOrigins: (process.env.CORS_ORIGIN || 'http://localhost:5173,http://127.0.0.1:5173').split(
+    ',',
+  ),
   nodeEnv: process.env.NODE_ENV || 'development',
   databasePath: process.env.DATABASE_PATH || path.resolve(process.cwd(), 'data/climora.db'),
   scoring: {
     weights: {
-      flood: 0.30,
+      flood: 0.3,
       rainfall: 0.25,
-      heat: 0.20,
+      heat: 0.2,
       business: 0.15,
-      financial: 0.10,
+      financial: 0.1,
     },
     categories: [
       { key: 'low', label: 'Low', min: 0, max: 24 },
