@@ -430,14 +430,15 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-fin-border/60">
-                  {filteredProfiles.map((row) => {
+                  {filteredProfiles.map((row, rowIndex) => {
                     const p = row.profile;
                     const isSelected = p.id === activeProfile.id;
                     return (
                       <tr
                         key={p.id}
                         onClick={() => onSelectProfile(p)}
-                        className={`cursor-pointer transition-colors ${
+                        style={{ animationDelay: `${rowIndex * 60}ms` }}
+                        className={`cursor-pointer animate-fade-in transition-all duration-300 ${
                           isSelected ? 'bg-emerald-500/10' : 'hover:bg-fin-inset/40'
                         }`}
                       >

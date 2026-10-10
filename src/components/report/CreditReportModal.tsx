@@ -31,8 +31,8 @@ export const CreditReportModal: React.FC<CreditReportModalProps> = ({
     (safeProfile.financials.existingMonthlyDebtObligations || 1);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/60 backdrop-blur-sm print-scrim">
-      <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-2xl bg-fin-card border border-fin-border shadow-2xl p-8 print-surface print:p-6 print:max-h-none print:w-full">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/60 backdrop-blur-sm print-scrim animate-fade-in">
+      <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-2xl bg-fin-card border border-fin-border shadow-2xl p-8 print-surface print:p-6 print:max-h-none print:w-full animate-scale-in">
         {/* Modal Controls (Hidden in Print) */}
         <div className="no-print flex items-center justify-between pb-6 border-b border-fin-border mb-6">
           <div className="flex items-center gap-2">

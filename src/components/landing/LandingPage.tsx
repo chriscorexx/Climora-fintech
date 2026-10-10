@@ -239,10 +239,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
 
   return (
     <div className="min-h-screen bg-fin-bg text-fin-text font-sans">
-      <header className="sticky top-0 z-40 border-b border-fin-border bg-fin-bg/95 backdrop-blur-md px-4 py-3">
+      <header className="sticky top-0 z-40 border-b border-fin-border bg-fin-bg/95 backdrop-blur-md px-4 py-3 animate-fade-in-down">
         <div className="mx-auto max-w-7xl flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-fin-sunken border border-emerald-500/30 overflow-hidden shadow-sm">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-fin-sunken border border-emerald-500/30 overflow-hidden shadow-sm transition-transform duration-300 hover:scale-110">
               <img src={climoraLogo} alt="Climora Logo" className="w-full h-full object-cover" />
             </div>
             <div>
@@ -279,45 +279,46 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
       <main>
         <section className="px-4 py-14 sm:py-20">
           <div className="mx-auto max-w-4xl flex flex-col items-center text-center gap-6">
-            <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-fin-sunken border border-emerald-500/30 overflow-hidden shadow-fin-card">
+            <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-fin-sunken border border-emerald-500/30 overflow-hidden shadow-fin-card animate-scale-in transition-transform duration-500 hover:scale-110">
               <img src={climoraLogo} alt="Climora Logo" className="w-full h-full object-cover" />
             </div>
 
             <div className="space-y-3">
-              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-fin-text leading-tight">
+              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-fin-text leading-tight animate-fade-in-up">
                 {LANDING_TAGLINE}
               </h1>
-              <p className="text-sm sm:text-base text-fin-secondary leading-relaxed max-w-2xl mx-auto">
+              <p className="text-sm sm:text-base text-fin-secondary leading-relaxed max-w-2xl mx-auto animate-fade-in-up [animation-delay:120ms]">
                 Underwrite MSME climate risk with live Open-Meteo data, a transparent five-dimension
                 risk engine, cashflow stress testing and matched government schemes — with
                 provenance on every input.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto animate-fade-in-up [animation-delay:220ms]">
               <button
                 type="button"
                 onClick={onLaunchApp}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold text-sm transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold text-sm shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-fin-elevated active:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
                 Launch App
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
               </button>
               <button
                 type="button"
                 onClick={handleDownloadScroll}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-fin-card border border-fin-border text-fin-text font-semibold text-sm hover:border-fin-hover transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-fin-card border border-fin-border text-fin-text font-semibold text-sm hover:border-fin-hover shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-fin-elevated active:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-4 h-4 transition-transform duration-300 group-hover:translate-y-0.5" />
                 Download Desktop
               </button>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-              {TRUST_ITEMS.map((item) => (
+              {TRUST_ITEMS.map((item, index) => (
                 <span
                   key={item}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-fin-card border border-fin-border text-[11px] font-mono uppercase tracking-wide text-fin-secondary"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-fin-card border border-fin-border text-[11px] font-mono uppercase tracking-wide text-fin-secondary animate-fade-in [animation-delay:320ms] transition-transform duration-300 hover:-translate-y-0.5"
+                  style={{ animationDelay: `${320 + index * 70}ms` }}
                 >
                   {item}
                 </span>
@@ -335,14 +336,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
               Everything below is already live inside the Climora workspace.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {LANDING_FEATURES.map((feature) => {
+              {LANDING_FEATURES.map((feature, index) => {
                 const Icon = feature.icon;
                 return (
                   <article
                     key={feature.id}
-                    className="rounded-2xl bg-fin-card border border-fin-border shadow-fin-card p-5 flex flex-col gap-3"
+                    className="group rounded-2xl bg-fin-card border border-fin-border shadow-fin-card p-5 flex flex-col gap-3 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-fin-elevated hover:border-fin-hover"
+                    style={{ animationDelay: `${index * 90}ms` }}
                   >
-                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
                       <Icon className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <h3 className="text-sm font-bold text-fin-text tracking-tight">
@@ -370,13 +372,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
                 return (
                   <article
                     key={step.id}
-                    className="rounded-2xl bg-fin-card border border-fin-border shadow-fin-card p-5 flex flex-col gap-3"
+                    className="group rounded-2xl bg-fin-card border border-fin-border shadow-fin-card p-5 flex flex-col gap-3 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-fin-elevated hover:border-fin-hover"
+                    style={{ animationDelay: `${index * 110}ms` }}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 text-[11px] font-mono font-bold text-emerald-700 dark:text-emerald-300">
+                      <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 text-[11px] font-mono font-bold text-emerald-700 dark:text-emerald-300 transition-transform duration-300 group-hover:scale-110">
                         {index + 1}
                       </span>
-                      <Icon className="w-4 h-4 text-fin-muted" />
+                      <Icon className="w-4 h-4 text-fin-muted transition-transform duration-300 group-hover:scale-110" />
                     </div>
                     <h3 className="text-sm font-bold text-fin-text tracking-tight">{step.title}</h3>
                     <p className="text-xs text-fin-muted leading-relaxed">{step.description}</p>
@@ -397,12 +400,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
               published on GitHub.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {DOWNLOAD_TARGETS.map((target) => (
+              {DOWNLOAD_TARGETS.map((target, index) => (
                 <article
                   key={target.id}
-                  className="rounded-2xl bg-fin-card border border-fin-border shadow-fin-card p-5 flex flex-col gap-3"
+                  className="group rounded-2xl bg-fin-card border border-fin-border shadow-fin-card p-5 flex flex-col gap-3 animate-fade-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-fin-elevated hover:border-fin-hover"
+                  style={{ animationDelay: `${index * 110}ms` }}
                 >
-                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-fin-inset border border-fin-border text-fin-text">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-fin-inset border border-fin-border text-fin-text transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3">
                     <DownloadIcon kind={target.icon} />
                   </div>
                   <h3 className="text-sm font-bold text-fin-text tracking-tight">
@@ -416,9 +420,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
                     href={GITHUB_RELEASES_URL}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="mt-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-fin-inset border border-fin-border text-xs font-semibold text-fin-text hover:border-fin-hover transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    className="mt-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-fin-inset border border-fin-border text-xs font-semibold text-fin-text hover:border-fin-hover hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                   >
-                    <Download className="w-3.5 h-3.5" />
+                    <Download className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-y-0.5" />
                     Get for {target.platform}
                   </a>
                 </article>
