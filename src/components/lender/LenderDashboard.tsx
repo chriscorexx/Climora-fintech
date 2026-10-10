@@ -1,15 +1,29 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   MSMEProfile,
   RiskAssessment,
   ClimateIndicators,
   CashflowScenario,
+  RiskCategory,
 } from '../../types';
 import { MetricCard } from '../common/MetricCard';
 import { RiskGauge } from '../common/RiskGauge';
 import { RiskBadge } from '../common/RiskBadge';
 import { ProvenanceBadge } from '../common/ProvenanceBadge';
+import { WeatherAlertStrip } from '../common/WeatherAlertStrip';
+import { DistrictBaselinePanel } from '../common/DistrictBaselinePanel';
 import { simulateCashflowStress, ScenarioParams } from '../../core/scenarioSimulator';
+import {
+  PortfolioRiskFilter,
+  PortfolioAssessmentRow,
+  buildPipelineCsv,
+  buildPortfolioAssessments,
+  countByCategory,
+  filterPortfolioByCategory,
+  searchPortfolio,
+} from '../../core/portfolio';
+import { downloadCsv } from '../../core/csv';
+import { formatDate } from '../../core/format';
 import {
   ShieldAlert,
   TrendingDown,
@@ -25,6 +39,7 @@ import {
   Sliders,
   FileText,
   ArrowRight,
+  Download,
 } from 'lucide-react';
 
 interface LenderDashboardProps {
@@ -36,6 +51,23 @@ interface LenderDashboardProps {
   onOpenReportModal: () => void;
 }
 
+const RISK_FILTERS: Array<{ id: PortfolioRiskFilter; label: string }> = [
+  { id: 'all', label: 'All' },
+  { id: 'low', label: 'Low' },
+  { id: 'moderate', label: 'Moderate' },
+  { id: 'high', label: 'High' },
+  { id: 'severe', label: 'Severe' },
+];
+
+const FILTER_ACTIVE_CLASSES: Record<PortfolioRiskFilter, string> = {
+  all: 'border-emerald-500 bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
+  low: 'border-emerald-500 bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
+  moderate:
+    'border-amber-500 bg-amber-500/10 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300',
+  high: 'border-orange-500 bg-orange-500/10 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300',
+  severe: 'border-rose-500 bg-rose-500/10 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300',
+};
+
 export const LenderDashboard: React.FC<LenderDashboardProps> = ({
   profiles,
   activeProfile,
@@ -45,7 +77,7 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
   onOpenReportModal,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState<'all' | 'low' | 'moderate' | 'high' | 'severe'>('all');
+  const [selectedFilter, setSelectedFilter] = useState<PortfolioRiskFilter>('all');
 
   // Simulator Parameters State
   const [simParams, setSimParams] = useState<ScenarioParams>({
@@ -60,26 +92,32 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
   const stressScenario: CashflowScenario = simulateCashflowStress(activeProfile, simParams);
 
   // Portfolio metrics
-  const totalExposureInr = profiles.reduce(
-    (sum, p) => sum + (p.financials?.requestedLoanAmount || 2000000),
-    0
+  const portfolioRows = useMemo<PortfolioAssessmentRow[]>(
+    () => buildPortfolioAssessments(profiles),
+    [profiles],
   );
-  const highRiskCount = profiles.filter((p) => {
-    // Basic heuristic for portfolio count
-    return (p.operations?.plinthHeightMeters ?? 0.3) < 0.3 || ((p.financials?.monthlyOperatingExpenses ?? 1) / (p.financials?.monthlyRevenue || 1)) > 0.85;
-  }).length;
+  const totalExposureInr = portfolioRows.reduce((sum, row) => sum + row.exposureInr, 0);
+  const covenantCount = portfolioRows.filter((row) => row.requiresCovenants).length;
 
-  // Filtered pipeline table
-  const filteredProfiles = profiles.filter((p) => {
-    const matchesSearch =
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.location.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.industry.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
-  });
+  // Filtered pipeline table: search + risk category chips
+  const filteredProfiles = useMemo(
+    () => filterPortfolioByCategory(searchPortfolio(portfolioRows, searchTerm), selectedFilter),
+    [portfolioRows, searchTerm, selectedFilter],
+  );
+
+  const handleExportCsv = () => {
+    const csv = buildPipelineCsv(filteredProfiles);
+    downloadCsv(
+      `climora-pipeline-${formatDate(new Date().toISOString()).replace(/\s/g, '-')}`,
+      csv,
+    );
+  };
 
   return (
     <div className="space-y-6">
+      {/* Weather Threshold Alert Strip */}
+      <WeatherAlertStrip climate={climate} locationLabel={climate.location?.resolvedAddress} />
+
       {/* Top Banner: Portfolio Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
@@ -99,16 +137,17 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
           value={`${assessment.overallScore}/100`}
           subtitle={`${activeProfile.name} (${assessment.riskCategory.toUpperCase()})`}
           change={{
-            value: assessment.riskCategory === 'low' ? '-25 bps Green Disc.' : '+50 bps Climate Prem.',
+            value:
+              assessment.riskCategory === 'low' ? '-25 bps Green Disc.' : '+50 bps Climate Prem.',
             isPositive: assessment.riskCategory === 'low',
           }}
           icon={<ShieldAlert className="w-4 h-4 text-amber-700 dark:text-amber-300" />}
         />
         <MetricCard
           label="Severe Climate Exposure"
-          value={highRiskCount}
+          value={covenantCount}
           subtitle="MSMEs requiring mandatory resilience covenants"
-          variant={highRiskCount > 0 ? 'alert' : 'default'}
+          variant={covenantCount > 0 ? 'alert' : 'default'}
           icon={<AlertTriangle className="w-4 h-4 text-rose-700 dark:text-rose-300" />}
         />
       </div>
@@ -122,11 +161,15 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-fin-border">
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-bold text-fin-text tracking-tight">{activeProfile.name}</h2>
+                  <h2 className="text-lg font-bold text-fin-text tracking-tight">
+                    {activeProfile.name}
+                  </h2>
                   <RiskBadge category={assessment.riskCategory} score={assessment.overallScore} />
                 </div>
                 <p className="text-xs text-fin-muted mt-0.5">
-                  {activeProfile.industry.replace('_', ' ')} • {activeProfile.location.address || `${activeProfile.location.city}, ${activeProfile.location.state}`}
+                  {activeProfile.industry.replace('_', ' ')} •{' '}
+                  {activeProfile.location.address ||
+                    `${activeProfile.location.city}, ${activeProfile.location.state}`}
                 </p>
               </div>
               <ProvenanceBadge
@@ -152,14 +195,23 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
                 <span>💧 {climate.currentConditions.relativeHumidityPct}% Hum.</span>
                 <span>💨 {climate.currentConditions.windSpeedKmh} km/h</span>
                 <span>🌧️ Peak 7d: {climate.extremes.maxDailyPrecipitationMm}mm</span>
-                <span>🌊 River Flow: {climate.forecast7Days[0]?.riverDischargeM3s ? `${climate.forecast7Days[0].riverDischargeM3s} m³/s` : 'Monitored'}</span>
+                <span>
+                  🌊 River Flow:{' '}
+                  {climate.forecast7Days[0]?.riverDischargeM3s
+                    ? `${climate.forecast7Days[0].riverDischargeM3s} m³/s`
+                    : 'Monitored'}
+                </span>
               </div>
             </div>
 
             {/* Gauge & Key Drivers */}
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center py-6 border-b border-fin-border">
               <div className="sm:col-span-5 flex justify-center">
-                <RiskGauge score={assessment.overallScore} category={assessment.riskCategory} size={190} />
+                <RiskGauge
+                  score={assessment.overallScore}
+                  category={assessment.riskCategory}
+                  size={190}
+                />
               </div>
               <div className="sm:col-span-7 space-y-3">
                 <div className="text-xs font-mono uppercase tracking-wider text-fin-muted">
@@ -175,8 +227,9 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
                   <span className="text-fin-secondary font-semibold">Underwriting Action: </span>
                   <span className="capitalize text-emerald-700 dark:text-emerald-300 font-medium">
                     {assessment.loanDecisionSupport.recommendedAction.replace(/_/g, ' ')}
-                  </span>
-                  {' '}• Max Safe Facility: ₹{(assessment.loanDecisionSupport.maxSafeLoanAmountInr / 100000).toFixed(1)} Lakhs
+                  </span>{' '}
+                  • Max Safe Facility: ₹
+                  {(assessment.loanDecisionSupport.maxSafeLoanAmountInr / 100000).toFixed(1)} Lakhs
                 </div>
               </div>
             </div>
@@ -200,7 +253,9 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
                     </span>
                   </div>
                   <div className="text-[10px] text-fin-muted mt-1">
-                    Weight: {(assessment.dimensionScores.floodExposure.effectiveWeight * 100).toFixed(0)}% (River + Plinth)
+                    Weight:{' '}
+                    {(assessment.dimensionScores.floodExposure.effectiveWeight * 100).toFixed(0)}%
+                    (River + Plinth)
                   </div>
                   <div className="text-[11px] text-fin-secondary mt-1 line-clamp-2">
                     {assessment.dimensionScores.floodExposure.contributingFactors[0]}
@@ -219,7 +274,9 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
                     </span>
                   </div>
                   <div className="text-[10px] text-fin-muted mt-1">
-                    Weight: {(assessment.dimensionScores.heavyRainfall.effectiveWeight * 100).toFixed(0)}% (7-Day Forecast)
+                    Weight:{' '}
+                    {(assessment.dimensionScores.heavyRainfall.effectiveWeight * 100).toFixed(0)}%
+                    (7-Day Forecast)
                   </div>
                   <div className="text-[11px] text-fin-secondary mt-1 line-clamp-2">
                     {assessment.dimensionScores.heavyRainfall.contributingFactors[0]}
@@ -238,7 +295,9 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
                     </span>
                   </div>
                   <div className="text-[10px] text-fin-muted mt-1">
-                    Weight: {(assessment.dimensionScores.extremeHeat.effectiveWeight * 100).toFixed(0)}% (Hot Days + Cooling)
+                    Weight:{' '}
+                    {(assessment.dimensionScores.extremeHeat.effectiveWeight * 100).toFixed(0)}%
+                    (Hot Days + Cooling)
                   </div>
                   <div className="text-[11px] text-fin-secondary mt-1 line-clamp-2">
                     {assessment.dimensionScores.extremeHeat.contributingFactors[0]}
@@ -257,7 +316,11 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
                     </span>
                   </div>
                   <div className="text-[10px] text-fin-muted mt-1">
-                    Weight: {(assessment.dimensionScores.businessVulnerability.effectiveWeight * 100).toFixed(0)}% (Grid & Water)
+                    Weight:{' '}
+                    {(
+                      assessment.dimensionScores.businessVulnerability.effectiveWeight * 100
+                    ).toFixed(0)}
+                    % (Grid & Water)
                   </div>
                   <div className="text-[11px] text-fin-secondary mt-1 line-clamp-2">
                     {assessment.dimensionScores.businessVulnerability.contributingFactors[0]}
@@ -270,7 +333,9 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <TrendingDown className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                    <span className="text-xs font-semibold text-fin-text">Financial Resilience (Inverted Risk)</span>
+                    <span className="text-xs font-semibold text-fin-text">
+                      Financial Resilience (Inverted Risk)
+                    </span>
                   </div>
                   <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold tabular-nums">
                     {assessment.dimensionScores.financialResilience.score}/100
@@ -284,23 +349,71 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
             </div>
           </div>
 
+          {/* District Hazard Baseline */}
+          <DistrictBaselinePanel climate={climate} />
+
           {/* Underwriting Loan Pipeline Table */}
           <div className="rounded-2xl bg-fin-card border border-fin-border p-5 shadow-fin-card">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div>
-                <h3 className="text-sm font-bold text-fin-text tracking-tight">MSME Underwriting Pipeline</h3>
-                <p className="text-xs text-fin-muted">Select an enterprise to inspect climate risk details</p>
+                <h3 className="text-sm font-bold text-fin-text tracking-tight">
+                  MSME Underwriting Pipeline
+                </h3>
+                <p className="text-xs text-fin-muted">
+                  Select an enterprise to inspect climate risk details
+                </p>
               </div>
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 text-fin-muted absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  placeholder="Search enterprise, city..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 rounded-lg bg-fin-inset border border-fin-border text-xs text-fin-text placeholder-fin-muted focus:outline-none focus:border-emerald-500 w-full sm:w-56"
-                />
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-fin-muted absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    placeholder="Search enterprise, city..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8 pr-3 py-1.5 rounded-lg bg-fin-inset border border-fin-border text-xs text-fin-text placeholder-fin-muted focus:outline-none focus:border-emerald-500 w-full sm:w-56"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleExportCsv}
+                  title="Export filtered pipeline to CSV"
+                  aria-label="Export filtered pipeline to CSV"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-fin-inset border border-fin-border text-xs font-medium text-fin-text hover:bg-fin-hover transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span className="hidden sm:inline">CSV</span>
+                </button>
               </div>
+            </div>
+
+            {/* Risk Category Filter Chips */}
+            <div
+              className="flex flex-wrap items-center gap-2 mb-4"
+              role="group"
+              aria-label="Filter pipeline by risk category"
+            >
+              {RISK_FILTERS.map((filter) => {
+                const isActive = selectedFilter === filter.id;
+                return (
+                  <button
+                    key={filter.id}
+                    type="button"
+                    onClick={() => setSelectedFilter(filter.id)}
+                    aria-pressed={isActive}
+                    className={`px-2.5 py-1 rounded-full border text-[11px] font-medium capitalize transition-colors ${
+                      isActive
+                        ? FILTER_ACTIVE_CLASSES[filter.id]
+                        : 'border-fin-border bg-fin-inset text-fin-muted hover:text-fin-text'
+                    }`}
+                  >
+                    {filter.label}
+                    <span className="ml-1.5 font-mono text-[10px] opacity-80">
+                      {countByCategory(portfolioRows, filter.id)}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
             <div className="overflow-x-auto">
@@ -311,14 +424,15 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
                     <th className="py-2.5 px-3">Industry</th>
                     <th className="py-2.5 px-3">Location</th>
                     <th className="py-2.5 px-3 text-right">Loan Req.</th>
+                    <th className="py-2.5 px-3 text-center">DSCR</th>
                     <th className="py-2.5 px-3 text-center">Climate Risk</th>
                     <th className="py-2.5 px-3 text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-fin-border/60">
-                  {filteredProfiles.map((p) => {
+                  {filteredProfiles.map((row) => {
+                    const p = row.profile;
                     const isSelected = p.id === activeProfile.id;
-                    const dscr = (p.financials.monthlyRevenue - p.financials.monthlyOperatingExpenses) / (p.financials.existingMonthlyDebtObligations || 1);
                     return (
                       <tr
                         key={p.id}
@@ -329,21 +443,27 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
                       >
                         <td className="py-3 px-3">
                           <div className="font-semibold text-fin-text">{p.name}</div>
-                          <div className="text-[10px] text-fin-muted font-mono">DSCR: {dscr.toFixed(2)}x</div>
+                          <div className="text-[10px] text-fin-muted font-mono">
+                            {p.businessSize} enterprise
+                            {row.requiresCovenants && ' • covenants req.'}
+                          </div>
                         </td>
-                        <td className="py-3 px-3 text-fin-secondary capitalize">{p.industry.replace('_', ' ')}</td>
+                        <td className="py-3 px-3 text-fin-secondary capitalize">
+                          {p.industry.replace('_', ' ')}
+                        </td>
                         <td className="py-3 px-3 text-fin-muted">{p.location.city}</td>
                         <td className="py-3 px-3 text-right font-mono text-fin-text tabular-nums">
-                          ₹{((p.financials.requestedLoanAmount || 2500000) / 100000).toFixed(1)}L
+                          ₹{(row.exposureInr / 100000).toFixed(1)}L
+                        </td>
+                        <td className="py-3 px-3 text-center font-mono text-fin-text tabular-nums">
+                          {row.dscr.toFixed(2)}x
                         </td>
                         <td className="py-3 px-3 text-center">
-                          {isSelected ? (
-                            <RiskBadge category={assessment.riskCategory} score={assessment.overallScore} size="sm" />
-                          ) : (
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-fin-inset text-fin-secondary">
-                              View Score
-                            </span>
-                          )}
+                          <RiskBadge
+                            category={row.riskCategory as RiskCategory}
+                            score={row.score}
+                            size="sm"
+                          />
                         </td>
                         <td className="py-3 px-3 text-center">
                           <button
@@ -365,6 +485,11 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
                   })}
                 </tbody>
               </table>
+              {filteredProfiles.length === 0 && (
+                <div className="py-8 text-center text-xs text-fin-muted">
+                  No enterprises match the current search and risk filter.
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -376,7 +501,9 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
             <div className="flex items-center justify-between pb-4 border-b border-fin-border">
               <div className="flex items-center gap-2">
                 <Sliders className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <h3 className="text-sm font-bold text-fin-text tracking-tight">Climate-to-Cashflow Stress Test</h3>
+                <h3 className="text-sm font-bold text-fin-text tracking-tight">
+                  Climate-to-Cashflow Stress Test
+                </h3>
               </div>
               <span className="text-[10px] font-mono uppercase bg-fin-inset text-fin-secondary px-2 py-0.5 rounded border border-fin-border">
                 DSCR Simulator
@@ -387,7 +514,9 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
             <div className="space-y-4 pt-4">
               {/* Hazard Type Selector */}
               <div>
-                <label className="text-xs font-medium text-fin-secondary block mb-1.5">Simulate Climate Hazard Shock</label>
+                <label className="text-xs font-medium text-fin-secondary block mb-1.5">
+                  Simulate Climate Hazard Shock
+                </label>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <button
                     onClick={() => setSimParams({ ...simParams, hazardType: 'flash_flood' })}
@@ -412,7 +541,9 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
                     <span>Extreme Heat</span>
                   </button>
                   <button
-                    onClick={() => setSimParams({ ...simParams, hazardType: 'severe_storm_cyclone' })}
+                    onClick={() =>
+                      setSimParams({ ...simParams, hazardType: 'severe_storm_cyclone' })
+                    }
                     className={`py-1.5 px-2 rounded-lg border text-left flex items-center gap-1.5 transition-colors ${
                       simParams.hazardType === 'severe_storm_cyclone'
                         ? 'border-orange-500 bg-orange-500/10 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300 font-semibold'
@@ -440,14 +571,18 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
               <div>
                 <div className="flex justify-between text-xs text-fin-secondary mb-1">
                   <span>Interruption Duration</span>
-                  <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{simParams.durationDays} days</span>
+                  <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+                    {simParams.durationDays} days
+                  </span>
                 </div>
                 <input
                   type="range"
                   min="2"
                   max="21"
                   value={simParams.durationDays}
-                  onChange={(e) => setSimParams({ ...simParams, durationDays: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setSimParams({ ...simParams, durationDays: Number(e.target.value) })
+                  }
                   className="w-full h-1.5 bg-fin-inset rounded-lg appearance-none cursor-pointer accent-emerald-500"
                 />
               </div>
@@ -456,14 +591,18 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
               <div>
                 <div className="flex justify-between text-xs text-fin-secondary mb-1">
                   <span>Disruption Severity</span>
-                  <span className="font-mono text-amber-700 dark:text-amber-300 font-bold">{simParams.intensityPct}%</span>
+                  <span className="font-mono text-amber-700 dark:text-amber-300 font-bold">
+                    {simParams.intensityPct}%
+                  </span>
                 </div>
                 <input
                   type="range"
                   min="20"
                   max="100"
                   value={simParams.intensityPct}
-                  onChange={(e) => setSimParams({ ...simParams, intensityPct: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setSimParams({ ...simParams, intensityPct: Number(e.target.value) })
+                  }
                   className="w-full h-1.5 bg-fin-inset rounded-lg appearance-none cursor-pointer accent-amber-500"
                 />
               </div>
@@ -474,7 +613,9 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
                   <input
                     type="checkbox"
                     checked={simParams.facilityInundation}
-                    onChange={(e) => setSimParams({ ...simParams, facilityInundation: e.target.checked })}
+                    onChange={(e) =>
+                      setSimParams({ ...simParams, facilityInundation: e.target.checked })
+                    }
                     className="accent-emerald-500"
                   />
                   <span className="text-fin-secondary">Premises Flooded</span>
@@ -483,7 +624,9 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
                   <input
                     type="checkbox"
                     checked={simParams.powerGridOutageDays > 0}
-                    onChange={(e) => setSimParams({ ...simParams, powerGridOutageDays: e.target.checked ? 4 : 0 })}
+                    onChange={(e) =>
+                      setSimParams({ ...simParams, powerGridOutageDays: e.target.checked ? 4 : 0 })
+                    }
                     className="accent-emerald-500"
                   />
                   <span className="text-fin-secondary">Grid Brownout</span>
@@ -494,14 +637,14 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
             {/* Stressed Cashflow Output Display */}
             <div className="mt-5 p-4 rounded-xl bg-fin-inset/90 border border-fin-border space-y-3">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-fin-muted">DSCR Stress Comparison:</span>
+                <span className="text-fin-muted">Scenario: {stressScenario.hazardLabel}</span>
                 <span
                   className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
                     stressScenario.insolvencyRisk === 'critical'
                       ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/40'
                       : stressScenario.insolvencyRisk === 'strained'
-                      ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40'
-                      : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40'
+                        ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40'
+                        : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40'
                   }`}
                 >
                   {stressScenario.insolvencyRisk} Solvency
@@ -510,17 +653,25 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
 
               <div className="grid grid-cols-2 gap-3 text-center">
                 <div className="p-2.5 rounded-lg bg-fin-card border border-fin-border">
-                  <div className="text-[10px] text-fin-muted uppercase font-mono">Baseline DSCR</div>
+                  <div className="text-[10px] text-fin-muted uppercase font-mono">
+                    Baseline DSCR
+                  </div>
                   <div className="font-mono text-lg font-bold text-fin-text tabular-nums">
                     {stressScenario.baselineDSCR.toFixed(2)}x
                   </div>
-                  <div className="text-[10px] text-emerald-600 dark:text-emerald-400">Normal Operations</div>
+                  <div className="text-[10px] text-emerald-600 dark:text-emerald-400">
+                    Normal Operations
+                  </div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-fin-card border border-fin-border">
-                  <div className="text-[10px] text-fin-muted uppercase font-mono">Stressed DSCR</div>
+                  <div className="text-[10px] text-fin-muted uppercase font-mono">
+                    Stressed DSCR
+                  </div>
                   <div
                     className={`font-mono text-lg font-bold tabular-nums ${
-                      stressScenario.stressedDSCR < 1.0 ? 'text-rose-700 dark:text-rose-300' : 'text-amber-700 dark:text-amber-300'
+                      stressScenario.stressedDSCR < 1.0
+                        ? 'text-rose-700 dark:text-rose-300'
+                        : 'text-amber-700 dark:text-amber-300'
                     }`}
                   >
                     {stressScenario.stressedDSCR.toFixed(2)}x
@@ -530,6 +681,12 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
               </div>
 
               <div className="space-y-1.5 text-xs pt-1">
+                <div className="flex justify-between text-fin-secondary">
+                  <span className="text-fin-muted">Baseline Cash Runway:</span>
+                  <span className="font-mono font-medium text-emerald-600 dark:text-emerald-400">
+                    {stressScenario.baselineCashRunwayMonths.toFixed(1)} months
+                  </span>
+                </div>
                 <div className="flex justify-between text-fin-secondary">
                   <span className="text-fin-muted">Estimated Revenue Deficit:</span>
                   <span className="font-mono font-medium text-rose-700 dark:text-rose-300">
@@ -548,6 +705,12 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
                     {stressScenario.stressedCashRunwayMonths.toFixed(1)} months remaining
                   </span>
                 </div>
+                <div className="flex justify-between text-fin-secondary">
+                  <span className="text-fin-muted">Recovery Time:</span>
+                  <span className="font-mono font-medium text-fin-text">
+                    {stressScenario.recoveryTimeMonths} months
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -557,7 +720,9 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
             <div className="flex items-center justify-between pb-3 border-b border-fin-border">
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <h3 className="text-sm font-bold text-fin-text tracking-tight">Credit Underwriting Terms</h3>
+                <h3 className="text-sm font-bold text-fin-text tracking-tight">
+                  Credit Underwriting Terms
+                </h3>
               </div>
               <button
                 onClick={onOpenReportModal}
@@ -579,10 +744,15 @@ export const LenderDashboard: React.FC<LenderDashboardProps> = ({
               </div>
 
               <div>
-                <span className="text-fin-muted font-medium block mb-1.5">Mandatory Climate Covenants:</span>
+                <span className="text-fin-muted font-medium block mb-1.5">
+                  Mandatory Climate Covenants:
+                </span>
                 <div className="space-y-1.5">
                   {assessment.loanDecisionSupport.suggestedClimateCovenants.map((cov, i) => (
-                    <div key={i} className="flex items-start gap-2 text-fin-secondary text-[11px] leading-relaxed">
+                    <div
+                      key={i}
+                      className="flex items-start gap-2 text-fin-secondary text-[11px] leading-relaxed"
+                    >
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                       <span>{cov}</span>
                     </div>

@@ -48,7 +48,9 @@
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
   }
 
   /* Force tabular numbers for financial figures */
@@ -75,21 +77,21 @@
 
 /* Print helpers (deterministic light output in both UI themes) */
 .print-surface {
-  background-color: #FFFFFF !important;
-  border-color: #E5E5E5 !important;
+  background-color: #ffffff !important;
+  border-color: #e5e5e5 !important;
 }
 .print-muted-surface {
-  background-color: #F5F5F5 !important;
-  border-color: #E5E5E5 !important;
+  background-color: #f5f5f5 !important;
+  border-color: #e5e5e5 !important;
 }
 .print-strong-text {
-  color: #0A0A0A !important;
+  color: #0a0a0a !important;
 }
 .print-muted-text {
   color: #525252 !important;
 }
 .print-divider > * + * {
-  border-color: #E5E5E5 !important;
+  border-color: #e5e5e5 !important;
 }
 .print-scrim {
   background: transparent !important;
@@ -101,8 +103,8 @@
 /* Print Styles for Executive Credit Memo */
 @media print {
   body {
-    background: #FFFFFF !important;
-    color: #0A0A0A !important;
+    background: #ffffff !important;
+    color: #0a0a0a !important;
   }
   .no-print {
     display: none !important;

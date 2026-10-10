@@ -62,6 +62,8 @@ export interface MSMEProfile {
   location: LocationData;
   financials: FinancialIndicators;
   operations: OperationalDependencies;
+  ownerId?: string;
+  ownerEmail?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -149,7 +151,8 @@ export interface RiskAssessment {
   mitigationRecommendations: MitigationRecommendation[];
   dataGaps: string[];
   loanDecisionSupport: {
-    recommendedAction: 'proceed' | 'proceed_with_covenants' | 'require_resilience_plan' | 'escalate_review';
+    recommendedAction:
+      'proceed' | 'proceed_with_covenants' | 'require_resilience_plan' | 'escalate_review';
     suggestedInterestAdjustmentBps: number; // basis points (+25 bps, -50 bps)
     suggestedClimateCovenants: string[];
     maxSafeLoanAmountInr: number;
@@ -183,7 +186,12 @@ export interface CashflowScenario {
 export interface GovernmentScheme {
   id: string;
   name: string;
-  category: 'credit_guarantee' | 'interest_subvention' | 'capital_subsidy' | 'green_technology' | 'emergency_relief';
+  category:
+    | 'credit_guarantee'
+    | 'interest_subvention'
+    | 'capital_subsidy'
+    | 'green_technology'
+    | 'emergency_relief';
   governmentLevel: 'central' | 'state';
   sponsoringAuthority: string;
   eligibleStates: string[];

@@ -140,7 +140,7 @@ export const SAMPLE_MSME_PROFILES: MSMEProfile[] = [
       city: 'Navi Mumbai',
       state: 'Maharashtra',
       country: 'India',
-      latitude: 19.0330,
+      latitude: 19.033,
       longitude: 73.0297,
       address: 'Plot B-4, APMC Market Yard, Vashi, Navi Mumbai 400703',
       districtCode: 'MH-MUM',

@@ -15,11 +15,11 @@ import { normalizeProfile } from './profileUtils';
  */
 
 const NOMINAL_WEIGHTS = {
-  floodExposure: 0.30,
+  floodExposure: 0.3,
   heavyRainfall: 0.25,
-  extremeHeat: 0.20,
+  extremeHeat: 0.2,
   businessVulnerability: 0.15,
-  financialResilience: 0.10,
+  financialResilience: 0.1,
 };
 
 /**
@@ -28,7 +28,7 @@ const NOMINAL_WEIGHTS = {
  */
 function calculateFloodScore(
   climate: ClimateIndicators,
-  profile: MSMEProfile
+  profile: MSMEProfile,
 ): { score: number; factors: string[] } {
   const safeProfile = normalizeProfile(profile);
   const factors: string[] = [];
@@ -39,20 +39,28 @@ function calculateFloodScore(
   let rawScore = baseline * 0.55 + riverAnomaly * 0.45;
 
   if (baseline >= 60) {
-    factors.push(`District is situated in high-exposure flood basin (World Bank score: ${baseline}/100)`);
+    factors.push(
+      `District is situated in high-exposure flood basin (World Bank score: ${baseline}/100)`,
+    );
   }
   if (riverAnomaly >= 50) {
-    factors.push(`Simulated river discharge indicates elevated seasonal flow (+${riverAnomaly}% anomaly)`);
+    factors.push(
+      `Simulated river discharge indicates elevated seasonal flow (+${riverAnomaly}% anomaly)`,
+    );
   }
 
   // Structural mitigations reduce the physical vulnerability
   const plinth = safeProfile.operations?.plinthHeightMeters ?? 0.3;
   if (plinth >= 1.0) {
     rawScore = Math.max(10, rawScore - 22);
-    factors.push(`Elevated ground plinth (+${plinth}m) significantly buffers flood ingress (-22 pts)`);
+    factors.push(
+      `Elevated ground plinth (+${plinth}m) significantly buffers flood ingress (-22 pts)`,
+    );
   } else if (plinth <= 0.2) {
     rawScore = Math.min(100, rawScore + 12);
-    factors.push('Ground-level floor (<0.2m) increases flash-flood inundation vulnerability (+12 pts)');
+    factors.push(
+      'Ground-level floor (<0.2m) increases flash-flood inundation vulnerability (+12 pts)',
+    );
   }
 
   if (safeProfile.operations?.hasFloodBarriers) {
@@ -74,7 +82,7 @@ function calculateFloodScore(
  */
 function calculateRainfallScore(
   climate: ClimateIndicators,
-  profile: MSMEProfile
+  profile: MSMEProfile,
 ): { score: number; factors: string[] } {
   const safeProfile = normalizeProfile(profile);
   const factors: string[] = [];
@@ -89,7 +97,9 @@ function calculateRainfallScore(
     factors.push(`Forecast indicates extreme torrential downpour (${maxRain}mm in 24h)`);
   } else if (maxRain >= 65) {
     baseRainScore = 75;
-    factors.push(`Heavy rainfall spell forecast (${maxRain}mm in 24h) risking localized waterlogging`);
+    factors.push(
+      `Heavy rainfall spell forecast (${maxRain}mm in 24h) risking localized waterlogging`,
+    );
   } else if (maxRain >= 25) {
     baseRainScore = 48;
     factors.push(`Moderate rainfall expected (${maxRain}mm peak)`);
@@ -99,7 +109,9 @@ function calculateRainfallScore(
 
   if (rainDays >= 4) {
     baseRainScore += 10;
-    factors.push(`Prolonged multi-day precipitation (${rainDays} of 7 days) risks cumulative water buildup`);
+    factors.push(
+      `Prolonged multi-day precipitation (${rainDays} of 7 days) risks cumulative water buildup`,
+    );
   }
 
   // Sensitivity: transport/logistics dependency
@@ -118,7 +130,7 @@ function calculateRainfallScore(
  */
 function calculateHeatScore(
   climate: ClimateIndicators,
-  profile: MSMEProfile
+  profile: MSMEProfile,
 ): { score: number; factors: string[] } {
   const safeProfile = normalizeProfile(profile);
   const factors: string[] = [];
@@ -128,7 +140,9 @@ function calculateHeatScore(
   let baseScore = 20;
   if (maxTemp >= 43) {
     baseScore = 90;
-    factors.push(`Extreme heatwave threshold exceeded (peak ${maxTemp}°C) causing severe labor and cooling stress`);
+    factors.push(
+      `Extreme heatwave threshold exceeded (peak ${maxTemp}°C) causing severe labor and cooling stress`,
+    );
   } else if (maxTemp >= 39) {
     baseScore = 68;
     factors.push(`High ambient temperature (${maxTemp}°C) with elevated machinery thermal load`);
@@ -136,22 +150,30 @@ function calculateHeatScore(
     baseScore = 45;
     factors.push(`Elevated seasonal temperature (${maxTemp}°C)`);
   } else {
-    factors.push(`Moderate thermal conditions (peak ${maxTemp}°C) within normal operational thresholds`);
+    factors.push(
+      `Moderate thermal conditions (peak ${maxTemp}°C) within normal operational thresholds`,
+    );
   }
 
   if (hotDays >= 3) {
     baseScore += 12;
-    factors.push(`${hotDays} consecutive days above 38°C stress worker productivity and cooling grids`);
+    factors.push(
+      `${hotDays} consecutive days above 38°C stress worker productivity and cooling grids`,
+    );
   }
 
   // Inventory & operational sensitivities
   if (safeProfile.operations?.perishableInventory) {
     if (!safeProfile.operations?.hasColdStorage) {
       baseScore += 20;
-      factors.push('Perishable inventory WITHOUT on-site cold storage exposes business to spoilage (+20 pts)');
+      factors.push(
+        'Perishable inventory WITHOUT on-site cold storage exposes business to spoilage (+20 pts)',
+      );
     } else if (!safeProfile.operations?.hasBackupGenerator) {
       baseScore += 10;
-      factors.push('Cold storage without backup generator risks inventory loss during grid brownouts (+10 pts)');
+      factors.push(
+        'Cold storage without backup generator risks inventory loss during grid brownouts (+10 pts)',
+      );
     } else {
       baseScore -= 10;
       factors.push('Cold storage backed by auxiliary power mitigates heat spoilage (-10 pts)');
@@ -166,29 +188,38 @@ function calculateHeatScore(
  * 4. Business Operational Vulnerability (0 - 100)
  * Evaluates sector sensitivity, utilities dependence, and supply chain redundancy.
  */
-function calculateVulnerabilityScore(
-  profile: MSMEProfile
-): { score: number; factors: string[] } {
+function calculateVulnerabilityScore(profile: MSMEProfile): { score: number; factors: string[] } {
   const safeProfile = normalizeProfile(profile);
   const factors: string[] = [];
   const sectorRisk = getSectorBaselineVulnerability(safeProfile.industry);
   let score = sectorRisk;
 
-  factors.push(`${formatIndustry(safeProfile.industry)} baseline climate sensitivity: ${sectorRisk}/100`);
+  factors.push(
+    `${formatIndustry(safeProfile.industry)} baseline climate sensitivity: ${sectorRisk}/100`,
+  );
 
   if (safeProfile.operations?.waterIntensive && !safeProfile.operations?.hasWaterStorageRainwater) {
     score += 15;
-    factors.push('Water-intensive operations lack rainwater harvesting or on-site storage buffer (+15 pts)');
+    factors.push(
+      'Water-intensive operations lack rainwater harvesting or on-site storage buffer (+15 pts)',
+    );
   }
 
-  if (safeProfile.operations?.electricityGridDependent && !safeProfile.operations?.hasBackupGenerator) {
+  if (
+    safeProfile.operations?.electricityGridDependent &&
+    !safeProfile.operations?.hasBackupGenerator
+  ) {
     score += 12;
-    factors.push('100% grid dependence without captive backup power exposes enterprise to climate storm outages (+12 pts)');
+    factors.push(
+      '100% grid dependence without captive backup power exposes enterprise to climate storm outages (+12 pts)',
+    );
   }
 
   if (!safeProfile.operations?.hasClimateInsurance) {
     score += 8;
-    factors.push('Absence of climate/property catastrophe insurance limits external loss recovery (+8 pts)');
+    factors.push(
+      'Absence of climate/property catastrophe insurance limits external loss recovery (+8 pts)',
+    );
   } else {
     score -= 14;
     factors.push('Active commercial insurance cushions asset replacement (-14 pts)');
@@ -203,48 +234,66 @@ function calculateVulnerabilityScore(
  * Evaluates cash runway, Debt Service Coverage Ratio (DSCR), and expense margins.
  * Inverted: Less resilience = HIGHER risk score.
  */
-function calculateFinancialResilienceScore(
-  profile: MSMEProfile
-): { score: number; factors: string[] } {
+function calculateFinancialResilienceScore(profile: MSMEProfile): {
+  score: number;
+  factors: string[];
+} {
   const safeProfile = normalizeProfile(profile);
   const factors: string[] = [];
-  const { monthlyRevenue, monthlyOperatingExpenses, existingMonthlyDebtObligations, availableCashReserves } = safeProfile.financials;
+  const {
+    monthlyRevenue,
+    monthlyOperatingExpenses,
+    existingMonthlyDebtObligations,
+    availableCashReserves,
+  } = safeProfile.financials;
 
   const netOperatingIncome = monthlyRevenue - monthlyOperatingExpenses;
-  const dscr = existingMonthlyDebtObligations > 0
-    ? netOperatingIncome / existingMonthlyDebtObligations
-    : netOperatingIncome > 0 ? 3.0 : 0.8;
+  const dscr =
+    existingMonthlyDebtObligations > 0
+      ? netOperatingIncome / existingMonthlyDebtObligations
+      : netOperatingIncome > 0
+        ? 3.0
+        : 0.8;
 
-  const cashRunwayMonths = monthlyOperatingExpenses > 0
-    ? availableCashReserves / monthlyOperatingExpenses
-    : 1.0;
+  const cashRunwayMonths =
+    monthlyOperatingExpenses > 0 ? availableCashReserves / monthlyOperatingExpenses : 1.0;
 
   let riskScore = 45;
 
   // DSCR analysis
   if (dscr >= 2.0) {
     riskScore -= 20;
-    factors.push(`Robust Debt Service Coverage Ratio (DSCR: ${dscr.toFixed(2)}x) provides strong cushion`);
+    factors.push(
+      `Robust Debt Service Coverage Ratio (DSCR: ${dscr.toFixed(2)}x) provides strong cushion`,
+    );
   } else if (dscr >= 1.25) {
     riskScore -= 8;
-    factors.push(`Adequate DSCR (${dscr.toFixed(2)}x) comfortably covers current debt amortizations`);
+    factors.push(
+      `Adequate DSCR (${dscr.toFixed(2)}x) comfortably covers current debt amortizations`,
+    );
   } else if (dscr >= 1.0) {
     riskScore += 14;
     factors.push(`Tight DSCR (${dscr.toFixed(2)}x) leaves little buffer for revenue contraction`);
   } else {
     riskScore += 35;
-    factors.push(`Sub-unity DSCR (${dscr.toFixed(2)}x) indicates negative cashflow margin under debt obligations`);
+    factors.push(
+      `Sub-unity DSCR (${dscr.toFixed(2)}x) indicates negative cashflow margin under debt obligations`,
+    );
   }
 
   // Cash runway analysis
   if (cashRunwayMonths >= 3.0) {
     riskScore -= 15;
-    factors.push(`Healthy cash reserves (${cashRunwayMonths.toFixed(1)} months of operating expenses)`);
+    factors.push(
+      `Healthy cash reserves (${cashRunwayMonths.toFixed(1)} months of operating expenses)`,
+    );
   } else if (cashRunwayMonths >= 1.5) {
     factors.push(`Moderate cash buffer (${cashRunwayMonths.toFixed(1)} months of opex)`);
   } else {
     riskScore += 20;
-    factors.push(`Critical liquidity constraint: only ${cashRunwayMonths.toFixed(1)} months of opex in cash reserves`);
+    factors.push(
+      `Critical liquidity constraint: only ${cashRunwayMonths.toFixed(1)} months of opex in cash reserves`,
+    );
   }
 
   const finalScore = Math.min(100, Math.max(0, Math.round(riskScore)));
@@ -282,7 +331,7 @@ function getSectorBaselineVulnerability(industry: IndustryType): number {
  */
 export function assessMSMEClimateRisk(
   profile: MSMEProfile,
-  climate: ClimateIndicators
+  climate: ClimateIndicators,
 ): RiskAssessment {
   const safeProfile = normalizeProfile(profile);
   const flood = calculateFloodScore(climate, safeProfile);
@@ -291,12 +340,40 @@ export function assessMSMEClimateRisk(
   const vulnerability = calculateVulnerabilityScore(safeProfile);
   const resilience = calculateFinancialResilienceScore(safeProfile);
 
-  const rawDimensions: Record<string, { score: number; baseWeight: number; available: boolean; factors: string[] }> = {
-    floodExposure: { score: flood.score, baseWeight: NOMINAL_WEIGHTS.floodExposure, available: true, factors: flood.factors },
-    heavyRainfall: { score: rainfall.score, baseWeight: NOMINAL_WEIGHTS.heavyRainfall, available: true, factors: rainfall.factors },
-    extremeHeat: { score: heat.score, baseWeight: NOMINAL_WEIGHTS.extremeHeat, available: true, factors: heat.factors },
-    businessVulnerability: { score: vulnerability.score, baseWeight: NOMINAL_WEIGHTS.businessVulnerability, available: true, factors: vulnerability.factors },
-    financialResilience: { score: resilience.score, baseWeight: NOMINAL_WEIGHTS.financialResilience, available: true, factors: resilience.factors },
+  const rawDimensions: Record<
+    string,
+    { score: number; baseWeight: number; available: boolean; factors: string[] }
+  > = {
+    floodExposure: {
+      score: flood.score,
+      baseWeight: NOMINAL_WEIGHTS.floodExposure,
+      available: true,
+      factors: flood.factors,
+    },
+    heavyRainfall: {
+      score: rainfall.score,
+      baseWeight: NOMINAL_WEIGHTS.heavyRainfall,
+      available: true,
+      factors: rainfall.factors,
+    },
+    extremeHeat: {
+      score: heat.score,
+      baseWeight: NOMINAL_WEIGHTS.extremeHeat,
+      available: true,
+      factors: heat.factors,
+    },
+    businessVulnerability: {
+      score: vulnerability.score,
+      baseWeight: NOMINAL_WEIGHTS.businessVulnerability,
+      available: true,
+      factors: vulnerability.factors,
+    },
+    financialResilience: {
+      score: resilience.score,
+      baseWeight: NOMINAL_WEIGHTS.financialResilience,
+      available: true,
+      factors: resilience.factors,
+    },
   };
 
   // Dynamic proportional reweighting
@@ -307,16 +384,19 @@ export function assessMSMEClimateRisk(
     if (dim.available) {
       totalAvailableWeight += dim.baseWeight;
     } else {
-      dataGaps.push(`Indicator "${key}" data unavailable; excluded from scoring and remaining weights normalized.`);
+      dataGaps.push(
+        `Indicator "${key}" data unavailable; excluded from scoring and remaining weights normalized.`,
+      );
     }
   }
 
-  const dimensionScores: any = {};
+  const dimensionScores: Record<string, DimensionScore> = {};
   const effectiveWeights: Record<string, number> = {};
   let overallScoreRaw = 0;
 
   for (const [key, dim] of Object.entries(rawDimensions)) {
-    const effWeight = dim.available && totalAvailableWeight > 0 ? dim.baseWeight / totalAvailableWeight : 0;
+    const effWeight =
+      dim.available && totalAvailableWeight > 0 ? dim.baseWeight / totalAvailableWeight : 0;
     effectiveWeights[key] = Math.round(effWeight * 100) / 100;
 
     dimensionScores[key] = {
@@ -358,7 +438,7 @@ export function assessMSMEClimateRisk(
     timestamp: new Date().toISOString(),
     overallScore,
     riskCategory,
-    dimensionScores,
+    dimensionScores: dimensionScores as RiskAssessment['dimensionScores'],
     effectiveWeights,
     explainabilitySummary,
     mitigationRecommendations,
@@ -394,7 +474,10 @@ function getHighestDriver(dims: Record<string, DimensionScore>): string {
   return `${names[highestKey] || highestKey} (${dims[highestKey]?.score}/100)`;
 }
 
-function generateMitigations(profile: MSMEProfile, dims: any): MitigationRecommendation[] {
+function generateMitigations(
+  profile: MSMEProfile,
+  dims: Record<string, DimensionScore>,
+): MitigationRecommendation[] {
   const safeProfile = normalizeProfile(profile);
   const list: MitigationRecommendation[] = [];
 
@@ -405,20 +488,25 @@ function generateMitigations(profile: MSMEProfile, dims: any): MitigationRecomme
       category: 'physical_infrastructure',
       estimatedCostInr: 45000,
       riskReductionPts: 14,
-      description: 'Fit aluminum flood barriers at facility entry doors and elevate electrical circuit breakers 1.2m above floor level.',
+      description:
+        'Fit aluminum flood barriers at facility entry doors and elevate electrical circuit breakers 1.2m above floor level.',
       priority: 'immediate',
       matchedSchemeId: 'sch_msme_growth',
     });
   }
 
-  if ((dims.extremeHeat?.score ?? 0) >= 50 && (!safeProfile.operations?.hasBackupGenerator || !safeProfile.operations?.hasColdStorage)) {
+  if (
+    (dims.extremeHeat?.score ?? 0) >= 50 &&
+    (!safeProfile.operations?.hasBackupGenerator || !safeProfile.operations?.hasColdStorage)
+  ) {
     list.push({
       id: 'mit_rooftop_solar',
       title: 'Adopt Grid-Interactive Rooftop Solar & Battery Backup',
       category: 'energy_water',
       estimatedCostInr: 150000,
       riskReductionPts: 16,
-      description: 'Install 5kW rooftop solar PV with hybrid inverter to secure uninterrupted refrigeration and ventilation during peak heatwaves.',
+      description:
+        'Install 5kW rooftop solar PV with hybrid inverter to secure uninterrupted refrigeration and ventilation during peak heatwaves.',
       priority: 'immediate',
       matchedSchemeId: 'sch_pm_surya_ghar',
     });
@@ -431,7 +519,8 @@ function generateMitigations(profile: MSMEProfile, dims: any): MitigationRecomme
       category: 'energy_water',
       estimatedCostInr: 60000,
       riskReductionPts: 10,
-      description: 'Add 10,000L subterranean water buffer to insulate against municipal supply shortages during heatwaves.',
+      description:
+        'Add 10,000L subterranean water buffer to insulate against municipal supply shortages during heatwaves.',
       priority: 'medium_term',
     });
   }
@@ -443,7 +532,8 @@ function generateMitigations(profile: MSMEProfile, dims: any): MitigationRecomme
       category: 'financial_buffer',
       estimatedCostInr: 18000,
       riskReductionPts: 12,
-      description: 'Secure insurance with indexed payouts triggered automatically when rainfall exceeds 100mm in 24 hours.',
+      description:
+        'Secure insurance with indexed payouts triggered automatically when rainfall exceeds 100mm in 24 hours.',
       priority: 'immediate',
     });
   }
@@ -451,15 +541,14 @@ function generateMitigations(profile: MSMEProfile, dims: any): MitigationRecomme
   return list;
 }
 
-function generateLoanDecisionSupport(
-  score: number,
-  category: RiskCategory,
-  profile: MSMEProfile
-) {
+function generateLoanDecisionSupport(score: number, category: RiskCategory, profile: MSMEProfile) {
   const safeProfile = normalizeProfile(profile);
-  const monthlyProfit = safeProfile.financials.monthlyRevenue - safeProfile.financials.monthlyOperatingExpenses;
+  const monthlyProfit =
+    safeProfile.financials.monthlyRevenue - safeProfile.financials.monthlyOperatingExpenses;
   const maxSafeMonthlyEmi = Math.max(0, monthlyProfit * 0.45);
-  const estimatedSafeLoan = Math.round(maxSafeMonthlyEmi * (safeProfile.financials.loanTenureMonths || 36));
+  const estimatedSafeLoan = Math.round(
+    maxSafeMonthlyEmi * (safeProfile.financials.loanTenureMonths || 36),
+  );
 
   if (category === 'low') {
     return {

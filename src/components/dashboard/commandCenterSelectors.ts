@@ -18,11 +18,36 @@ export interface DimensionSpec {
 }
 
 export const COMMAND_CENTER_DIMENSIONS: DimensionSpec[] = [
-  { key: 'floodExposure', label: 'Flood Exposure', hint: 'River discharge + plinth elevation', accent: 'neutral' },
-  { key: 'heavyRainfall', label: 'Heavy Rainfall', hint: '7-day precipitation forecast', accent: 'neutral' },
-  { key: 'extremeHeat', label: 'Extreme Heat', hint: 'Hot days + cooling dependency', accent: 'amber' },
-  { key: 'businessVulnerability', label: 'Operational Vulnerability', hint: 'Grid & water dependencies', accent: 'neutral' },
-  { key: 'financialResilience', label: 'Financial Resilience', hint: 'Inverted risk (higher is safer)', accent: 'emerald' },
+  {
+    key: 'floodExposure',
+    label: 'Flood Exposure',
+    hint: 'River discharge + plinth elevation',
+    accent: 'neutral',
+  },
+  {
+    key: 'heavyRainfall',
+    label: 'Heavy Rainfall',
+    hint: '7-day precipitation forecast',
+    accent: 'neutral',
+  },
+  {
+    key: 'extremeHeat',
+    label: 'Extreme Heat',
+    hint: 'Hot days + cooling dependency',
+    accent: 'amber',
+  },
+  {
+    key: 'businessVulnerability',
+    label: 'Operational Vulnerability',
+    hint: 'Grid & water dependencies',
+    accent: 'neutral',
+  },
+  {
+    key: 'financialResilience',
+    label: 'Financial Resilience',
+    hint: 'Inverted risk (higher is safer)',
+    accent: 'emerald',
+  },
 ];
 
 export interface DimensionSummary extends DimensionSpec {
@@ -114,7 +139,7 @@ export function getPeakExposure(assessment: RiskAssessment): { label: string; sc
   const summaries = summarizeDimensions(assessment).filter((d) => d.key !== 'financialResilience');
   const peak = summaries.reduce(
     (worst, current) => (current.score > worst.score ? current : worst),
-    summaries[0] ?? { label: 'No Exposure', score: 0 }
+    summaries[0] ?? { label: 'No Exposure', score: 0 },
   );
   return { label: peak.label, score: peak.score };
 }
@@ -127,7 +152,7 @@ function formatDay(isoDate: string): string {
 
 export function buildForecastSeries(
   climate: ClimateIndicators | null | undefined,
-  days = 7
+  days = 7,
 ): ForecastPoint[] {
   const forecast: WeatherDayForecast[] = climate?.forecast7Days ?? [];
   return forecast.slice(0, Math.max(0, days)).map((day) => {
@@ -148,7 +173,7 @@ export function buildForecastSeries(
 
 export function computeAdaptationProgress(
   recommendations: MitigationRecommendation[] | undefined,
-  completedActionIds: string[] | undefined
+  completedActionIds: string[] | undefined,
 ): AdaptationProgress {
   const items = recommendations ?? [];
   const completed = new Set(completedActionIds ?? []);

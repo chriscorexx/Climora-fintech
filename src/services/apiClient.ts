@@ -1,4 +1,10 @@
-import { MSMEProfile, RiskAssessment, ClimateIndicators, CashflowScenario, GovernmentScheme } from '../types';
+import {
+  MSMEProfile,
+  RiskAssessment,
+  ClimateIndicators,
+  CashflowScenario,
+  GovernmentScheme,
+} from '../types';
 import { getStoredProfiles, saveProfiles } from '../core/storage';
 import { fetchClimateIndicators } from '../core/weatherService';
 import { assessMSMEClimateRisk } from '../core/riskEngine';
@@ -6,7 +12,7 @@ import { matchSchemesForProfile } from '../core/schemeMatcher';
 import { simulateCashflowStress, ScenarioParams } from '../core/scenarioSimulator';
 import { normalizeProfile } from '../core/profileUtils';
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 /**
  * Unified API Client for Climora
@@ -33,7 +39,9 @@ class ClimoraApiClient {
   async getBusinesses(): Promise<MSMEProfile[]> {
     if (this.isServerHealthy) {
       try {
-        const res = await fetch(`${API_BASE_URL}/businesses`, { signal: AbortSignal.timeout(3000) });
+        const res = await fetch(`${API_BASE_URL}/businesses`, {
+          signal: AbortSignal.timeout(3000),
+        });
         if (res.ok) {
           const json = await res.json();
           if (json.success && json.data.businesses) {
@@ -72,7 +80,9 @@ class ClimoraApiClient {
     return fullProfile;
   }
 
-  async runAssessment(business: MSMEProfile): Promise<{ assessment: RiskAssessment; climate: ClimateIndicators }> {
+  async runAssessment(
+    business: MSMEProfile,
+  ): Promise<{ assessment: RiskAssessment; climate: ClimateIndicators }> {
     if (this.isServerHealthy) {
       try {
         const res = await fetch(`${API_BASE_URL}/businesses/${business.id}/assessments`, {
@@ -85,7 +95,7 @@ class ClimoraApiClient {
             const climateData = await fetchClimateIndicators(
               business.location.latitude,
               business.location.longitude,
-              business.location.city
+              business.location.city,
             );
             return { assessment: json.data.assessment, climate: climateData };
           }
@@ -99,7 +109,7 @@ class ClimoraApiClient {
     const climate = await fetchClimateIndicators(
       business.location.latitude,
       business.location.longitude,
-      business.location.city
+      business.location.city,
     );
     const assessment = assessMSMEClimateRisk(business, climate);
     return { assessment, climate };
@@ -127,12 +137,16 @@ class ClimoraApiClient {
     return simulateCashflowStress(business, params);
   }
 
-  async getMatchedSchemes(business: MSMEProfile, floodScore: number, heatScore: number): Promise<GovernmentScheme[]> {
+  async getMatchedSchemes(
+    business: MSMEProfile,
+    floodScore: number,
+    heatScore: number,
+  ): Promise<GovernmentScheme[]> {
     if (this.isServerHealthy) {
       try {
         const res = await fetch(
           `${API_BASE_URL}/businesses/${business.id}/scheme-matches?floodScore=${floodScore}&heatScore=${heatScore}`,
-          { signal: AbortSignal.timeout(3000) }
+          { signal: AbortSignal.timeout(3000) },
         );
         if (res.ok) {
           const json = await res.json();

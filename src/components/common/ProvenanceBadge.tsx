@@ -7,7 +7,11 @@ interface ProvenanceBadgeProps {
   retrievedAt?: string;
 }
 
-export const ProvenanceBadge: React.FC<ProvenanceBadgeProps> = ({ isLive, provider, retrievedAt }) => {
+export const ProvenanceBadge: React.FC<ProvenanceBadgeProps> = ({
+  isLive,
+  provider,
+  retrievedAt,
+}) => {
   const formattedTime = retrievedAt
     ? new Date(retrievedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : 'Just now';

@@ -32,7 +32,12 @@ export const RiskGauge: React.FC<RiskGaugeProps> = ({ score, category, size = 18
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <svg width={size} height={size * 0.65} viewBox={`0 0 ${size} ${size * 0.65}`} className="overflow-visible">
+      <svg
+        width={size}
+        height={size * 0.65}
+        viewBox={`0 0 ${size} ${size * 0.65}`}
+        className="overflow-visible"
+      >
         {/* Background Track Arc */}
         <path
           d={`M ${center - radius} ${center} A ${radius} ${radius} 0 0 1 ${center + radius} ${center}`}

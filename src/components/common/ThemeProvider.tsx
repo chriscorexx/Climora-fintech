@@ -15,6 +15,8 @@ interface ThemeContextValue {
   availableModes: ThemeMode[];
 }
 
+const AVAILABLE_MODES: ThemeMode[] = ['light', 'dark', 'system'];
+
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -25,7 +27,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return watchSystemTheme((prefersDark) => setSystemPrefersDark(prefersDark));
   }, []);
 
-  const resolvedTheme: ResolvedTheme = mode === 'system' ? (systemPrefersDark ? 'dark' : 'light') : mode;
+  const resolvedTheme: ResolvedTheme =
+    mode === 'system' ? (systemPrefersDark ? 'dark' : 'light') : mode;
 
   useEffect(() => {
     applyTheme(mode);
@@ -36,11 +39,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     saveStoredThemeMode(next);
   }, []);
 
-  const availableModes = useMemo<ThemeMode[]>(() => ['light', 'dark', 'system'], []);
-
   const value = useMemo<ThemeContextValue>(
-    () => ({ mode, resolvedTheme, setMode, availableModes }),
-    [mode, resolvedTheme, setMode]
+    () => ({ mode, resolvedTheme, setMode, availableModes: AVAILABLE_MODES }),
+    [mode, resolvedTheme, setMode],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

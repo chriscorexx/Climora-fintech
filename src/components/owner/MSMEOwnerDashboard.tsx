@@ -1,27 +1,24 @@
 import React from 'react';
-import {
-  MSMEProfile,
-  RiskAssessment,
-  ClimateIndicators,
-  GovernmentScheme,
-} from '../../types';
+import { MSMEProfile, RiskAssessment, ClimateIndicators, GovernmentScheme } from '../../types';
 import { MetricCard } from '../common/MetricCard';
 import { RiskBadge } from '../common/RiskBadge';
 import { ProvenanceBadge } from '../common/ProvenanceBadge';
+import { WeatherAlertStrip } from '../common/WeatherAlertStrip';
+import { DistrictBaselinePanel } from '../common/DistrictBaselinePanel';
+import { ResilienceChecklist } from '../common/ResilienceChecklist';
+import { SchemeMatchCard } from '../common/SchemeMatchCard';
+import { formatCompactInr } from '../../core/format';
 import {
   ShieldCheck,
   Building2,
   Droplets,
   Flame,
   CloudRain,
-  ExternalLink,
   CheckCircle,
   Circle,
   Award,
-  ArrowUpRight,
   Edit3,
   Calendar,
-  AlertCircle,
 } from 'lucide-react';
 
 interface MSMEOwnerDashboardProps {
@@ -45,7 +42,7 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
 }) => {
   const eligibleSchemes = matchedSchemes.filter((s) => s.isEligible);
   const completedCount = assessment.mitigationRecommendations.filter((m) =>
-    completedActionIds.includes(m.id)
+    completedActionIds.includes(m.id),
   ).length;
 
   return (
@@ -55,19 +52,29 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-fin-border">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-extrabold text-fin-text tracking-tight">{activeProfile.name}</h1>
-              <RiskBadge category={assessment.riskCategory} score={assessment.overallScore} size="lg" />
+              <h1 className="text-xl font-extrabold text-fin-text tracking-tight">
+                {activeProfile.name}
+              </h1>
+              <RiskBadge
+                category={assessment.riskCategory}
+                score={assessment.overallScore}
+                size="lg"
+              />
             </div>
             <div className="flex flex-wrap items-center gap-3 text-xs text-fin-muted mt-1">
               <span>{activeProfile.industry.replace('_', ' ').toUpperCase()}</span>
               <span>•</span>
               <span>{activeProfile.businessSize.toUpperCase()} ENTERPRISE</span>
               <span>•</span>
-              <span>{activeProfile.location.city}, {activeProfile.location.state}</span>
+              <span>
+                {activeProfile.location.city}, {activeProfile.location.state}
+              </span>
               {activeProfile.udyamNumber && (
                 <>
                   <span>•</span>
-                  <span className="font-mono text-emerald-600 dark:text-emerald-400">{activeProfile.udyamNumber}</span>
+                  <span className="font-mono text-emerald-600 dark:text-emerald-400">
+                    {activeProfile.udyamNumber}
+                  </span>
                 </>
               )}
             </div>
@@ -93,8 +100,8 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-5">
           <MetricCard
             label="Monthly Revenue"
-            value={`₹${((activeProfile.financials?.monthlyRevenue ?? 0) / 100000).toFixed(1)}L`}
-            subtitle={`Opex: ₹${((activeProfile.financials?.monthlyOperatingExpenses ?? 0) / 100000).toFixed(1)}L/mo`}
+            value={formatCompactInr(activeProfile.financials?.monthlyRevenue ?? 0)}
+            subtitle={`Opex: ${formatCompactInr(activeProfile.financials?.monthlyOperatingExpenses ?? 0)}/mo`}
             icon={<Building2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
           />
           <MetricCard
@@ -103,7 +110,7 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
               (activeProfile.financials?.availableCashReserves ?? 0) /
               (activeProfile.financials?.monthlyOperatingExpenses || 1)
             ).toFixed(1)} mo`}
-            subtitle={`₹${((activeProfile.financials?.availableCashReserves ?? 0) / 100000).toFixed(1)}L in reserves`}
+            subtitle={`${formatCompactInr(activeProfile.financials?.availableCashReserves ?? 0)} in reserves`}
             icon={<ShieldCheck className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />}
           />
           <MetricCard
@@ -116,10 +123,13 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
             label="Matched Subsidies"
             value={eligibleSchemes.length}
             subtitle="Central & State MSME schemes"
-            icon={<ExternalLink className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />}
+            icon={<Award className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />}
           />
         </div>
       </div>
+
+      {/* Weather Threshold Alert Strip */}
+      <WeatherAlertStrip climate={climate} locationLabel={climate.location?.resolvedAddress} />
 
       {/* Main 2-Column Section: Left 7-Day Live Forecast & Adaptation Roadmap, Right Matched Subsidies */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -149,7 +159,10 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
                 </span>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-fin-secondary tabular-nums">
-                <span>🌡️ {climate.currentConditions.temperatureC}°C ({climate.currentConditions.weatherDescription})</span>
+                <span>
+                  🌡️ {climate.currentConditions.temperatureC}°C (
+                  {climate.currentConditions.weatherDescription})
+                </span>
                 <span>💧 {climate.currentConditions.relativeHumidityPct}% Hum.</span>
                 <span>💨 {climate.currentConditions.windSpeedKmh} km/h Wind</span>
                 <span>🌧️ {climate.currentConditions.precipitationMm}mm Rain</span>
@@ -169,11 +182,13 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
                       isRain
                         ? 'border-neutral-400/40 bg-neutral-500/10 dark:bg-neutral-400/10'
                         : isHot
-                        ? 'border-amber-500/30 bg-amber-500/10 dark:bg-amber-500/15'
-                        : 'border-fin-border bg-fin-inset/60'
+                          ? 'border-amber-500/30 bg-amber-500/10 dark:bg-amber-500/15'
+                          : 'border-fin-border bg-fin-inset/60'
                     }`}
                   >
-                    <span className="text-[10px] font-semibold text-fin-muted uppercase">{dayName}</span>
+                    <span className="text-[10px] font-semibold text-fin-muted uppercase">
+                      {dayName}
+                    </span>
                     <div className="my-1.5">
                       {isRain ? (
                         <CloudRain className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
@@ -187,7 +202,9 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
                       {day.maxTempC}°
                     </div>
                     <div className="text-[10px] font-mono text-fin-muted tabular-nums">
-                      {day.precipitationSumMm > 0 ? `${day.precipitationSumMm}mm` : `${day.minTempC}°`}
+                      {day.precipitationSumMm > 0
+                        ? `${day.precipitationSumMm}mm`
+                        : `${day.minTempC}°`}
                     </div>
                   </div>
                 );
@@ -203,7 +220,8 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
                   Practical Resilience Roadmap & Loss Prevention
                 </h3>
                 <p className="text-xs text-fin-muted">
-                  Implement these actions to reduce climate hazard damage and lower borrowing interest rates.
+                  Implement these actions to reduce climate hazard damage and lower borrowing
+                  interest rates.
                 </p>
               </div>
               <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30">
@@ -250,7 +268,9 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
                             </span>
                           </div>
                         </div>
-                        <p className="text-xs text-fin-muted mt-1 leading-relaxed">{mit.description}</p>
+                        <p className="text-xs text-fin-muted mt-1 leading-relaxed">
+                          {mit.description}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -258,6 +278,11 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
               })}
             </div>
           </div>
+          {/* District Hazard Baseline */}
+          <DistrictBaselinePanel climate={climate} />
+
+          {/* Resilience Readiness Checklist */}
+          <ResilienceChecklist profile={activeProfile} />
         </div>
 
         {/* Right Column (5 cols): 16 Matched Government Subsidies & Schemes */}
@@ -279,57 +304,7 @@ export const MSMEOwnerDashboard: React.FC<MSMEOwnerDashboardProps> = ({
 
             <div className="space-y-3 pt-4 max-h-[620px] overflow-y-auto pr-1">
               {matchedSchemes.map((scheme) => (
-                <div
-                  key={scheme.id}
-                  className={`p-4 rounded-xl border transition-all ${
-                    scheme.isEligible
-                      ? 'border-fin-border bg-fin-inset/80 hover:border-fin-hover'
-                      : 'border-fin-border/40 bg-fin-inset/40 opacity-70'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <h4 className="text-xs font-bold text-fin-text">{scheme.name}</h4>
-                    <span
-                      className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold shrink-0 ${
-                        scheme.isEligible
-                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
-                          : 'bg-fin-inset text-fin-muted'
-                      }`}
-                    >
-                      {scheme.isEligible ? 'Eligible' : 'Check Scope'}
-                    </span>
-                  </div>
-
-                  <div className="text-[11px] text-fin-muted mt-1">
-                    {scheme.sponsoringAuthority} ({scheme.governmentLevel.toUpperCase()})
-                  </div>
-
-                  <div className="mt-2 p-2 rounded-lg bg-fin-inset border border-fin-border/80 text-[11px] text-emerald-700 dark:text-emerald-300 font-medium">
-                    {scheme.maxBenefitSummary}
-                  </div>
-
-                  <div className="mt-2 space-y-1">
-                    {scheme.matchReasons.slice(0, 2).map((reason, i) => (
-                      <div key={i} className="text-[10px] text-fin-muted flex items-center gap-1.5">
-                        <span className="w-1 h-1 rounded-full bg-fin-muted"></span>
-                        <span>{reason}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-3 pt-2 border-t border-fin-border flex items-center justify-between text-xs">
-                    <span className="text-[10px] text-fin-muted">Official Portal</span>
-                    <a
-                      href={scheme.officialSourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
-                    >
-                      <span>Apply & Guidelines</span>
-                      <ArrowUpRight className="w-3 h-3" />
-                    </a>
-                  </div>
-                </div>
+                <SchemeMatchCard key={scheme.id} scheme={scheme} />
               ))}
             </div>
           </div>

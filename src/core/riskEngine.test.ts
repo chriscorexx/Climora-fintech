@@ -4,10 +4,15 @@ import { simulateCashflowStress } from './scenarioSimulator';
 import { matchSchemesForProfile } from './schemeMatcher';
 import { getFallbackIndicators } from './weatherService';
 import { SAMPLE_MSME_PROFILES } from './sampleData';
+import { MSMEProfile } from '../types';
 
 describe('Climora TypeScript Domain Engines', () => {
   const profile = SAMPLE_MSME_PROFILES[0]; // Sahyadri Agro-Food Processors
-  const climate = getFallbackIndicators(profile.location.latitude, profile.location.longitude, profile.location.city);
+  const climate = getFallbackIndicators(
+    profile.location.latitude,
+    profile.location.longitude,
+    profile.location.city,
+  );
 
   it('computes transparent 5-dimension risk score between 0 and 100', () => {
     const assessment = assessMSMEClimateRisk(profile, climate);
@@ -39,7 +44,7 @@ describe('Climora TypeScript Domain Engines', () => {
     const highPlinthScore = assessMSMEClimateRisk(highPlinthProfile, climate);
 
     expect(highPlinthScore.dimensionScores.floodExposure.score).toBeLessThan(
-      lowPlinthScore.dimensionScores.floodExposure.score
+      lowPlinthScore.dimensionScores.floodExposure.score,
     );
   });
 
@@ -71,9 +76,13 @@ describe('Climora TypeScript Domain Engines', () => {
   });
 
   it('safely handles empty, partial, and malformed profiles without throwing exceptions', () => {
-    const emptyProfile = {} as any;
-    const partialProfile = { id: 'msme_partial', name: 'Test' } as any;
-    const missingOpsProfile = { id: 'msme_no_ops', name: 'Test', financials: {} } as any;
+    const emptyProfile = {} as unknown as MSMEProfile;
+    const partialProfile = { id: 'msme_partial', name: 'Test' } as unknown as MSMEProfile;
+    const missingOpsProfile = {
+      id: 'msme_no_ops',
+      name: 'Test',
+      financials: {},
+    } as unknown as MSMEProfile;
 
     expect(() => assessMSMEClimateRisk(emptyProfile, climate)).not.toThrow();
     expect(() => assessMSMEClimateRisk(partialProfile, climate)).not.toThrow();
@@ -90,7 +99,7 @@ describe('Climora TypeScript Domain Engines', () => {
         intensityPct: 50,
         facilityInundation: true,
         powerGridOutageDays: 1,
-      })
+      }),
     ).not.toThrow();
 
     expect(() => matchSchemesForProfile(emptyProfile, 40, 40)).not.toThrow();

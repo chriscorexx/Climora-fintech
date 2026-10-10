@@ -51,7 +51,7 @@ export async function geocodeCity(query: string): Promise<GeocodingResult | null
 export async function fetchClimateIndicators(
   lat: number,
   lng: number,
-  cityName = 'Target Location'
+  cityName = 'Target Location',
 ): Promise<ClimateIndicators> {
   const cacheKey = `${lat.toFixed(3)},${lng.toFixed(3)}`;
   const cached = cache.get(cacheKey);
@@ -63,7 +63,7 @@ export async function fetchClimateIndicators(
   try {
     // 1. Weather Forecast (temperature, precipitation, wind)
     const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max&timezone=auto&forecast_days=7`;
-    
+
     // 2. Flood API (simulated river discharge)
     const floodUrl = `https://flood-api.open-meteo.com/v1/flood?latitude=${lat}&longitude=${lng}&daily=river_discharge&forecast_days=7`;
 
@@ -77,7 +77,7 @@ export async function fetchClimateIndicators(
     }
 
     const weatherData = await weatherRes.value.json();
-    let floodData: any = null;
+    let floodData: { daily?: { river_discharge?: number[] } } | null = null;
 
     if (floodRes.status === 'fulfilled' && floodRes.value.ok) {
       try {
@@ -207,7 +207,11 @@ function getWeatherDescription(code: number): string {
 /**
  * High-fidelity deterministic fallback indicators for offline or rate-limited environments
  */
-export function getFallbackIndicators(lat: number, lng: number, cityName: string): ClimateIndicators {
+export function getFallbackIndicators(
+  lat: number,
+  lng: number,
+  cityName: string,
+): ClimateIndicators {
   const baseline = getDistrictBaseline(lat, lng);
   const now = new Date();
   const forecast: WeatherDayForecast[] = [];
@@ -216,10 +220,10 @@ export function getFallbackIndicators(lat: number, lng: number, cityName: string
     const d = new Date(now);
     d.setDate(d.getDate() + i);
     const dateStr = d.toISOString().split('T')[0];
-    
+
     // Deterministic variation based on day
     const tempVariance = ((i * 7) % 5) - 2;
-    const rainVariance = (i % 3 === 0) ? 18.4 : (i % 2 === 0 ? 4.2 : 0);
+    const rainVariance = i % 3 === 0 ? 18.4 : i % 2 === 0 ? 4.2 : 0;
 
     forecast.push({
       date: dateStr,

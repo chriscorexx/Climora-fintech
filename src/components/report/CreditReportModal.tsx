@@ -1,7 +1,7 @@
 import React from 'react';
-import { MSMEProfile, RiskAssessment, ClimateIndicators } from '../../types';
+import { MSMEProfile, RiskAssessment } from '../../types';
 import { normalizeProfile } from '../../core/profileUtils';
-import { X, Printer, ShieldCheck, Download } from 'lucide-react';
+import { X, Printer, ShieldCheck } from 'lucide-react';
 import { RiskBadge } from '../common/RiskBadge';
 import climoraLogo from '../../assets/Climora-logo.jpg';
 
@@ -10,7 +10,6 @@ interface CreditReportModalProps {
   onClose: () => void;
   profile: MSMEProfile;
   assessment: RiskAssessment;
-  climate: ClimateIndicators;
 }
 
 export const CreditReportModal: React.FC<CreditReportModalProps> = ({
@@ -18,7 +17,6 @@ export const CreditReportModal: React.FC<CreditReportModalProps> = ({
   onClose,
   profile,
   assessment,
-  climate,
 }) => {
   if (!isOpen) return null;
 
@@ -28,7 +26,8 @@ export const CreditReportModal: React.FC<CreditReportModalProps> = ({
     window.print();
   };
 
-  const dscr = (safeProfile.financials.monthlyRevenue - safeProfile.financials.monthlyOperatingExpenses) /
+  const dscr =
+    (safeProfile.financials.monthlyRevenue - safeProfile.financials.monthlyOperatingExpenses) /
     (safeProfile.financials.existingMonthlyDebtObligations || 1);
 
   return (
@@ -38,7 +37,9 @@ export const CreditReportModal: React.FC<CreditReportModalProps> = ({
         <div className="no-print flex items-center justify-between pb-6 border-b border-fin-border mb-6">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-            <span className="font-bold text-fin-text text-sm">Institutional Credit Underwriting Memo</span>
+            <span className="font-bold text-fin-text text-sm">
+              Institutional Credit Underwriting Memo
+            </span>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -63,11 +64,7 @@ export const CreditReportModal: React.FC<CreditReportModalProps> = ({
           <div className="flex justify-between items-start border-b border-fin-border pb-5 print-muted-text">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-xl bg-fin-sunken border border-fin-border overflow-hidden flex-shrink-0 shadow-sm">
-                <img
-                  src={climoraLogo}
-                  alt="Climora Logo"
-                  className="w-full h-full object-cover"
-                />
+                <img src={climoraLogo} alt="Climora Logo" className="w-full h-full object-cover" />
               </div>
               <div>
                 <div className="text-xl font-extrabold tracking-tight text-fin-text print-strong-text font-sans">
@@ -95,60 +92,91 @@ export const CreditReportModal: React.FC<CreditReportModalProps> = ({
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl bg-fin-inset/60 print-muted-surface border border-fin-border">
               <div>
-                <span className="text-[10px] text-fin-muted print-muted-text block uppercase">Borrower Name</span>
-                <span className="font-bold text-fin-text print-strong-text">{safeProfile.name}</span>
+                <span className="text-[10px] text-fin-muted print-muted-text block uppercase">
+                  Borrower Name
+                </span>
+                <span className="font-bold text-fin-text print-strong-text">
+                  {safeProfile.name}
+                </span>
               </div>
               <div>
-                <span className="text-[10px] text-fin-muted print-muted-text block uppercase">Industry Sector</span>
+                <span className="text-[10px] text-fin-muted print-muted-text block uppercase">
+                  Industry Sector
+                </span>
                 <span className="capitalize">{safeProfile.industry.replace('_', ' ')}</span>
               </div>
               <div>
-                <span className="text-[10px] text-fin-muted print-muted-text block uppercase">Registration / Udyam</span>
-                <span className="font-mono">{safeProfile.udyamNumber || safeProfile.registrationNumber || 'Pending'}</span>
+                <span className="text-[10px] text-fin-muted print-muted-text block uppercase">
+                  Registration / Udyam
+                </span>
+                <span className="font-mono">
+                  {safeProfile.udyamNumber || safeProfile.registrationNumber || 'Pending'}
+                </span>
               </div>
               <div>
-                <span className="text-[10px] text-fin-muted print-muted-text block uppercase">Location & District</span>
-                <span>{safeProfile.location.city}, {safeProfile.location.state}</span>
+                <span className="text-[10px] text-fin-muted print-muted-text block uppercase">
+                  Location & District
+                </span>
+                <span>
+                  {safeProfile.location.city}, {safeProfile.location.state}
+                </span>
               </div>
             </div>
           </div>
 
           {/* Section 2: Financial Underwriting Metrics */}
-          <div>
+          <div className="print-page">
             <h3 className="font-bold uppercase tracking-wider text-fin-muted print-muted-text text-[11px] mb-2 font-mono">
               2. Baseline Financial Metrics
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl bg-fin-inset/60 print-muted-surface border border-fin-border font-mono tabular-nums">
               <div>
-                <span className="text-[10px] text-fin-muted print-muted-text block uppercase">Monthly Revenue</span>
+                <span className="text-[10px] text-fin-muted print-muted-text block uppercase">
+                  Monthly Revenue
+                </span>
                 <span className="font-bold text-fin-text print-strong-text">
                   ₹{(safeProfile.financials.monthlyRevenue / 100000).toFixed(2)} Lakhs
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-fin-muted print-muted-text block uppercase">Operating Expenses</span>
-                <span>₹{(safeProfile.financials.monthlyOperatingExpenses / 100000).toFixed(2)} Lakhs</span>
+                <span className="text-[10px] text-fin-muted print-muted-text block uppercase">
+                  Operating Expenses
+                </span>
+                <span>
+                  ₹{(safeProfile.financials.monthlyOperatingExpenses / 100000).toFixed(2)} Lakhs
+                </span>
               </div>
               <div>
-                <span className="text-[10px] text-fin-muted print-muted-text block uppercase">Baseline DSCR</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400 print-strong-text">{dscr.toFixed(2)}x</span>
+                <span className="text-[10px] text-fin-muted print-muted-text block uppercase">
+                  Baseline DSCR
+                </span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400 print-strong-text">
+                  {dscr.toFixed(2)}x
+                </span>
               </div>
               <div>
-                <span className="text-[10px] text-fin-muted print-muted-text block uppercase">Requested Facility</span>
+                <span className="text-[10px] text-fin-muted print-muted-text block uppercase">
+                  Requested Facility
+                </span>
                 <span className="font-bold text-fin-text print-strong-text">
-                  ₹{((safeProfile.financials.requestedLoanAmount || 2500000) / 100000).toFixed(2)} Lakhs
+                  ₹{((safeProfile.financials.requestedLoanAmount || 2500000) / 100000).toFixed(2)}{' '}
+                  Lakhs
                 </span>
               </div>
             </div>
           </div>
 
           {/* Section 3: 5-Dimension Climate Risk Breakdown */}
-          <div>
+          <div className="print-page">
             <div className="flex justify-between items-center mb-2">
               <h3 className="font-bold uppercase tracking-wider text-fin-muted print-muted-text text-[11px] font-mono">
                 3. Physical Climate Risk Assessment (Open-Meteo & World Bank Baseline)
               </h3>
-              <RiskBadge category={assessment.riskCategory} score={assessment.overallScore} size="sm" />
+              <RiskBadge
+                category={assessment.riskCategory}
+                score={assessment.overallScore}
+                size="sm"
+              />
             </div>
 
             <table className="w-full text-left border border-fin-border print-surface rounded-lg overflow-hidden">
@@ -163,52 +191,92 @@ export const CreditReportModal: React.FC<CreditReportModalProps> = ({
               <tbody className="divide-y divide-fin-border print-divider text-xs">
                 <tr>
                   <td className="p-2.5 font-semibold">Flood Exposure</td>
-                  <td className="p-2.5 text-center font-mono font-bold">{assessment.dimensionScores.floodExposure.score}</td>
-                  <td className="p-2.5 text-center font-mono">{(assessment.dimensionScores.floodExposure.effectiveWeight * 100).toFixed(0)}%</td>
-                  <td className="p-2.5 text-fin-muted print-muted-text">{assessment.dimensionScores.floodExposure.contributingFactors[0]}</td>
+                  <td className="p-2.5 text-center font-mono font-bold">
+                    {assessment.dimensionScores.floodExposure.score}
+                  </td>
+                  <td className="p-2.5 text-center font-mono">
+                    {(assessment.dimensionScores.floodExposure.effectiveWeight * 100).toFixed(0)}%
+                  </td>
+                  <td className="p-2.5 text-fin-muted print-muted-text">
+                    {assessment.dimensionScores.floodExposure.contributingFactors[0]}
+                  </td>
                 </tr>
                 <tr>
                   <td className="p-2.5 font-semibold">Heavy Rainfall</td>
-                  <td className="p-2.5 text-center font-mono font-bold">{assessment.dimensionScores.heavyRainfall.score}</td>
-                  <td className="p-2.5 text-center font-mono">{(assessment.dimensionScores.heavyRainfall.effectiveWeight * 100).toFixed(0)}%</td>
-                  <td className="p-2.5 text-fin-muted print-muted-text">{assessment.dimensionScores.heavyRainfall.contributingFactors[0]}</td>
+                  <td className="p-2.5 text-center font-mono font-bold">
+                    {assessment.dimensionScores.heavyRainfall.score}
+                  </td>
+                  <td className="p-2.5 text-center font-mono">
+                    {(assessment.dimensionScores.heavyRainfall.effectiveWeight * 100).toFixed(0)}%
+                  </td>
+                  <td className="p-2.5 text-fin-muted print-muted-text">
+                    {assessment.dimensionScores.heavyRainfall.contributingFactors[0]}
+                  </td>
                 </tr>
                 <tr>
                   <td className="p-2.5 font-semibold">Extreme Heat</td>
-                  <td className="p-2.5 text-center font-mono font-bold">{assessment.dimensionScores.extremeHeat.score}</td>
-                  <td className="p-2.5 text-center font-mono">{(assessment.dimensionScores.extremeHeat.effectiveWeight * 100).toFixed(0)}%</td>
-                  <td className="p-2.5 text-fin-muted print-muted-text">{assessment.dimensionScores.extremeHeat.contributingFactors[0]}</td>
+                  <td className="p-2.5 text-center font-mono font-bold">
+                    {assessment.dimensionScores.extremeHeat.score}
+                  </td>
+                  <td className="p-2.5 text-center font-mono">
+                    {(assessment.dimensionScores.extremeHeat.effectiveWeight * 100).toFixed(0)}%
+                  </td>
+                  <td className="p-2.5 text-fin-muted print-muted-text">
+                    {assessment.dimensionScores.extremeHeat.contributingFactors[0]}
+                  </td>
                 </tr>
                 <tr>
                   <td className="p-2.5 font-semibold">Business Vulnerability</td>
-                  <td className="p-2.5 text-center font-mono font-bold">{assessment.dimensionScores.businessVulnerability.score}</td>
-                  <td className="p-2.5 text-center font-mono">{(assessment.dimensionScores.businessVulnerability.effectiveWeight * 100).toFixed(0)}%</td>
-                  <td className="p-2.5 text-fin-muted print-muted-text">{assessment.dimensionScores.businessVulnerability.contributingFactors[0]}</td>
+                  <td className="p-2.5 text-center font-mono font-bold">
+                    {assessment.dimensionScores.businessVulnerability.score}
+                  </td>
+                  <td className="p-2.5 text-center font-mono">
+                    {(
+                      assessment.dimensionScores.businessVulnerability.effectiveWeight * 100
+                    ).toFixed(0)}
+                    %
+                  </td>
+                  <td className="p-2.5 text-fin-muted print-muted-text">
+                    {assessment.dimensionScores.businessVulnerability.contributingFactors[0]}
+                  </td>
                 </tr>
                 <tr>
                   <td className="p-2.5 font-semibold">Financial Resilience</td>
-                  <td className="p-2.5 text-center font-mono font-bold">{assessment.dimensionScores.financialResilience.score}</td>
-                  <td className="p-2.5 text-center font-mono">{(assessment.dimensionScores.financialResilience.effectiveWeight * 100).toFixed(0)}%</td>
-                  <td className="p-2.5 text-fin-muted print-muted-text">{assessment.dimensionScores.financialResilience.contributingFactors[0]}</td>
+                  <td className="p-2.5 text-center font-mono font-bold">
+                    {assessment.dimensionScores.financialResilience.score}
+                  </td>
+                  <td className="p-2.5 text-center font-mono">
+                    {(assessment.dimensionScores.financialResilience.effectiveWeight * 100).toFixed(
+                      0,
+                    )}
+                    %
+                  </td>
+                  <td className="p-2.5 text-fin-muted print-muted-text">
+                    {assessment.dimensionScores.financialResilience.contributingFactors[0]}
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           {/* Section 4: Underwriting Decision & Covenants */}
-          <div>
+          <div className="print-page">
             <h3 className="font-bold uppercase tracking-wider text-fin-muted print-muted-text text-[11px] mb-2 font-mono">
               4. Credit Committee Recommendation & Covenants
             </h3>
             <div className="p-4 rounded-xl bg-fin-inset/60 print-muted-surface border border-fin-border space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-semibold text-fin-secondary print-strong-text">Underwriting Recommendation:</span>
+                <span className="font-semibold text-fin-secondary print-strong-text">
+                  Underwriting Recommendation:
+                </span>
                 <span className="font-bold uppercase text-emerald-600 dark:text-emerald-400 print-strong-text">
                   {assessment.loanDecisionSupport.recommendedAction.replace(/_/g, ' ')}
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="font-semibold text-fin-secondary print-strong-text">Suggested Interest Adjustment:</span>
+                <span className="font-semibold text-fin-secondary print-strong-text">
+                  Suggested Interest Adjustment:
+                </span>
                 <span className="font-mono font-bold">
                   {assessment.loanDecisionSupport.suggestedInterestAdjustmentBps > 0
                     ? `+${assessment.loanDecisionSupport.suggestedInterestAdjustmentBps} bps Climate Risk Premium`
@@ -246,7 +314,10 @@ export const CreditReportModal: React.FC<CreditReportModalProps> = ({
 
           {/* Regulatory Disclaimer */}
           <div className="text-[10px] text-fin-muted print-muted-text border-t border-fin-border pt-3">
-            Disclaimer: This document is an illustrative decision-support assessment produced by the Climora platform for IFC FIN-05. Scores represent heuristic indicators derived from Open-Meteo forecasts and baseline flood exposures and do not replace statutory due-diligence.
+            Disclaimer: This document is an illustrative decision-support assessment produced by the
+            Climora platform for IFC FIN-05. Scores represent heuristic indicators derived from
+            Open-Meteo forecasts and baseline flood exposures and do not replace statutory
+            due-diligence.
           </div>
         </div>
       </div>
