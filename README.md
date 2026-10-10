@@ -17,8 +17,8 @@ matches to build climate resilience.
 **Try it:** [climora-fintech.vercel.app](https://climora-fintech.vercel.app) ·
 **Watch the demo:** [docs/demo-video.mp4](docs/demo-video.mp4)
 
-It runs as a web app (hosted on Vercel) and as a cross-platform desktop app for Windows, macOS,
-and Linux — see [Releases](https://github.com/chriscorexx/Climora-fintech/releases).
+It runs as a web app (hosted as a static site) and as a cross-platform desktop app for Windows,
+macOS, and Linux — see [Releases](https://github.com/chriscorexx/Climora-fintech/releases).
 
 ---
 
@@ -142,20 +142,19 @@ climora/
 
 ## Deployment
 
-### Web (Vercel — live)
+The web app is a fully static build — `npm run build` produces everything needed in `dist/`, with
+no backend required (the client falls back to local-only operation whenever no API is reachable).
+It is currently live at **[climora-fintech.vercel.app](https://climora-fintech.vercel.app)** and can
+be hosted on any static provider (Vercel, Netlify, Cloudflare Pages, GitHub Pages, nginx, S3):
 
-The production web app runs at **[climora-fintech.vercel.app](https://climora-fintech.vercel.app)**,
-deployed from `main` with zero manual settings — `vercel.json` provides the build command, `dist`
-output, SPA rewrite, and immutable asset caching. Every push to `main` redeploys automatically and
-pull requests get preview URLs. Full guide: [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md).
+- Build command: `npm run build`
+- Publish directory: `dist`
+- SPA fallback: rewrite all routes to `/index.html` so in-app views survive a refresh
+- Environment (optional): `VITE_COMMAND_CENTER_PASSWORD` — inlined at build time, so redeploy after
+  changing it (defaults to `climora@2026`)
 
-Set `VITE_COMMAND_CENTER_PASSWORD` in the Vercel project to change the Command Center password
-(inlined at build time — redeploy after changing it).
-
-### Web (Render)
-
-Render is supported as an alternative static host; see
-[docs/DEPLOY_RENDER.md](docs/DEPLOY_RENDER.md) and the included `render.yaml` Blueprint.
+A ready-to-serve copy of the built site is also kept in `website/` (regenerate with
+`npm run build:website`) for drag-and-drop hosting.
 
 ### Desktop binaries
 
@@ -201,8 +200,6 @@ All documentation lives in [`docs/`](docs/):
 
 | Document                                                                                        | Contents                                                         |
 | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| [DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md)                                                       | Web deployment on Vercel (live)                                  |
-| [DEPLOY_RENDER.md](docs/DEPLOY_RENDER.md)                                                       | Web deployment on Render                                         |
 | [BUILDING.md](docs/BUILDING.md)                                                                 | Desktop binaries: commands, platform matrix, CI, troubleshooting |
 | [ACCESS.md](docs/ACCESS.md)                                                                     | Auth model, role isolation, Command Center password, security    |
 | [COMMAND_CENTER.md](docs/COMMAND_CENTER.md)                                                     | Command Center access and walkthrough                            |
@@ -218,16 +215,58 @@ All documentation lives in [`docs/`](docs/):
 
 ## Contributing
 
-Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow, coding
-conventions, and quality gates, and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community
-guidelines.
+Contributions of all kinds are welcome: bug reports, feature ideas, documentation, scoring-model
+improvements, UI polish, and packaging. Issues and pull requests are reviewed in English.
+
+### 1. Set up
 
 ```bash
-npm install       # setup
-npm run dev:web   # run
-npm test          # verify
-npm run lint      # and lint before opening a PR
+git clone https://github.com/chriscorexx/Climora-fintech.git
+cd Climora-fintech
+npm install
+npm run dev:web          # API server + Vite on http://localhost:5173
 ```
+
+### 2. Pick or open an issue
+
+- Check existing issues first; comment on the one you want to take.
+- New idea or bug? Open an issue using the **Bug report** or **Feature request** template so we can
+  agree on scope before code.
+
+### 3. Make the change
+
+- Branch from `main`: `git checkout -b feat/short-description` (`fix/`, `docs/`, `chore/` also
+  apply).
+- One logical change per pull request.
+- Add tests for new pure logic in `src/core/` (Vitest), and update the relevant document in
+  `docs/` when behavior changes.
+- Follow the house rules in [CONTRIBUTING.md](CONTRIBUTING.md): TypeScript strict mode, `fin-*`
+  design tokens only (no blue-family colors), accessible motion that respects
+  `prefers-reduced-motion`, and no secrets or credentials in commits.
+
+### 4. Verify before opening the PR
+
+All four gates must pass on your final commit:
+
+```bash
+npm run lint             # ESLint, zero warnings
+npm test                 # 89 tests across domain, UI, and auth flows
+npm run build            # typecheck + production build
+npm run format:check     # Prettier
+```
+
+### 5. Open the pull request
+
+- Use [Conventional Commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `docs:`,
+  `refactor:`, `test:`, `ci:`, `chore:`.
+- Fill in the PR template: what changed, why, how you verified it, and anything risky (theme
+  tokens, motion, auth/role isolation, scoring math, packaging).
+- A maintainer reviews; keep the PR rebased on `main` if it goes stale.
+
+### 6. Get recognized
+
+Add yourself to the contributors table below in your first merged PR. Report security problems
+privately instead of opening a public issue (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Contributors
 
