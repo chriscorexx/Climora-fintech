@@ -2,9 +2,11 @@
 
 **Climate Intelligence. Smarter Credit Decisions.**
 
+🔗 **Live web app: [https://climora-fintech.vercel.app](https://climora-fintech.vercel.app)**
+
 Climora is a real-time climate-adjusted financial risk platform built for the **FUSION 2026 Hackathon (FIN-05, International Finance Corporation challenge)**. It helps lenders assess how physical climate hazards (flooding, heavy rainfall, extreme heat) impact Micro, Small, and Medium Enterprises (MSMEs), while giving business owners clear roadmaps and government scheme matches to build climate resilience.
 
-It runs as a **web app** (deployable on Render) and as a **cross-platform desktop app** (Windows / macOS / Linux).
+It runs as a **web app** (hosted on Vercel) and as a **cross-platform desktop app** (Windows / macOS / Linux — see [Releases](https://github.com/chriscorexx/Climora-fintech/releases)).
 
 ---
 
@@ -147,13 +149,16 @@ isn't — the web app works without it.
 
 ## 7. Deployment
 
-### Hosted website (Vercel — recommended)
+### Hosted website (Vercel — live)
 
-Deploy straight from the `main` branch with **zero manual settings** — the repo ships `vercel.json`
-(build command, `dist` output, SPA rewrite, immutable asset caching). See **`DEPLOY_VERCEL.md`** for
-the full manual guide. Summary: import the repo → Vercel detects Vite → Deploy; every push to `main`
-redeploys automatically and PRs get preview URLs. Set `VITE_COMMAND_CENTER_PASSWORD` as an
-environment variable if you want a custom Command Center password (inlined at build time).
+The production web app is hosted on Vercel: **<https://climora-fintech.vercel.app>**
+
+Deploys come straight from the `main` branch with **zero manual settings** — the repo ships
+`vercel.json` (build command, `dist` output, SPA rewrite, immutable asset caching). See
+**`DEPLOY_VERCEL.md`** for the full guide. Summary: import the repo → Vercel detects Vite → Deploy;
+every push to `main` redeploys automatically and PRs get preview URLs. Set
+`VITE_COMMAND_CENTER_PASSWORD` as an environment variable if you want a custom Command Center
+password (inlined at build time).
 
 ### Hosted website (Render)
 

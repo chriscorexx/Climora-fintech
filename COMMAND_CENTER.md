@@ -14,12 +14,13 @@ single screen for credit decisioning.
 1. Open the app and select the **Command Center** workspace in the top navigation bar.
 2. A **password prompt** appears before the dashboard is rendered.
 
-| Setting             | Value                                                                                                                                   |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Default password    | `climora@2026`                                                                                                                          |
-| Override            | `VITE_COMMAND_CENTER_PASSWORD` environment variable, inlined **at build time** by Vite                                                  |
-| Session persistence | `sessionStorage` — the unlock survives refreshes but **ends when the tab is closed**                                                    |
-| Where configured    | The Command Center access-gate component owned by the frontend (`src/`) reads the env var; the variable is documented in `.env.example` |
+| Setting             | Value                                                                                                                                          |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Default password    | `climora@2026`                                                                                                                                 |
+| Override            | `VITE_COMMAND_CENTER_PASSWORD` environment variable, inlined **at build time** by Vite                                                         |
+| Session persistence | `sessionStorage` — the unlock survives refreshes but **ends when the tab is closed**                                                           |
+| Where configured    | The Command Center access-gate component owned by the frontend (`src/`) reads the env var; the variable is documented in `.env.example         |
+| Live deployment     | Hosted at <https://climora-fintech.vercel.app>; if `VITE_COMMAND_CENTER_PASSWORD` was not set in the Vercel project, the default above applies |
 
 > To change the password for a build, set `VITE_COMMAND_CENTER_PASSWORD` in your `.env` before running
 > `npm run build`. This is a demo-grade client-side gate, not production authentication — see [`ACCESS.md`](./ACCESS.md).

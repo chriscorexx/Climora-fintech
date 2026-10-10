@@ -1,5 +1,7 @@
 # Deploying Climora to Vercel (Manual, Step by Step)
 
+**Production deployment: [https://climora-fintech.vercel.app](https://climora-fintech.vercel.app)**
+
 This guide deploys the **Climora web app** to [Vercel](https://vercel.com) from the `main` branch of
 this repository. The repo ships a `vercel.json`, so a fresh import needs **no special settings** —
 Vercel reads the build command, output directory, SPA rewrites and asset caching from it.
@@ -28,8 +30,8 @@ backend in `server/` is **optional** and not required.
    | ------------------------------ | ------------- | -------------------------------------------------------- |
    | `VITE_COMMAND_CENTER_PASSWORD` | your password | Command Center gate; defaults to `climora@2026` if unset |
 
-4. Click **Deploy**. Vercel runs `npm install` + `npm run build` and publishes to a
-   `https://<project>.vercel.app` URL.
+4. Click **Deploy**. Vercel runs `npm install` + `npm run build` and publishes to
+   <https://climora-fintech.vercel.app> (the project's production domain).
 5. Every later push to `main` (and every pull request) triggers a new deployment automatically —
    PRs get preview URLs.
 

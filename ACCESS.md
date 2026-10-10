@@ -42,6 +42,10 @@ The Command Center is **not** reachable by role alone — it has its own passwor
 
 ## Security note
 
+The hosted deployment at <https://climora-fintech.vercel.app> runs this same demo-grade model — set
+`VITE_COMMAND_CENTER_PASSWORD` in the Vercel project and **redeploy** to replace the default
+password on the live site.
+
 This is a **demo-grade, client-side authentication model**, not production-hardened:
 
 - Identity, role, and the Command Center unlock live in browser storage (`localStorage` / `sessionStorage`) and are

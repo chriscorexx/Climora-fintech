@@ -1,5 +1,9 @@
 # Deploying Climora to Render (Manual, Step by Step)
 
+> **Note:** the production web app currently runs on **Vercel** at
+> <https://climora-fintech.vercel.app> (see `DEPLOY_VERCEL.md`). This guide covers Render as an
+> alternative static host.
+
 This guide deploys the **Climora web app** to [Render](https://render.com) as a static site.
 Two routes are covered:
 
