@@ -28,7 +28,9 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   }[variant];
 
   return (
-    <div className={`rounded-xl bg-fin-card border p-4 shadow-fin-card transition-all ${borderClass}`}>
+    <div
+      className={`rounded-xl bg-fin-card border p-4 shadow-fin-card transition-all ${borderClass}`}
+    >
       <div className="flex items-center justify-between text-xs font-medium text-fin-muted tracking-wide uppercase">
         <span>{label}</span>
         {icon && <div className="text-fin-muted">{icon}</div>}
@@ -43,8 +45,8 @@ export const MetricCard: React.FC<MetricCardProps> = ({
               change.isNeutral
                 ? 'text-fin-muted'
                 : change.isPositive
-                ? 'text-emerald-600 dark:text-emerald-400'
-                : 'text-rose-700 dark:text-rose-300'
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-rose-700 dark:text-rose-300'
             }`}
           >
             {change.value}

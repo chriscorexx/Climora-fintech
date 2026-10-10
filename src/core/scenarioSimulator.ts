@@ -16,18 +16,23 @@ export interface ScenarioParams {
 
 export function simulateCashflowStress(
   profile: MSMEProfile,
-  params: ScenarioParams
+  params: ScenarioParams,
 ): CashflowScenario {
   const safeProfile = normalizeProfile(profile);
-  const { monthlyRevenue, monthlyOperatingExpenses, existingMonthlyDebtObligations, availableCashReserves } = safeProfile.financials;
+  const {
+    monthlyRevenue,
+    monthlyOperatingExpenses,
+    existingMonthlyDebtObligations,
+    availableCashReserves,
+  } = safeProfile.financials;
 
   const baselineNetOperatingIncome = monthlyRevenue - monthlyOperatingExpenses;
-  const baselineDSCR = existingMonthlyDebtObligations > 0
-    ? baselineNetOperatingIncome / existingMonthlyDebtObligations
-    : 3.5;
-  const baselineCashRunwayMonths = monthlyOperatingExpenses > 0
-    ? availableCashReserves / monthlyOperatingExpenses
-    : 1.0;
+  const baselineDSCR =
+    existingMonthlyDebtObligations > 0
+      ? baselineNetOperatingIncome / existingMonthlyDebtObligations
+      : 3.5;
+  const baselineCashRunwayMonths =
+    monthlyOperatingExpenses > 0 ? availableCashReserves / monthlyOperatingExpenses : 1.0;
 
   // 1. Calculate Daily Disruption & Revenue Loss
   let baseDailyLossRate = 0.033; // 1/30th per day
@@ -36,29 +41,33 @@ export function simulateCashflowStress(
   switch (params.hazardType) {
     case 'flash_flood':
       // Physical water entry stops all production and foot-traffic
-      baseDailyLossRate = params.facilityInundation ? 0.90 : 0.45;
+      baseDailyLossRate = params.facilityInundation ? 0.9 : 0.45;
       emergencyRepairCost = params.facilityInundation
-        ? Math.round(monthlyRevenue * 0.35 + (safeProfile.operations?.hasFloodBarriers ? -15000 : 35000))
+        ? Math.round(
+            monthlyRevenue * 0.35 + (safeProfile.operations?.hasFloodBarriers ? -15000 : 35000),
+          )
         : 10000;
       break;
 
     case 'extreme_heatwave':
       // Productivity loss + equipment overheating
-      baseDailyLossRate = safeProfile.operations?.perishableInventory && !safeProfile.operations?.hasColdStorage
-        ? 0.70
-        : 0.30;
+      baseDailyLossRate =
+        safeProfile.operations?.perishableInventory && !safeProfile.operations?.hasColdStorage
+          ? 0.7
+          : 0.3;
       emergencyRepairCost = safeProfile.operations?.hasBackupGenerator ? 5000 : 25000;
       break;
 
     case 'severe_storm_cyclone':
-      baseDailyLossRate = 0.80;
+      baseDailyLossRate = 0.8;
       emergencyRepairCost = Math.round(monthlyRevenue * 0.25);
       break;
 
     case 'water_shortage':
-      baseDailyLossRate = safeProfile.operations?.waterIntensive && !safeProfile.operations?.hasWaterStorageRainwater
-        ? 0.65
-        : 0.20;
+      baseDailyLossRate =
+        safeProfile.operations?.waterIntensive && !safeProfile.operations?.hasWaterStorageRainwater
+          ? 0.65
+          : 0.2;
       emergencyRepairCost = 15000;
       break;
   }
@@ -73,18 +82,21 @@ export function simulateCashflowStress(
   const effectiveDays = Math.min(30, params.durationDays);
   const totalMonthRevenueLoss = Math.min(
     monthlyRevenue,
-    Math.round((monthlyRevenue / 30) * effectiveDays * baseDailyLossRate * intensityMultiplier)
+    Math.round((monthlyRevenue / 30) * effectiveDays * baseDailyLossRate * intensityMultiplier),
   );
 
   const stressedRevenue = Math.max(0, monthlyRevenue - totalMonthRevenueLoss);
   // Fixed costs (rent, wages, minimal power) still remain at ~75% of operating expenses
-  const stressedOperatingExpenses = monthlyOperatingExpenses * 0.85 + (emergencyRepairCost / 3);
+  const stressedOperatingExpenses = monthlyOperatingExpenses * 0.85 + emergencyRepairCost / 3;
   const stressedNetOperatingIncome = stressedRevenue - stressedOperatingExpenses;
 
   // Stressed DSCR
-  const stressedDSCR = existingMonthlyDebtObligations > 0
-    ? stressedNetOperatingIncome / existingMonthlyDebtObligations
-    : stressedNetOperatingIncome > 0 ? 2.0 : 0.2;
+  const stressedDSCR =
+    existingMonthlyDebtObligations > 0
+      ? stressedNetOperatingIncome / existingMonthlyDebtObligations
+      : stressedNetOperatingIncome > 0
+        ? 2.0
+        : 0.2;
 
   // Cash deficit during the stressed month
   const monthlyCashOutflow = stressedOperatingExpenses + existingMonthlyDebtObligations;
@@ -92,9 +104,8 @@ export function simulateCashflowStress(
 
   // Stressed cash reserves
   const remainingCashReserves = Math.max(0, availableCashReserves - netDeficit);
-  const stressedCashRunwayMonths = monthlyOperatingExpenses > 0
-    ? remainingCashReserves / monthlyOperatingExpenses
-    : 0;
+  const stressedCashRunwayMonths =
+    monthlyOperatingExpenses > 0 ? remainingCashReserves / monthlyOperatingExpenses : 0;
 
   // Recovery time estimation in months
   const monthlySurplus = Math.max(1, baselineNetOperatingIncome - existingMonthlyDebtObligations);

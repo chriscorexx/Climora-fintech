@@ -22,7 +22,7 @@ const profile = SAMPLE_MSME_PROFILES[0];
 const climate = getFallbackIndicators(
   profile.location.latitude,
   profile.location.longitude,
-  profile.location.city
+  profile.location.city,
 );
 const assessment = assessMSMEClimateRisk(profile, climate);
 
@@ -106,7 +106,7 @@ describe('Command Center selectors', () => {
 
     const full = computeAdaptationProgress(
       recommendations,
-      recommendations.map((r) => r.id)
+      recommendations.map((r) => r.id),
     );
     expect(full.pct).toBe(100);
     expect(full.riskPointsRemaining).toBe(0);

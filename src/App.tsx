@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { MSMEProfile, UserRole, ClimateIndicators, RiskAssessment } from './types';
+import React, { useCallback, useEffect, useMemo, useState, Suspense, lazy } from 'react';
+import { MSMEProfile, ClimateIndicators, RiskAssessment } from './types';
 import {
   getStoredProfiles,
   saveProfiles,
   getActiveProfileId,
   setActiveProfileId,
-  getStoredRole,
-  saveStoredRole,
   getCompletedActionIds,
   toggleCompletedActionId,
 } from './core/storage';
@@ -14,20 +12,62 @@ import { fetchClimateIndicators, getFallbackIndicators } from './core/weatherSer
 import { assessMSMEClimateRisk } from './core/riskEngine';
 import { matchSchemesForProfile } from './core/schemeMatcher';
 import { apiClient } from './services/apiClient';
-import { TopBar } from './components/navigation/TopBar';
-import { CommandCenterDashboard } from './components/dashboard/CommandCenterDashboard';
-import { LenderDashboard } from './components/lender/LenderDashboard';
-import { MSMEOwnerDashboard } from './components/owner/MSMEOwnerDashboard';
-import { ProfileEditModal } from './components/owner/ProfileEditModal';
-import { CreditReportModal } from './components/report/CreditReportModal';
 import { normalizeProfile } from './core/profileUtils';
-import { Loader2 } from 'lucide-react';
+import { mergeProfiles } from './core/portfolio';
+import { getVisibleProfiles, applyProfileOwner } from './core/profileOwnership';
+import { AuthUser, getSession, logout } from './core/auth';
+import { isCommandCenterUnlocked, setCommandCenterUnlocked } from './core/commandCenter';
+import { recordProfileScore } from './core/scoreHistory';
+import { TopBar } from './components/navigation/TopBar';
+import { PasswordGate } from './components/auth/PasswordGate';
+import { DashboardSkeleton } from './components/common/DashboardSkeleton';
+import { NoProfilesState } from './components/common/NoProfilesState';
+import climoraLogo from './assets/Climora-logo.jpg';
+
+const LenderDashboard = lazy(() =>
+  import('./components/lender/LenderDashboard').then((m) => ({ default: m.LenderDashboard })),
+);
+const MSMEOwnerDashboard = lazy(() =>
+  import('./components/owner/MSMEOwnerDashboard').then((m) => ({ default: m.MSMEOwnerDashboard })),
+);
+const CommandCenterDashboard = lazy(() =>
+  import('./components/dashboard/CommandCenterDashboard').then((m) => ({
+    default: m.CommandCenterDashboard,
+  })),
+);
+const ProfileEditModal = lazy(() =>
+  import('./components/owner/ProfileEditModal').then((m) => ({ default: m.ProfileEditModal })),
+);
+const CreditReportModal = lazy(() =>
+  import('./components/report/CreditReportModal').then((m) => ({ default: m.CreditReportModal })),
+);
+const LoginPage = lazy(() =>
+  import('./components/auth/LoginPage').then((m) => ({ default: m.LoginPage })),
+);
+const RegisterPage = lazy(() =>
+  import('./components/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })),
+);
+
+type AuthView = 'login' | 'register';
 
 export const App: React.FC = () => {
-  const [profiles, setProfiles] = useState<MSMEProfile[]>(() => getStoredProfiles().map(normalizeProfile));
+  const [session, setSession] = useState<AuthUser | null>(() => getSession());
+  const [authView, setAuthView] = useState<AuthView>('login');
+
+  const [profiles, setProfiles] = useState<MSMEProfile[]>(() =>
+    getStoredProfiles().map(normalizeProfile),
+  );
   const [activeProfileId, setActiveId] = useState<string>(() => getActiveProfileId());
-  const [role, setRole] = useState<UserRole>(() => getStoredRole());
-  const [completedActionIds, setCompletedActionIds] = useState<string[]>(() => getCompletedActionIds());
+  const [completedActionIds, setCompletedActionIds] = useState<string[]>(() =>
+    getCompletedActionIds(),
+  );
+
+  // Command Center access state
+  const [commandCenterView, setCommandCenterView] = useState(false);
+  const [commandCenterUnlocked, setCommandCenterUnlockedState] = useState<boolean>(() =>
+    isCommandCenterUnlocked(),
+  );
+  const [showPasswordGate, setShowPasswordGate] = useState(false);
 
   // Modals
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -38,31 +78,44 @@ export const App: React.FC = () => {
   const [climate, setClimate] = useState<ClimateIndicators | null>(null);
   const [isLoadingClimate, setIsLoadingClimate] = useState(true);
 
-  // Active Profile object
-  const activeProfile = useMemo(() => {
-    const found = profiles.find((p) => p.id === activeProfileId) || profiles[0];
-    return normalizeProfile(found);
-  }, [profiles, activeProfileId]);
+  // Role-scoped profile visibility (lenders see all, owners see only their own)
+  const visibleProfiles = useMemo(() => getVisibleProfiles(profiles, session), [profiles, session]);
 
-  // Sync with backend businesses on mount if available
+  const activeProfile = useMemo(() => {
+    const found = visibleProfiles.find((p) => p.id === activeProfileId);
+    const target = found || visibleProfiles[0];
+    return target ? normalizeProfile(target) : null;
+  }, [visibleProfiles, activeProfileId]);
+
+  // Sync with backend businesses on mount if available (preserving locally owned profiles)
   useEffect(() => {
+    let isCancelled = false;
     apiClient.getBusinesses().then((bizList) => {
+      if (isCancelled) return;
       if (bizList && bizList.length > 0) {
-        setProfiles(bizList.map(normalizeProfile));
+        setProfiles((current) => mergeProfiles(bizList.map(normalizeProfile), current));
       }
     });
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   // Load Climate Indicators whenever activeProfile changes
   useEffect(() => {
+    if (!activeProfile) {
+      setClimate(null);
+      setIsLoadingClimate(false);
+      return;
+    }
     let isCancelled = false;
     async function loadData() {
       setIsLoadingClimate(true);
       try {
         const indicators = await fetchClimateIndicators(
-          activeProfile.location.latitude,
-          activeProfile.location.longitude,
-          activeProfile.location.city
+          activeProfile!.location.latitude,
+          activeProfile!.location.longitude,
+          activeProfile!.location.city,
         );
         if (!isCancelled) {
           setClimate(indicators);
@@ -72,10 +125,10 @@ export const App: React.FC = () => {
         if (!isCancelled) {
           setClimate(
             getFallbackIndicators(
-              activeProfile.location.latitude,
-              activeProfile.location.longitude,
-              activeProfile.location.city
-            )
+              activeProfile!.location.latitude,
+              activeProfile!.location.longitude,
+              activeProfile!.location.city,
+            ),
           );
           setIsLoadingClimate(false);
         }
@@ -85,15 +138,16 @@ export const App: React.FC = () => {
     return () => {
       isCancelled = true;
     };
-  }, [activeProfile.id, activeProfile.location.latitude, activeProfile.location.longitude]);
+  }, [activeProfile]);
 
   // Recalculate Risk Assessment
-  const assessment: RiskAssessment = useMemo(() => {
+  const assessment: RiskAssessment | null = useMemo(() => {
+    if (!activeProfile) return null;
     if (!climate) {
       const fallback = getFallbackIndicators(
         activeProfile.location.latitude,
         activeProfile.location.longitude,
-        activeProfile.location.city
+        activeProfile.location.city,
       );
       return assessMSMEClimateRisk(activeProfile, fallback);
     }
@@ -102,18 +156,55 @@ export const App: React.FC = () => {
 
   // Matched Government Schemes
   const matchedSchemes = useMemo(() => {
+    if (!activeProfile || !assessment) return [];
     return matchSchemesForProfile(
       activeProfile,
       assessment.dimensionScores.floodExposure.score,
-      assessment.dimensionScores.extremeHeat.score
+      assessment.dimensionScores.extremeHeat.score,
     );
   }, [activeProfile, assessment]);
 
+  // Persist assessment score history (capped) for trend charting
+  const historyProfileId = activeProfile?.id;
+  const historyScore = assessment?.overallScore;
+  useEffect(() => {
+    if (!historyProfileId || historyScore === undefined) return;
+    recordProfileScore(historyProfileId, historyScore);
+  }, [historyProfileId, historyScore]);
+
   // Handlers
-  const handleRoleChange = (newRole: UserRole) => {
-    setRole(newRole);
-    saveStoredRole(newRole);
-  };
+  const handleAuthenticated = useCallback((user: AuthUser) => {
+    setSession(user);
+    setAuthView('login');
+    setCommandCenterView(false);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    logout();
+    setSession(null);
+    setAuthView('login');
+    setCommandCenterView(false);
+    setShowPasswordGate(false);
+  }, []);
+
+  const handleToggleCommandCenter = useCallback(() => {
+    if (commandCenterView) {
+      setCommandCenterView(false);
+      return;
+    }
+    if (commandCenterUnlocked) {
+      setCommandCenterView(true);
+      return;
+    }
+    setShowPasswordGate(true);
+  }, [commandCenterView, commandCenterUnlocked]);
+
+  const handleCommandCenterUnlocked = useCallback(() => {
+    setCommandCenterUnlocked(true);
+    setCommandCenterUnlockedState(true);
+    setShowPasswordGate(false);
+    setCommandCenterView(true);
+  }, []);
 
   const handleSelectProfile = (profile: MSMEProfile) => {
     setActiveId(profile.id);
@@ -121,7 +212,10 @@ export const App: React.FC = () => {
   };
 
   const handleSaveProfile = (updated: MSMEProfile) => {
-    const safeUpdated = normalizeProfile(updated);
+    let safeUpdated = normalizeProfile(updated);
+    if (session) {
+      safeUpdated = applyProfileOwner(safeUpdated, session);
+    }
     const existingIndex = profiles.findIndex((p) => p.id === safeUpdated.id);
     let newProfiles: MSMEProfile[];
     if (existingIndex >= 0) {
@@ -143,114 +237,167 @@ export const App: React.FC = () => {
   };
 
   const handleRefreshClimate = async () => {
+    if (!activeProfile) return;
     setIsLoadingClimate(true);
     const indicators = await fetchClimateIndicators(
       activeProfile.location.latitude,
       activeProfile.location.longitude,
-      activeProfile.location.city
+      activeProfile.location.city,
     );
     setClimate(indicators);
     setIsLoadingClimate(false);
+  };
+
+  const handleOpenNewProfileModal = () => {
+    setIsNewProfileModal(true);
+    setIsEditModalOpen(true);
+  };
+
+  // Unauthenticated: auth pages only
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-fin-bg text-fin-text font-sans">
+        <Suspense fallback={<DashboardSkeleton />}>
+          {authView === 'login' ? (
+            <LoginPage
+              onAuthenticated={handleAuthenticated}
+              onNavigateToRegister={() => setAuthView('register')}
+            />
+          ) : (
+            <RegisterPage
+              onAuthenticated={handleAuthenticated}
+              onNavigateToLogin={() => setAuthView('login')}
+            />
+          )}
+        </Suspense>
+      </div>
+    );
+  }
+
+  const renderWorkspace = () => {
+    if (!activeProfile) {
+      return (
+        <NoProfilesState
+          isOwner={session.role === 'msme_owner'}
+          onCreateProfile={handleOpenNewProfileModal}
+        />
+      );
+    }
+
+    if (commandCenterView) {
+      return (
+        <CommandCenterDashboard
+          profiles={visibleProfiles}
+          activeProfile={activeProfile}
+          assessment={assessment!}
+          climate={climate!}
+          matchedSchemes={matchedSchemes}
+          completedActionIds={completedActionIds}
+          onSelectProfile={handleSelectProfile}
+          onOpenReportModal={() => setIsReportModalOpen(true)}
+          onOpenEditModal={() => {
+            setIsNewProfileModal(false);
+            setIsEditModalOpen(true);
+          }}
+          onRefreshClimate={handleRefreshClimate}
+          isRefreshing={isLoadingClimate}
+        />
+      );
+    }
+
+    if (isLoadingClimate && !climate) {
+      return <DashboardSkeleton />;
+    }
+
+    if (session.role === 'lender') {
+      return (
+        <LenderDashboard
+          profiles={visibleProfiles}
+          activeProfile={activeProfile}
+          assessment={assessment!}
+          climate={climate!}
+          onSelectProfile={handleSelectProfile}
+          onOpenReportModal={() => setIsReportModalOpen(true)}
+        />
+      );
+    }
+
+    return (
+      <MSMEOwnerDashboard
+        activeProfile={activeProfile}
+        assessment={assessment!}
+        climate={climate!}
+        matchedSchemes={matchedSchemes}
+        completedActionIds={completedActionIds}
+        onToggleAction={handleToggleAction}
+        onOpenEditModal={() => {
+          setIsNewProfileModal(false);
+          setIsEditModalOpen(true);
+        }}
+      />
+    );
   };
 
   return (
     <div className="min-h-screen bg-fin-bg text-fin-text flex flex-col font-sans">
       {/* Top Sticky Navigation */}
       <TopBar
-        role={role}
-        onRoleChange={handleRoleChange}
-        profiles={profiles}
+        session={session}
+        profiles={visibleProfiles}
         activeProfile={activeProfile}
         onSelectProfile={handleSelectProfile}
-        onOpenNewProfileModal={() => {
-          setIsNewProfileModal(true);
-          setIsEditModalOpen(true);
-        }}
+        onOpenNewProfileModal={handleOpenNewProfileModal}
         onOpenReportModal={() => setIsReportModalOpen(true)}
         onRefreshData={handleRefreshClimate}
         isRefreshing={isLoadingClimate}
-        activeRiskCategory={assessment.riskCategory}
-        activeRiskScore={assessment.overallScore}
+        activeRiskCategory={assessment ? assessment.riskCategory : 'low'}
+        activeRiskScore={assessment ? assessment.overallScore : 0}
+        onLogout={handleLogout}
+        onToggleCommandCenter={handleToggleCommandCenter}
+        commandCenterUnlocked={commandCenterUnlocked}
+        commandCenterActive={commandCenterView}
       />
 
       {/* Main Workspace Body */}
       <main className="no-print flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-        {isLoadingClimate && !climate ? (
-          <div className="h-96 flex flex-col items-center justify-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-emerald-600 dark:text-emerald-400" />
-            <p className="text-xs text-fin-muted font-mono">
-              Retrieving environmental data for {activeProfile.location.city}...
-            </p>
-          </div>
-        ) : (
-          <>
-            {role === 'lender' ? (
-              <LenderDashboard
-                profiles={profiles}
-                activeProfile={activeProfile}
-                assessment={assessment}
-                climate={climate!}
-                onSelectProfile={handleSelectProfile}
-                onOpenReportModal={() => setIsReportModalOpen(true)}
-              />
-            ) : role === 'command_center' ? (
-              <CommandCenterDashboard
-                profiles={profiles}
-                activeProfile={activeProfile}
-                assessment={assessment}
-                climate={climate!}
-                matchedSchemes={matchedSchemes}
-                completedActionIds={completedActionIds}
-                onSelectProfile={handleSelectProfile}
-                onOpenReportModal={() => setIsReportModalOpen(true)}
-                onOpenEditModal={() => {
-                  setIsNewProfileModal(false);
-                  setIsEditModalOpen(true);
-                }}
-                onRefreshClimate={handleRefreshClimate}
-                isRefreshing={isLoadingClimate}
-              />
-            ) : (
-              <MSMEOwnerDashboard
-                activeProfile={activeProfile}
-                assessment={assessment}
-                climate={climate!}
-                matchedSchemes={matchedSchemes}
-                completedActionIds={completedActionIds}
-                onToggleAction={handleToggleAction}
-                onOpenEditModal={() => {
-                  setIsNewProfileModal(false);
-                  setIsEditModalOpen(true);
-                }}
-              />
-            )}
-          </>
-        )}
+        <Suspense fallback={<DashboardSkeleton />}>{renderWorkspace()}</Suspense>
       </main>
 
       {/* Footer */}
       <footer className="border-t border-fin-border py-4 px-6 text-center text-xs text-fin-muted font-mono no-print flex items-center justify-center gap-2">
-        <img src="/Climora-logo.jpg" alt="Climora" className="w-4 h-4 rounded-full object-cover" />
-        <span>Climora • FUSION 2026 Hackathon (IFC FIN-05) • Built with TypeScript, React, and Open-Meteo CC BY 4.0</span>
+        <img src={climoraLogo} alt="Climora" className="w-4 h-4 rounded-full object-cover" />
+        <span>
+          Climora • FUSION 2026 Hackathon (IFC FIN-05) • Built with TypeScript, React, and
+          Open-Meteo CC BY 4.0
+        </span>
       </footer>
 
-      {/* Modals */}
-      <ProfileEditModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        onSave={handleSaveProfile}
-        initialProfile={isNewProfileModal ? undefined : activeProfile}
-      />
-
-      {climate && (
-        <CreditReportModal
-          isOpen={isReportModalOpen}
-          onClose={() => setIsReportModalOpen(false)}
-          profile={activeProfile}
-          assessment={assessment}
-          climate={climate}
+      {/* Command Center Password Gate */}
+      {showPasswordGate && (
+        <PasswordGate
+          onSuccess={handleCommandCenterUnlocked}
+          onClose={() => setShowPasswordGate(false)}
         />
       )}
+
+      {/* Modals */}
+      <Suspense fallback={null}>
+        <ProfileEditModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleSaveProfile}
+          initialProfile={isNewProfileModal ? undefined : (activeProfile ?? undefined)}
+        />
+
+        {climate && activeProfile && (
+          <CreditReportModal
+            isOpen={isReportModalOpen}
+            onClose={() => setIsReportModalOpen(false)}
+            profile={activeProfile}
+            assessment={assessment!}
+          />
+        )}
+      </Suspense>
     </div>
   );
 };

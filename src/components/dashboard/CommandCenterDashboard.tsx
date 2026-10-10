@@ -9,6 +9,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  LineChart,
 } from 'recharts';
 import {
   MSMEProfile,
@@ -21,8 +22,15 @@ import { MetricCard } from '../common/MetricCard';
 import { RiskGauge } from '../common/RiskGauge';
 import { RiskBadge } from '../common/RiskBadge';
 import { ProvenanceBadge } from '../common/ProvenanceBadge';
+import { WeatherAlertStrip } from '../common/WeatherAlertStrip';
+import { DistrictBaselinePanel } from '../common/DistrictBaselinePanel';
+import { ResilienceChecklist } from '../common/ResilienceChecklist';
+import { SchemeMatchCard } from '../common/SchemeMatchCard';
+import { LocationMap } from '../common/LocationMap';
 import { useTheme } from '../common/ThemeProvider';
 import { simulateCashflowStress, ScenarioParams } from '../../core/scenarioSimulator';
+import { getProfileScoreHistory } from '../../core/scoreHistory';
+import { formatDate } from '../../core/format';
 import {
   AdaptationProgress,
   ChartPalette,
@@ -40,7 +48,6 @@ import {
 import {
   Activity,
   AlertTriangle,
-  ArrowUpRight,
   Building2,
   Calendar,
   CheckCircle2,
@@ -87,25 +94,29 @@ const HAZARD_OPTIONS: Array<{
     id: 'flash_flood',
     label: 'Flash Flood',
     icon: Droplets,
-    active: 'border-neutral-400 bg-neutral-500/10 dark:bg-neutral-400/10 text-neutral-700 dark:text-neutral-300',
+    active:
+      'border-neutral-400 bg-neutral-500/10 dark:bg-neutral-400/10 text-neutral-700 dark:text-neutral-300',
   },
   {
     id: 'extreme_heatwave',
     label: 'Extreme Heat',
     icon: Flame,
-    active: 'border-amber-500 bg-amber-500/10 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300',
+    active:
+      'border-amber-500 bg-amber-500/10 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300',
   },
   {
     id: 'severe_storm_cyclone',
     label: 'Cyclone Storm',
     icon: Wind,
-    active: 'border-orange-500 bg-orange-500/10 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300',
+    active:
+      'border-orange-500 bg-orange-500/10 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300',
   },
   {
     id: 'water_shortage',
     label: 'Water Crisis',
     icon: Waves,
-    active: 'border-neutral-400 bg-neutral-500/10 dark:bg-neutral-400/10 text-neutral-700 dark:text-neutral-300',
+    active:
+      'border-neutral-400 bg-neutral-500/10 dark:bg-neutral-400/10 text-neutral-700 dark:text-neutral-300',
   },
 ];
 
@@ -126,7 +137,8 @@ const ACCENT_CLASSES: Record<string, string> = {
 const SOLVENCY_CLASSES: Record<CashflowScenario['insolvencyRisk'], string> = {
   critical: 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/40',
   strained: 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40',
-  resilient: 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40',
+  resilient:
+    'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40',
 };
 
 export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
@@ -157,12 +169,29 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
   const forecast = useMemo<ForecastPoint[]>(() => buildForecastSeries(climate, 7), [climate]);
   const adaptation = useMemo<AdaptationProgress>(
     () => computeAdaptationProgress(assessment.mitigationRecommendations, completedActionIds),
-    [assessment.mitigationRecommendations, completedActionIds]
+    [assessment.mitigationRecommendations, completedActionIds],
   );
   const portfolio = useMemo<PortfolioRow[]>(() => buildPortfolioRows(profiles), [profiles]);
-  const eligibleSchemes = useMemo(() => matchedSchemes.filter((s) => s.isEligible), [matchedSchemes]);
+  const eligibleSchemes = useMemo(
+    () => matchedSchemes.filter((s) => s.isEligible),
+    [matchedSchemes],
+  );
   const palette = useMemo<ChartPalette>(() => resolveChartPalette(resolvedTheme), [resolvedTheme]);
   const stressScenario: CashflowScenario = simulateCashflowStress(activeProfile, simParams);
+
+  const scoreHistory = useMemo(
+    () => getProfileScoreHistory(activeProfile.id, assessment.overallScore),
+    [activeProfile.id, assessment.overallScore],
+  );
+  const scoreTrend = useMemo(
+    () =>
+      scoreHistory.map((entry, index) => ({
+        index: index + 1,
+        score: entry.score,
+        date: formatDate(entry.timestamp),
+      })),
+    [scoreHistory],
+  );
 
   const totalExposureInr = portfolio.reduce((sum, row) => sum + row.exposureInr, 0);
   const covenantCount = portfolio.filter((row) => row.requiresCovenants).length;
@@ -187,11 +216,21 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
       <div className="rounded-2xl bg-fin-card border border-fin-border p-6 shadow-fin-card">
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 pb-5 border-b border-fin-border">
           <div className="flex items-center gap-5">
-            <RiskGauge score={assessment.overallScore} category={assessment.riskCategory} size={168} />
+            <RiskGauge
+              score={assessment.overallScore}
+              category={assessment.riskCategory}
+              size={168}
+            />
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl font-extrabold text-fin-text tracking-tight">{activeProfile.name}</h1>
-                <RiskBadge category={assessment.riskCategory} score={assessment.overallScore} size="lg" />
+                <h1 className="text-xl font-extrabold text-fin-text tracking-tight">
+                  {activeProfile.name}
+                </h1>
+                <RiskBadge
+                  category={assessment.riskCategory}
+                  score={assessment.overallScore}
+                  size="lg"
+                />
               </div>
               <div className="flex flex-wrap items-center gap-2 text-xs text-fin-muted mt-1.5">
                 <span className="uppercase">{activeProfile.industry.replace(/_/g, ' ')}</span>
@@ -230,7 +269,9 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
               disabled={isRefreshing}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-fin-inset border border-fin-border text-xs font-medium text-fin-text hover:bg-fin-hover transition-colors disabled:opacity-60"
             >
-              <RefreshCw className={`w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 ${isRefreshing ? 'animate-spin' : ''}`}
+              />
               <span>Refresh Climate</span>
             </button>
             <button
@@ -280,6 +321,9 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
         </div>
       </div>
 
+      {/* Weather Threshold Alert Strip */}
+      <WeatherAlertStrip climate={climate} locationLabel={climate.location?.resolvedAddress} />
+
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         {/* Left Column: Telemetry, Forecast, Dimensions */}
         <div className="xl:col-span-7 space-y-6">
@@ -288,7 +332,9 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
             <div className="flex items-center justify-between pb-4 border-b border-fin-border">
               <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <h2 className="text-sm font-bold text-fin-text tracking-tight">Live Climate Telemetry</h2>
+                <h2 className="text-sm font-bold text-fin-text tracking-tight">
+                  Live Climate Telemetry
+                </h2>
               </div>
               <span className="text-[10px] font-mono uppercase text-fin-muted">
                 {climate.location.resolvedAddress}
@@ -301,7 +347,9 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
                 <div className="font-mono text-lg font-bold text-fin-text tabular-nums">
                   {climate.currentConditions.temperatureC}°C
                 </div>
-                <div className="text-[10px] text-fin-muted">{climate.currentConditions.weatherDescription}</div>
+                <div className="text-[10px] text-fin-muted">
+                  {climate.currentConditions.weatherDescription}
+                </div>
               </div>
               <div className="p-3 rounded-xl bg-fin-inset/60 border border-fin-border">
                 <div className="text-[10px] font-mono uppercase text-fin-muted">Humidity</div>
@@ -342,7 +390,9 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
             <div className="flex items-center justify-between pb-4 border-b border-fin-border">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <h2 className="text-sm font-bold text-fin-text tracking-tight">7-Day Climate Forecast</h2>
+                <h2 className="text-sm font-bold text-fin-text tracking-tight">
+                  7-Day Climate Forecast
+                </h2>
               </div>
               <span className="text-[10px] font-mono text-fin-muted">Open-Meteo live feed</span>
             </div>
@@ -425,11 +475,13 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
                     day.hazard === 'rain'
                       ? 'border-neutral-400/40 bg-neutral-500/10 dark:bg-neutral-400/10'
                       : day.hazard === 'heat'
-                      ? 'border-amber-500/30 bg-amber-500/10 dark:bg-amber-500/15'
-                      : 'border-fin-border bg-fin-inset/60'
+                        ? 'border-amber-500/30 bg-amber-500/10 dark:bg-amber-500/15'
+                        : 'border-fin-border bg-fin-inset/60'
                   }`}
                 >
-                  <span className="text-[10px] font-semibold text-fin-muted uppercase">{day.day}</span>
+                  <span className="text-[10px] font-semibold text-fin-muted uppercase">
+                    {day.day}
+                  </span>
                   <div className="my-1">
                     {day.hazard === 'rain' ? (
                       <CloudRain className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
@@ -439,9 +491,13 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
                       <Droplets className="w-4 h-4 text-fin-muted" />
                     )}
                   </div>
-                  <div className="font-mono text-xs font-bold text-fin-text tabular-nums">{day.maxTempC}°</div>
+                  <div className="font-mono text-xs font-bold text-fin-text tabular-nums">
+                    {day.maxTempC}°
+                  </div>
                   <div className="text-[10px] font-mono text-fin-muted tabular-nums">
-                    {day.precipitationSumMm > 0 ? `${day.precipitationSumMm}mm` : `${day.minTempC}°`}
+                    {day.precipitationSumMm > 0
+                      ? `${day.precipitationSumMm}mm`
+                      : `${day.minTempC}°`}
                   </div>
                 </div>
               ))}
@@ -453,20 +509,29 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
             <div className="flex items-center justify-between pb-4 border-b border-fin-border">
               <div className="flex items-center gap-2">
                 <Gauge className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <h2 className="text-sm font-bold text-fin-text tracking-tight">5-Dimension Risk Breakdown</h2>
+                <h2 className="text-sm font-bold text-fin-text tracking-tight">
+                  5-Dimension Risk Breakdown
+                </h2>
               </div>
-              <span className="text-[10px] font-mono uppercase text-fin-muted">Transparent weights</span>
+              <span className="text-[10px] font-mono uppercase text-fin-muted">
+                Transparent weights
+              </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4">
               {dimensions.map((dimension) => {
                 const Icon = DIMENSION_ICONS[dimension.key];
                 return (
-                  <div key={dimension.key} className="p-3.5 rounded-xl bg-fin-inset/60 border border-fin-border">
+                  <div
+                    key={dimension.key}
+                    className="p-3.5 rounded-xl bg-fin-inset/60 border border-fin-border"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {Icon && <Icon className={`w-4 h-4 ${ACCENT_CLASSES[dimension.accent]}`} />}
-                        <span className="text-xs font-semibold text-fin-text">{dimension.label}</span>
+                        <span className="text-xs font-semibold text-fin-text">
+                          {dimension.label}
+                        </span>
                       </div>
                       <span
                         className={`text-xs font-mono font-bold tabular-nums ${ACCENT_CLASSES[dimension.accent]}`}
@@ -477,12 +542,84 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
                     <div className="text-[10px] text-fin-muted mt-1">
                       Weight {(dimension.effectiveWeight * 100).toFixed(0)}% • {dimension.hint}
                     </div>
-                    <div className="text-[11px] text-fin-secondary mt-1 line-clamp-2">{dimension.primaryFactor}</div>
+                    <div className="text-[11px] text-fin-secondary mt-1 line-clamp-2">
+                      {dimension.primaryFactor}
+                    </div>
                   </div>
                 );
               })}
             </div>
           </div>
+
+          {/* Historical Assessment Score Trend */}
+          <div className="rounded-2xl bg-fin-card border border-fin-border p-6 shadow-fin-card">
+            <div className="flex items-center justify-between pb-4 border-b border-fin-border">
+              <div className="flex items-center gap-2">
+                <TrendingDown className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <h2 className="text-sm font-bold text-fin-text tracking-tight">
+                  Historical Assessment Score Trend
+                </h2>
+              </div>
+              <span className="text-[10px] font-mono uppercase text-fin-muted">
+                Last {scoreTrend.length} assessment{scoreTrend.length === 1 ? '' : 's'}
+              </span>
+            </div>
+            <div className="h-56 pt-4">
+              {scoreTrend.length >= 2 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={scoreTrend} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+                    <CartesianGrid stroke={palette.grid} strokeDasharray="3 3" vertical={false} />
+                    <XAxis
+                      dataKey="date"
+                      stroke={palette.axis}
+                      tick={{ fill: palette.axis, fontSize: 11 }}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      domain={[0, 100]}
+                      stroke={palette.axis}
+                      tick={{ fill: palette.axis, fontSize: 11 }}
+                      tickLine={false}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: palette.tooltipBg,
+                        border: `1px solid ${palette.tooltipBorder}`,
+                        borderRadius: 12,
+                        fontSize: 12,
+                        color: palette.tempLow,
+                      }}
+                      labelStyle={{ color: palette.axis }}
+                      formatter={(value: number) => [`${value}/100`, 'Overall risk score']}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="score"
+                      name="Overall risk score"
+                      stroke={palette.accent}
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                      isAnimationActive={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-xs text-fin-muted text-center px-6">
+                  At least two assessment snapshots are required to render a trend. Scores are
+                  recorded automatically as the enterprise profile and climate data update.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* District Hazard Baseline */}
+          <DistrictBaselinePanel climate={climate} />
+
+          {/* Geospatial Location */}
+          <LocationMap profile={activeProfile} />
+
+          {/* Resilience Readiness Checklist */}
+          <ResilienceChecklist profile={activeProfile} />
         </div>
 
         {/* Right Column: Simulator, Roadmap, Schemes */}
@@ -492,7 +629,9 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
             <div className="flex items-center justify-between pb-4 border-b border-fin-border">
               <div className="flex items-center gap-2">
                 <Sliders className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <h2 className="text-sm font-bold text-fin-text tracking-tight">Climate-to-Cashflow Stress Test</h2>
+                <h2 className="text-sm font-bold text-fin-text tracking-tight">
+                  Climate-to-Cashflow Stress Test
+                </h2>
               </div>
               <span className="text-[10px] font-mono uppercase bg-fin-inset text-fin-secondary px-2 py-0.5 rounded border border-fin-border">
                 DSCR
@@ -501,7 +640,9 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
 
             <div className="space-y-4 pt-4">
               <div>
-                <label className="text-xs font-medium text-fin-secondary block mb-1.5">Simulate Climate Hazard Shock</label>
+                <label className="text-xs font-medium text-fin-secondary block mb-1.5">
+                  Simulate Climate Hazard Shock
+                </label>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   {HAZARD_OPTIONS.map((option) => {
                     const Icon = option.icon;
@@ -511,7 +652,9 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
                         key={option.id}
                         onClick={() => setSimParams({ ...simParams, hazardType: option.id })}
                         className={`py-1.5 px-2 rounded-lg border text-left flex items-center gap-1.5 transition-colors ${
-                          isActive ? `${option.active} font-semibold` : 'border-fin-border bg-fin-inset text-fin-muted'
+                          isActive
+                            ? `${option.active} font-semibold`
+                            : 'border-fin-border bg-fin-inset text-fin-muted'
                         }`}
                       >
                         <Icon className="w-3.5 h-3.5" />
@@ -534,7 +677,9 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
                   min="2"
                   max="21"
                   value={simParams.durationDays}
-                  onChange={(e) => setSimParams({ ...simParams, durationDays: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setSimParams({ ...simParams, durationDays: Number(e.target.value) })
+                  }
                   className="w-full h-1.5 bg-fin-inset rounded-lg appearance-none cursor-pointer accent-emerald-500"
                 />
               </div>
@@ -551,7 +696,9 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
                   min="20"
                   max="100"
                   value={simParams.intensityPct}
-                  onChange={(e) => setSimParams({ ...simParams, intensityPct: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setSimParams({ ...simParams, intensityPct: Number(e.target.value) })
+                  }
                   className="w-full h-1.5 bg-fin-inset rounded-lg appearance-none cursor-pointer accent-amber-500"
                 />
               </div>
@@ -561,7 +708,9 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
                   <input
                     type="checkbox"
                     checked={simParams.facilityInundation}
-                    onChange={(e) => setSimParams({ ...simParams, facilityInundation: e.target.checked })}
+                    onChange={(e) =>
+                      setSimParams({ ...simParams, facilityInundation: e.target.checked })
+                    }
                     className="accent-emerald-500"
                   />
                   <span className="text-fin-secondary">Premises Flooded</span>
@@ -594,17 +743,25 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
 
               <div className="grid grid-cols-2 gap-3 text-center">
                 <div className="p-2.5 rounded-lg bg-fin-card border border-fin-border">
-                  <div className="text-[10px] text-fin-muted uppercase font-mono">Baseline DSCR</div>
+                  <div className="text-[10px] text-fin-muted uppercase font-mono">
+                    Baseline DSCR
+                  </div>
                   <div className="font-mono text-lg font-bold text-fin-text tabular-nums">
                     {stressScenario.baselineDSCR.toFixed(2)}x
                   </div>
-                  <div className="text-[10px] text-emerald-600 dark:text-emerald-400">Normal Operations</div>
+                  <div className="text-[10px] text-emerald-600 dark:text-emerald-400">
+                    Normal Operations
+                  </div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-fin-card border border-fin-border">
-                  <div className="text-[10px] text-fin-muted uppercase font-mono">Stressed DSCR</div>
+                  <div className="text-[10px] text-fin-muted uppercase font-mono">
+                    Stressed DSCR
+                  </div>
                   <div
                     className={`font-mono text-lg font-bold tabular-nums ${
-                      stressScenario.stressedDSCR < 1.0 ? 'text-rose-700 dark:text-rose-300' : 'text-amber-700 dark:text-amber-300'
+                      stressScenario.stressedDSCR < 1.0
+                        ? 'text-rose-700 dark:text-rose-300'
+                        : 'text-amber-700 dark:text-amber-300'
                     }`}
                   >
                     {stressScenario.stressedDSCR.toFixed(2)}x
@@ -646,8 +803,12 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
           <div className="rounded-2xl bg-fin-card border border-fin-border p-6 shadow-fin-card">
             <div className="flex items-center justify-between pb-4 border-b border-fin-border">
               <div>
-                <h2 className="text-sm font-bold text-fin-text tracking-tight">Adaptation Roadmap</h2>
-                <p className="text-xs text-fin-muted">Complete actions to reduce climate hazard loss.</p>
+                <h2 className="text-sm font-bold text-fin-text tracking-tight">
+                  Adaptation Roadmap
+                </h2>
+                <p className="text-xs text-fin-muted">
+                  Complete actions to reduce climate hazard loss.
+                </p>
               </div>
               <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30">
                 {adaptation.completed}/{adaptation.total} Done
@@ -705,7 +866,9 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
                             </span>
                           </div>
                         </div>
-                        <p className="text-[11px] text-fin-muted mt-1 leading-relaxed">{mitigation.description}</p>
+                        <p className="text-[11px] text-fin-muted mt-1 leading-relaxed">
+                          {mitigation.description}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -718,8 +881,12 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
           <div className="rounded-2xl bg-fin-card border border-fin-border p-6 shadow-fin-card">
             <div className="flex items-center justify-between pb-4 border-b border-fin-border">
               <div>
-                <h2 className="text-sm font-bold text-fin-text tracking-tight">Matched Government Schemes</h2>
-                <p className="text-xs text-fin-muted">Verified central & state resilience incentives</p>
+                <h2 className="text-sm font-bold text-fin-text tracking-tight">
+                  Matched Government Schemes
+                </h2>
+                <p className="text-xs text-fin-muted">
+                  Verified central & state resilience incentives
+                </p>
               </div>
               <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded font-semibold">
                 {eligibleSchemes.length} Eligible
@@ -728,45 +895,7 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
 
             <div className="space-y-3 pt-4 max-h-[460px] overflow-y-auto pr-1">
               {matchedSchemes.map((scheme) => (
-                <div
-                  key={scheme.id}
-                  className={`p-4 rounded-xl border transition-all ${
-                    scheme.isEligible
-                      ? 'border-fin-border bg-fin-inset/80'
-                      : 'border-fin-border/40 bg-fin-inset/40 opacity-70'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <h4 className="text-xs font-bold text-fin-text">{scheme.name}</h4>
-                    <span
-                      className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold shrink-0 ${
-                        scheme.isEligible
-                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
-                          : 'bg-fin-inset text-fin-muted'
-                      }`}
-                    >
-                      {scheme.isEligible ? 'Eligible' : 'Check Scope'}
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-fin-muted mt-1">
-                    {scheme.sponsoringAuthority} ({scheme.governmentLevel.toUpperCase()})
-                  </div>
-                  <div className="mt-2 p-2 rounded-lg bg-fin-inset border border-fin-border/80 text-[11px] text-emerald-700 dark:text-emerald-300 font-medium">
-                    {scheme.maxBenefitSummary}
-                  </div>
-                  <div className="mt-3 pt-2 border-t border-fin-border flex items-center justify-between text-xs">
-                    <span className="text-[10px] font-mono text-fin-muted">Match {scheme.matchingScore}%</span>
-                    <a
-                      href={scheme.officialSourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
-                    >
-                      <span>Apply</span>
-                      <ArrowUpRight className="w-3 h-3" />
-                    </a>
-                  </div>
-                </div>
+                <SchemeMatchCard key={scheme.id} scheme={scheme} />
               ))}
             </div>
           </div>
@@ -777,9 +906,12 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
       <div className="rounded-2xl bg-fin-card border border-fin-border p-5 shadow-fin-card">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
-            <h2 className="text-sm font-bold text-fin-text tracking-tight">Underwriting Pipeline</h2>
+            <h2 className="text-sm font-bold text-fin-text tracking-tight">
+              Underwriting Pipeline
+            </h2>
             <p className="text-xs text-fin-muted">
-              {profiles.length} enterprises • {formatInrCrore(totalExposureInr)} exposure • {covenantCount} requiring covenants
+              {profiles.length} enterprises • {formatInrCrore(totalExposureInr)} exposure •{' '}
+              {covenantCount} requiring covenants
             </p>
           </div>
           <div className="relative">
@@ -820,7 +952,9 @@ export const CommandCenterDashboard: React.FC<CommandCenterDashboardProps> = ({
                   >
                     <td className="py-3 px-3">
                       <div className="font-semibold text-fin-text">{row.profile.name}</div>
-                      <div className="text-[10px] text-fin-muted font-mono">{row.profile.businessSize} enterprise</div>
+                      <div className="text-[10px] text-fin-muted font-mono">
+                        {row.profile.businessSize} enterprise
+                      </div>
                     </td>
                     <td className="py-3 px-3 text-fin-secondary capitalize">
                       {row.profile.industry.replace(/_/g, ' ')}

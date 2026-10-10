@@ -11,6 +11,12 @@ interface ProfileEditModalProps {
   initialProfile?: MSMEProfile;
 }
 
+interface ProfileEditFormProps {
+  onClose: () => void;
+  onSave: (profile: MSMEProfile) => void;
+  initialProfile?: MSMEProfile;
+}
+
 export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   isOpen,
   onClose,
@@ -19,13 +25,28 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  return (
+    <ProfileEditForm
+      key={initialProfile?.id ?? 'new-profile'}
+      onClose={onClose}
+      onSave={onSave}
+      initialProfile={initialProfile}
+    />
+  );
+};
+
+const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ onClose, onSave, initialProfile }) => {
   const safeInitial = initialProfile ? normalizeProfile(initialProfile) : undefined;
 
   const [name, setName] = useState(safeInitial?.name || '');
   const [udyam, setUdyam] = useState(safeInitial?.udyamNumber || '');
-  const [industry, setIndustry] = useState<IndustryType>(safeInitial?.industry || 'food_processing');
-  const [businessSize, setBusinessSize] = useState<'micro' | 'small' | 'medium'>(safeInitial?.businessSize || 'small');
-  
+  const [industry, setIndustry] = useState<IndustryType>(
+    safeInitial?.industry || 'food_processing',
+  );
+  const [businessSize, setBusinessSize] = useState<'micro' | 'small' | 'medium'>(
+    safeInitial?.businessSize || 'small',
+  );
+
   // Location
   const [city, setCity] = useState(safeInitial?.location.city || 'Pune');
   const [state, setState] = useState(safeInitial?.location.state || 'Maharashtra');
@@ -35,19 +56,41 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   const [geocodeMsg, setGeocodeMsg] = useState('');
 
   // Financials
-  const [monthlyRevenue, setMonthlyRevenue] = useState(safeInitial?.financials.monthlyRevenue || 1500000);
-  const [monthlyExpenses, setMonthlyExpenses] = useState(safeInitial?.financials.monthlyOperatingExpenses || 1100000);
-  const [monthlyDebt, setMonthlyDebt] = useState(safeInitial?.financials.existingMonthlyDebtObligations || 120000);
-  const [cashReserves, setCashReserves] = useState(safeInitial?.financials.availableCashReserves || 800000);
-  const [requestedLoan, setRequestedLoan] = useState(safeInitial?.financials.requestedLoanAmount || 2500000);
+  const [monthlyRevenue, setMonthlyRevenue] = useState(
+    safeInitial?.financials.monthlyRevenue || 1500000,
+  );
+  const [monthlyExpenses, setMonthlyExpenses] = useState(
+    safeInitial?.financials.monthlyOperatingExpenses || 1100000,
+  );
+  const [monthlyDebt, setMonthlyDebt] = useState(
+    safeInitial?.financials.existingMonthlyDebtObligations || 120000,
+  );
+  const [cashReserves, setCashReserves] = useState(
+    safeInitial?.financials.availableCashReserves || 800000,
+  );
+  const [requestedLoan, setRequestedLoan] = useState(
+    safeInitial?.financials.requestedLoanAmount || 2500000,
+  );
 
   // Operations
-  const [plinthHeight, setPlinthHeight] = useState(safeInitial?.operations.plinthHeightMeters ?? 0.4);
-  const [hasFloodBarriers, setHasFloodBarriers] = useState(safeInitial?.operations.hasFloodBarriers ?? false);
-  const [hasBackupGen, setHasBackupGen] = useState(safeInitial?.operations.hasBackupGenerator ?? false);
-  const [hasColdStorage, setHasColdStorage] = useState(safeInitial?.operations.hasColdStorage ?? false);
-  const [hasWaterStorage, setHasWaterStorage] = useState(safeInitial?.operations.hasWaterStorageRainwater ?? false);
-  const [hasInsurance, setHasInsurance] = useState(safeInitial?.operations.hasClimateInsurance ?? false);
+  const [plinthHeight, setPlinthHeight] = useState(
+    safeInitial?.operations.plinthHeightMeters ?? 0.4,
+  );
+  const [hasFloodBarriers, setHasFloodBarriers] = useState(
+    safeInitial?.operations.hasFloodBarriers ?? false,
+  );
+  const [hasBackupGen, setHasBackupGen] = useState(
+    safeInitial?.operations.hasBackupGenerator ?? false,
+  );
+  const [hasColdStorage, setHasColdStorage] = useState(
+    safeInitial?.operations.hasColdStorage ?? false,
+  );
+  const [hasWaterStorage, setHasWaterStorage] = useState(
+    safeInitial?.operations.hasWaterStorageRainwater ?? false,
+  );
+  const [hasInsurance, setHasInsurance] = useState(
+    safeInitial?.operations.hasClimateInsurance ?? false,
+  );
 
   const handleGeocode = async () => {
     setIsGeocoding(true);
@@ -57,7 +100,9 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
     if (res) {
       setLat(Math.round(res.latitude * 10000) / 10000);
       setLng(Math.round(res.longitude * 10000) / 10000);
-      setGeocodeMsg(`Coordinates resolved: ${res.latitude.toFixed(4)}, ${res.longitude.toFixed(4)}`);
+      setGeocodeMsg(
+        `Coordinates resolved: ${res.latitude.toFixed(4)}, ${res.longitude.toFixed(4)}`,
+      );
     } else {
       setGeocodeMsg('City coordinates not found; using existing values.');
     }
@@ -116,9 +161,13 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
         <div className="flex items-center justify-between pb-4 border-b border-fin-border">
           <div>
             <h2 className="text-base font-bold text-fin-text tracking-tight">
-              {initialProfile ? 'Edit MSME Profile & Resilience Setup' : 'Register New MSME Enterprise'}
+              {initialProfile
+                ? 'Edit MSME Profile & Resilience Setup'
+                : 'Register New MSME Enterprise'}
             </h2>
-            <p className="text-xs text-fin-muted">Update business financials and climate mitigation features.</p>
+            <p className="text-xs text-fin-muted">
+              Update business financials and climate mitigation features.
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -132,7 +181,9 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
           {/* Section 1: Enterprise Identity */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-fin-secondary font-medium block mb-1">Enterprise Trade Name</label>
+              <label className="text-fin-secondary font-medium block mb-1">
+                Enterprise Trade Name
+              </label>
               <input
                 type="text"
                 required
@@ -143,7 +194,9 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
               />
             </div>
             <div>
-              <label className="text-fin-secondary font-medium block mb-1">Udyam Registration Number</label>
+              <label className="text-fin-secondary font-medium block mb-1">
+                Udyam Registration Number
+              </label>
               <input
                 type="text"
                 value={udyam}
@@ -176,7 +229,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
               <label className="text-fin-secondary font-medium block mb-1">Enterprise Size</label>
               <select
                 value={businessSize}
-                onChange={(e) => setBusinessSize(e.target.value as any)}
+                onChange={(e) => setBusinessSize(e.target.value as MSMEProfile['businessSize'])}
                 className="w-full px-3 py-2 rounded-lg bg-fin-inset border border-fin-border text-fin-text focus:outline-none focus:border-emerald-500"
               >
                 <option value="micro">Micro (Turnover &lt; ₹5 Cr)</option>
@@ -188,7 +241,9 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 
           {/* Section 2: Location & Geocoding */}
           <div className="p-3.5 rounded-xl bg-fin-inset/60 border border-fin-border space-y-3">
-            <div className="text-[11px] font-mono uppercase text-fin-muted">Location & Geocoding Coordinates</div>
+            <div className="text-[11px] font-mono uppercase text-fin-muted">
+              Location & Geocoding Coordinates
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <div>
                 <label className="text-fin-muted block mb-1">City / District</label>
@@ -215,17 +270,27 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                   disabled={isGeocoding}
                   className="w-full py-1.5 px-3 rounded-lg bg-fin-inset hover:bg-fin-sunken text-fin-text font-medium flex items-center justify-center gap-1.5 transition-colors border border-fin-border"
                 >
-                  {isGeocoding ? <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600 dark:text-emerald-400" /> : <MapPin className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />}
+                  {isGeocoding ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600 dark:text-emerald-400" />
+                  ) : (
+                    <MapPin className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  )}
                   <span>Geocode Location</span>
                 </button>
               </div>
             </div>
-            {geocodeMsg && <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">{geocodeMsg}</div>}
+            {geocodeMsg && (
+              <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">
+                {geocodeMsg}
+              </div>
+            )}
           </div>
 
           {/* Section 3: Monthly Financial Indicators */}
           <div className="p-3.5 rounded-xl bg-fin-inset/60 border border-fin-border space-y-3">
-            <div className="text-[11px] font-mono uppercase text-fin-muted">Monthly Financial Indicators (₹ INR)</div>
+            <div className="text-[11px] font-mono uppercase text-fin-muted">
+              Monthly Financial Indicators (₹ INR)
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="text-fin-muted block mb-1">Monthly Revenue (₹)</label>
@@ -279,10 +344,15 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 
           {/* Section 4: Physical & Operational Resilience Features */}
           <div className="p-3.5 rounded-xl bg-fin-inset/60 border border-fin-border space-y-3">
-            <div className="text-[11px] font-mono uppercase text-fin-muted">Physical Resilience & Climate Mitigations</div>
+            <div className="text-[11px] font-mono uppercase text-fin-muted">
+              Physical Resilience & Climate Mitigations
+            </div>
             <div>
               <label className="text-fin-muted block mb-1">
-                Plinth Elevation Above Street Level: <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{plinthHeight}m</span>
+                Plinth Elevation Above Street Level:{' '}
+                <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+                  {plinthHeight}m
+                </span>
               </label>
               <input
                 type="range"

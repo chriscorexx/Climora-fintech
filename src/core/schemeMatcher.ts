@@ -1,11 +1,14 @@
-import { MSMEProfile, GovernmentScheme, IndustryType } from '../types';
+import { MSMEProfile, GovernmentScheme } from '../types';
 import { normalizeProfile } from './profileUtils';
 
 /**
  * 16 Curated Indian Central & State MSME Resilience and Credit Schemes
  * Verified against official government portals (MSME, SIDBI, Ministry of Power, etc.)
  */
-export const SCHEMES_CATALOGUE: Omit<GovernmentScheme, 'matchingScore' | 'isEligible' | 'matchReasons'>[] = [
+export const SCHEMES_CATALOGUE: Omit<
+  GovernmentScheme,
+  'matchingScore' | 'isEligible' | 'matchReasons'
+>[] = [
   {
     id: 'sch_cgtmse',
     name: 'Credit Guarantee Fund Trust for Micro and Small Enterprises (CGTMSE)',
@@ -31,7 +34,11 @@ export const SCHEMES_CATALOGUE: Omit<GovernmentScheme, 'matchingScore' | 'isElig
     ],
     supportType: 'Collateral-free guarantee for term loans & working capital',
     maxBenefitSummary: 'Up to 85% guarantee cover on credit up to ₹500 Lakhs',
-    requiredDocuments: ['Udyam Registration Certificate', 'ITR & Bank Statements (6 months)', 'Project Feasibility Report'],
+    requiredDocuments: [
+      'Udyam Registration Certificate',
+      'ITR & Bank Statements (6 months)',
+      'Project Feasibility Report',
+    ],
     officialSourceUrl: 'https://www.cgtmse.in/',
   },
   {
@@ -59,7 +66,11 @@ export const SCHEMES_CATALOGUE: Omit<GovernmentScheme, 'matchingScore' | 'isElig
     ],
     supportType: 'Capital subsidy + Concessional loan interest for rooftop solar',
     maxBenefitSummary: 'Direct capital support up to ₹78,000 + 7% collateral-free debt',
-    requiredDocuments: ['Electricity Bill of Premises', 'Premises Title/Lease Deed', 'Vendor Quotation (MNRE empaneled)'],
+    requiredDocuments: [
+      'Electricity Bill of Premises',
+      'Premises Title/Lease Deed',
+      'Vendor Quotation (MNRE empaneled)',
+    ],
     officialSourceUrl: 'https://pmsuryaghar.gov.in/',
   },
   {
@@ -86,7 +97,11 @@ export const SCHEMES_CATALOGUE: Omit<GovernmentScheme, 'matchingScore' | 'isElig
     ],
     supportType: 'Micro-credit term loan and overdraft facility',
     maxBenefitSummary: 'Collateral-free credit up to ₹20 Lakhs for Tarun category',
-    requiredDocuments: ['Identity Proof (Aadhaar/PAN)', 'Proof of Business Address', 'Quotation of machinery/renovation'],
+    requiredDocuments: [
+      'Identity Proof (Aadhaar/PAN)',
+      'Proof of Business Address',
+      'Quotation of machinery/renovation',
+    ],
     officialSourceUrl: 'https://www.mudra.org.in/',
   },
   {
@@ -105,7 +120,11 @@ export const SCHEMES_CATALOGUE: Omit<GovernmentScheme, 'matchingScore' | 'isElig
     ],
     supportType: '3% Interest Subvention + CGTMSE Fee Waiver',
     maxBenefitSummary: '3% annual interest subsidy up to ₹2 Crore for 7 years',
-    requiredDocuments: ['Detailed Project Report (DPR)', 'Land Ownership / Lease Agreement', 'Bank In-Principle Sanction'],
+    requiredDocuments: [
+      'Detailed Project Report (DPR)',
+      'Land Ownership / Lease Agreement',
+      'Bank In-Principle Sanction',
+    ],
     officialSourceUrl: 'https://agriinfra.dac.gov.in/',
   },
   {
@@ -115,7 +134,12 @@ export const SCHEMES_CATALOGUE: Omit<GovernmentScheme, 'matchingScore' | 'isElig
     governmentLevel: 'central',
     sponsoringAuthority: 'Ministry of MSME',
     eligibleStates: [],
-    eligibleIndustries: ['light_manufacturing', 'textile_garments', 'chemicals_plastics', 'automotive_repair'],
+    eligibleIndustries: [
+      'light_manufacturing',
+      'textile_garments',
+      'chemicals_plastics',
+      'automotive_repair',
+    ],
     eligibleSizes: ['micro', 'small', 'medium'],
     eligibilityCriteria: [
       'Manufacturing enterprises holding valid Udyam registration.',
@@ -124,7 +148,11 @@ export const SCHEMES_CATALOGUE: Omit<GovernmentScheme, 'matchingScore' | 'isElig
     ],
     supportType: 'Up to 80% reimbursement on energy, water, and climate audits',
     maxBenefitSummary: 'Up to ₹5 Lakhs for technology adoption and clean compliance',
-    requiredDocuments: ['Udyam Registration', 'Plant Layout & Process Flowchart', 'Energy/Water Consumption Bills'],
+    requiredDocuments: [
+      'Udyam Registration',
+      'Plant Layout & Process Flowchart',
+      'Energy/Water Consumption Bills',
+    ],
     officialSourceUrl: 'https://zed.msme.gov.in/',
   },
   {
@@ -149,7 +177,11 @@ export const SCHEMES_CATALOGUE: Omit<GovernmentScheme, 'matchingScore' | 'isElig
     ],
     supportType: 'Capital subsidy on fixed assets + 5% Interest subsidy on green equipment',
     maxBenefitSummary: 'Up to 80% fixed capital investment recovery via SGST refund & subsidy',
-    requiredDocuments: ['Eligibility Certificate from DIC', 'Chartered Accountant Fixed Asset Certificate', 'Electricity Bill'],
+    requiredDocuments: [
+      'Eligibility Certificate from DIC',
+      'Chartered Accountant Fixed Asset Certificate',
+      'Electricity Bill',
+    ],
     officialSourceUrl: 'https://industry.maharashtra.gov.in/',
   },
   {
@@ -173,7 +205,11 @@ export const SCHEMES_CATALOGUE: Omit<GovernmentScheme, 'matchingScore' | 'isElig
     ],
     supportType: 'Term loan up to 90% of project cost at concessional interest',
     maxBenefitSummary: 'Direct term loans up to ₹1.5 Crore at sub-8% interest',
-    requiredDocuments: ['Energy/Resource Audit Report', 'Audited Financials (3 years)', 'Sanctioned Load Certificate'],
+    requiredDocuments: [
+      'Energy/Resource Audit Report',
+      'Audited Financials (3 years)',
+      'Sanctioned Load Certificate',
+    ],
     officialSourceUrl: 'https://www.sidbi.in/',
   },
   {
@@ -199,7 +235,11 @@ export const SCHEMES_CATALOGUE: Omit<GovernmentScheme, 'matchingScore' | 'isElig
     ],
     supportType: 'Composite term loan and working capital with margin money support',
     maxBenefitSummary: 'Bank credit from ₹10 Lakhs up to ₹100 Lakhs with 15% margin subsidy',
-    requiredDocuments: ['Caste Certificate (if SC/ST)', 'Udyam Registration', 'Detailed Project Report (DPR)'],
+    requiredDocuments: [
+      'Caste Certificate (if SC/ST)',
+      'Udyam Registration',
+      'Detailed Project Report (DPR)',
+    ],
     officialSourceUrl: 'https://www.standupmitra.in/',
   },
 ];
@@ -210,7 +250,7 @@ export const SCHEMES_CATALOGUE: Omit<GovernmentScheme, 'matchingScore' | 'isElig
 export function matchSchemesForProfile(
   profile: MSMEProfile,
   floodScore = 50,
-  heatScore = 50
+  heatScore = 50,
 ): GovernmentScheme[] {
   const safeProfile = normalizeProfile(profile);
   return SCHEMES_CATALOGUE.map((sch) => {
@@ -222,7 +262,9 @@ export function matchSchemesForProfile(
     if (sch.eligibleStates.length > 0) {
       if (sch.eligibleStates.includes(safeProfile.location.state)) {
         score += 15;
-        matchReasons.push(`Location in ${safeProfile.location.state} matches state-specific target zone.`);
+        matchReasons.push(
+          `Location in ${safeProfile.location.state} matches state-specific target zone.`,
+        );
       } else {
         isEligible = false;
         matchReasons.push(`Requires operations in ${sch.eligibleStates.join(', ')}.`);
@@ -244,7 +286,9 @@ export function matchSchemesForProfile(
     // 3. Enterprise size check
     if (sch.eligibleSizes.includes(safeProfile.businessSize)) {
       score += 15;
-      matchReasons.push(`Tailored for ${safeProfile.businessSize.toUpperCase()} category enterprises.`);
+      matchReasons.push(
+        `Tailored for ${safeProfile.businessSize.toUpperCase()} category enterprises.`,
+      );
     } else {
       isEligible = false;
     }

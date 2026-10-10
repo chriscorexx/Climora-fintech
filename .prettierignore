@@ -1,0 +1,21 @@
+# Dependencies & build output
+node_modules/
+dist/
+coverage/
+
+# Local databases
+*.db
+
+# Local agent tooling / skills
+.agents/
+.kilocode/
+.opencode/
+.idea/
+.vscode/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Lockfile
+package-lock.json

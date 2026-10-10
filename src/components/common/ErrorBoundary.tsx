@@ -44,14 +44,20 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="max-w-md w-full rounded-2xl bg-fin-card border border-rose-500/30 p-6 shadow-2xl text-center space-y-4">
             <div className="flex items-center justify-center gap-3 mx-auto">
               <div className="w-11 h-11 rounded-xl bg-fin-sunken border border-fin-border overflow-hidden shadow-sm">
-                <img src="/Climora-logo.jpg" alt="Climora Logo" className="w-full h-full object-cover" />
+                <img
+                  src="/Climora-logo.jpg"
+                  alt="Climora Logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="w-11 h-11 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-700 dark:text-rose-300">
                 <AlertTriangle className="w-5 h-5" />
               </div>
             </div>
             <div>
-              <h2 className="text-lg font-bold text-fin-text tracking-tight">Application Render Interrupted</h2>
+              <h2 className="text-lg font-bold text-fin-text tracking-tight">
+                Application Render Interrupted
+              </h2>
               <p className="text-xs text-fin-muted mt-1">
                 An unexpected state error was safely intercepted by Climora's resilience boundary.
               </p>

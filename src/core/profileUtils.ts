@@ -1,4 +1,18 @@
-import { MSMEProfile } from '../types';
+import {
+  MSMEProfile,
+  LocationData,
+  OperationalDependencies,
+  FinancialIndicators,
+  IndustryType,
+} from '../types';
+
+type RawProfile = Record<string, unknown>;
+
+const asOptionalString = (value: unknown): string | undefined =>
+  typeof value === 'string' && value.length > 0 ? value : undefined;
+
+const asEnum = <T extends string>(value: unknown, fallback: T): T =>
+  typeof value === 'string' && value.length > 0 ? (value as T) : fallback;
 
 export const DEFAULT_OPERATIONS = {
   electricityGridDependent: true,
@@ -36,8 +50,8 @@ export const DEFAULT_LOCATION = {
  * Normalizes an MSME profile to guarantee all sub-objects and properties exist,
  * preventing any runtime undefined exceptions.
  */
-export function normalizeProfile(raw: any): MSMEProfile {
-  if (!raw || typeof raw !== 'object') {
+export function normalizeProfile(input: unknown): MSMEProfile {
+  if (!input || typeof input !== 'object') {
     return {
       id: `msme_${Date.now()}`,
       name: 'Benchmark Enterprise',
@@ -53,18 +67,20 @@ export function normalizeProfile(raw: any): MSMEProfile {
     };
   }
 
-  const ops = raw.operations || {};
-  const fin = raw.financials || {};
-  const loc = raw.location || {};
+  const raw = input as RawProfile;
+  const ops = (raw.operations || {}) as Partial<OperationalDependencies>;
+  const fin = (raw.financials || {}) as Partial<FinancialIndicators>;
+  const loc = (raw.location || {}) as Partial<LocationData>;
 
   return {
     id: String(raw.id || `msme_${Date.now()}`),
     name: String(raw.name || 'Unnamed Enterprise'),
-    registrationNumber: raw.registrationNumber || raw.registration_number,
-    udyamNumber: raw.udyamNumber || raw.udyam_number,
-    industry: raw.industry || 'food_processing',
-    businessSize: raw.businessSize || raw.business_size || 'small',
-    businessStage: raw.businessStage || raw.business_stage || 'growth',
+    registrationNumber:
+      asOptionalString(raw.registrationNumber) ?? asOptionalString(raw.registration_number),
+    udyamNumber: asOptionalString(raw.udyamNumber) ?? asOptionalString(raw.udyam_number),
+    industry: asEnum<IndustryType>(raw.industry, 'food_processing'),
+    businessSize: asEnum(raw.businessSize || raw.business_size, 'small'),
+    businessStage: asEnum(raw.businessStage || raw.business_stage, 'growth'),
     employeeCount: Number(raw.employeeCount || raw.employee_count || 15),
     location: {
       city: String(loc.city || raw.city || DEFAULT_LOCATION.city),
@@ -72,17 +88,57 @@ export function normalizeProfile(raw: any): MSMEProfile {
       country: String(loc.country || raw.country || DEFAULT_LOCATION.country),
       latitude: Number(loc.latitude ?? raw.latitude ?? DEFAULT_LOCATION.latitude),
       longitude: Number(loc.longitude ?? raw.longitude ?? DEFAULT_LOCATION.longitude),
-      address: loc.address || raw.address || raw.location || `${loc.city || raw.city || 'Pune'}, ${loc.state || raw.state || 'Maharashtra'}`,
-      districtCode: loc.districtCode || raw.districtCode,
+      address: String(
+        loc.address ||
+          raw.address ||
+          raw.location ||
+          `${loc.city || raw.city || 'Pune'}, ${loc.state || raw.state || 'Maharashtra'}`,
+      ),
+      districtCode: asOptionalString(loc.districtCode) ?? asOptionalString(raw.districtCode),
     },
     financials: {
-      monthlyRevenue: Number(fin.monthlyRevenue ?? raw.monthly_revenue ?? raw.monthlyRevenue ?? DEFAULT_FINANCIALS.monthlyRevenue),
-      monthlyOperatingExpenses: Number(fin.monthlyOperatingExpenses ?? raw.monthly_operating_expenses ?? raw.monthlyOperatingExpenses ?? DEFAULT_FINANCIALS.monthlyOperatingExpenses),
-      existingMonthlyDebtObligations: Number(fin.existingMonthlyDebtObligations ?? raw.monthly_debt_obligations ?? raw.existingMonthlyDebtObligations ?? DEFAULT_FINANCIALS.existingMonthlyDebtObligations),
-      availableCashReserves: Number(fin.availableCashReserves ?? raw.available_cash_reserves ?? raw.availableCashReserves ?? DEFAULT_FINANCIALS.availableCashReserves),
-      requestedLoanAmount: Number(fin.requestedLoanAmount ?? raw.requested_loan_amount ?? raw.requestedLoanAmount ?? DEFAULT_FINANCIALS.requestedLoanAmount),
-      loanTenureMonths: Number(fin.loanTenureMonths ?? raw.loan_tenure_months ?? raw.loanTenureMonths ?? DEFAULT_FINANCIALS.loanTenureMonths),
-      annualTurnover: Number(fin.annualTurnover ?? raw.annualTurnover ?? raw.annual_turnover ?? ((fin.monthlyRevenue ?? DEFAULT_FINANCIALS.monthlyRevenue) * 12)),
+      monthlyRevenue: Number(
+        fin.monthlyRevenue ??
+          raw.monthly_revenue ??
+          raw.monthlyRevenue ??
+          DEFAULT_FINANCIALS.monthlyRevenue,
+      ),
+      monthlyOperatingExpenses: Number(
+        fin.monthlyOperatingExpenses ??
+          raw.monthly_operating_expenses ??
+          raw.monthlyOperatingExpenses ??
+          DEFAULT_FINANCIALS.monthlyOperatingExpenses,
+      ),
+      existingMonthlyDebtObligations: Number(
+        fin.existingMonthlyDebtObligations ??
+          raw.monthly_debt_obligations ??
+          raw.existingMonthlyDebtObligations ??
+          DEFAULT_FINANCIALS.existingMonthlyDebtObligations,
+      ),
+      availableCashReserves: Number(
+        fin.availableCashReserves ??
+          raw.available_cash_reserves ??
+          raw.availableCashReserves ??
+          DEFAULT_FINANCIALS.availableCashReserves,
+      ),
+      requestedLoanAmount: Number(
+        fin.requestedLoanAmount ??
+          raw.requested_loan_amount ??
+          raw.requestedLoanAmount ??
+          DEFAULT_FINANCIALS.requestedLoanAmount,
+      ),
+      loanTenureMonths: Number(
+        fin.loanTenureMonths ??
+          raw.loan_tenure_months ??
+          raw.loanTenureMonths ??
+          DEFAULT_FINANCIALS.loanTenureMonths,
+      ),
+      annualTurnover: Number(
+        fin.annualTurnover ??
+          raw.annualTurnover ??
+          raw.annual_turnover ??
+          (fin.monthlyRevenue ?? DEFAULT_FINANCIALS.monthlyRevenue) * 12,
+      ),
     },
     operations: {
       electricityGridDependent: Boolean(ops.electricityGridDependent ?? true),
@@ -98,5 +154,7 @@ export function normalizeProfile(raw: any): MSMEProfile {
     },
     createdAt: String(raw.createdAt || raw.created_at || new Date().toISOString()),
     updatedAt: String(raw.updatedAt || raw.updated_at || new Date().toISOString()),
+    ownerId: asOptionalString(raw.ownerId) ?? asOptionalString(raw.owner_id),
+    ownerEmail: asOptionalString(raw.ownerEmail) ?? asOptionalString(raw.owner_email),
   };
 }
