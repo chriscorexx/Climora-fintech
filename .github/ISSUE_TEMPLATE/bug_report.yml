@@ -1,0 +1,40 @@
+name: Bug report
+description: Report a defect in the web app, desktop app, or scoring engines
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where did it happen?
+      options:
+        - Web app (climora-fintech.vercel.app)
+        - Desktop app
+        - Local development
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the account role (Lender / MSME Owner) and any inputs used.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser and OS/version (desktop builds include the version).
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or logs
+      description: Optional. Do not include secrets, API keys, or personal data.

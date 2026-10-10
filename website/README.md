@@ -25,7 +25,7 @@ into this folder. Re-run it whenever the app changes and you want to refresh the
 ## Hosting it
 
 - **Render Static Site**: point the publish directory at `website` (or at `dist` and let Render run
-  the build — see `DEPLOY_RENDER.md` for both options).
+  the build — see `../DEPLOY_RENDER.md` for both options).
 - **Any static host** (Netlify, Cloudflare Pages, GitHub Pages, S3, nginx): serve this folder as-is.
 - Add the SPA fallback rewrite (`/*` → `/index.html`) — this is included as `_redirects` for hosts
   that read it, and is a one-line setting in the Render dashboard.

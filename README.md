@@ -2,264 +2,265 @@
 
 **Climate Intelligence. Smarter Credit Decisions.**
 
-🔗 **Live web app: [https://climora-fintech.vercel.app](https://climora-fintech.vercel.app)**
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE.md)
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen.svg?style=flat-square)](https://climora-fintech.vercel.app)
+[![Release](https://img.shields.io/github/v/release/chriscorexx/Climora-fintech.svg?style=flat-square)](https://github.com/chriscorexx/Climora-fintech/releases)
+[![Build Desktop Binaries](https://img.shields.io/github/actions/workflow/status/chriscorexx/Climora-fintech/release.yml?label=release%20build&style=flat-square)](https://github.com/chriscorexx/Climora-fintech/actions)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)
 
-Climora is a real-time climate-adjusted financial risk platform built for the **FUSION 2026 Hackathon (FIN-05, International Finance Corporation challenge)**. It helps lenders assess how physical climate hazards (flooding, heavy rainfall, extreme heat) impact Micro, Small, and Medium Enterprises (MSMEs), while giving business owners clear roadmaps and government scheme matches to build climate resilience.
+Climora is a real-time climate-adjusted financial risk platform built for the **FUSION 2026
+Hackathon (FIN-05, International Finance Corporation challenge)**. It helps lenders assess how
+physical climate hazards — flooding, heavy rainfall, extreme heat — impact Micro, Small, and
+Medium Enterprises (MSMEs), while giving business owners clear roadmaps and government scheme
+matches to build climate resilience.
 
-It runs as a **web app** (hosted on Vercel) and as a **cross-platform desktop app** (Windows / macOS / Linux — see [Releases](https://github.com/chriscorexx/Climora-fintech/releases)).
+**Try it:** [climora-fintech.vercel.app](https://climora-fintech.vercel.app) ·
+**Watch the demo:** [docs/demo-video.mp4](docs/demo-video.mp4)
 
----
-
-## 1. Core Problem & Solution
-
-- **The Problem:** Credit officers typically evaluate MSMEs using backward-looking financial statements alone. Two enterprises with identical balance sheets may look equally creditworthy, yet one operates in a severe flood basin or heatwave zone vulnerable to immediate inventory wipeouts or operating disruptions.
-- **The Solution:** Climora combines location-based environmental data from Open-Meteo, regional flood benchmarks, and business operational profiles to produce an **explainable 0–100 climate risk score** and a **cashflow stress-testing simulator (DSCR impact)**.
-
----
-
-## 2. Current Status
-
-**Complete and verified** — typecheck clean, lint clean, **89/89 tests passing**, production build succeeds, desktop binaries published.
-
-| Area                   | Status                                                                                             |
-| ---------------------- | -------------------------------------------------------------------------------------------------- |
-| Web app + landing page | Done — browser-only landing, login/register, role-isolated workspaces                              |
-| Desktop app            | Done — Windows / macOS (Intel + Apple Silicon) / Linux binaries on Releases                        |
-| Risk engine            | Done — 5 dimensions, dynamic reweighting, explainability, data-gap reporting                       |
-| Stress simulator       | Done — hazard scenarios, baseline vs stressed DSCR, recovery time, runway                          |
-| Scheme matching        | Done — verified government schemes with match scores, eligibility, documents                       |
-| Theming                | Done — Light / Dark / System; dark theme is pure black + neutral greys (zero blue)                 |
-| Motion                 | Done — CSS animation system throughout, respects `prefers-reduced-motion`                          |
-| Data                   | Live Open-Meteo integration with offline baseline fallback and provenance badges                   |
-| Auth                   | Demo-grade client-side auth (register/login, per-owner data scoping) — **not production-hardened** |
-| Backend                | Optional Express + SQLite service for shared persistence                                           |
+It runs as a web app (hosted on Vercel) and as a cross-platform desktop app for Windows, macOS,
+and Linux — see [Releases](https://github.com/chriscorexx/Climora-fintech/releases).
 
 ---
 
-## 3. Architecture & Technology Stack
+## The problem
 
-100% TypeScript:
+Credit officers typically evaluate MSMEs using backward-looking financial statements alone. Two
+enterprises with identical balance sheets may look equally creditworthy, yet one operates in a
+severe flood basin or heatwave zone and is vulnerable to immediate inventory wipeouts or operating
+disruption.
 
-| Layer                   | Technology                       | Role                                                                             |
-| ----------------------- | -------------------------------- | -------------------------------------------------------------------------------- |
-| **Frontend UI**         | React 18 + Vite + TypeScript     | Landing page, auth, dual workspaces, Command Center                              |
-| **Styling & System**    | Tailwind CSS + Lucide Icons      | `fin-*` design tokens, light/dark theming, tabular financial typography          |
-| **Animations**          | CSS keyframes + Tailwind         | Entrance/stagger/hover/shimmer motion, reduced-motion aware                      |
-| **Data Visualizations** | Recharts + SVG gauges            | 7-day forecast, score-history trend, multi-dimension breakdown, risk gauge       |
-| **Hazard Maps**         | Leaflet + OpenStreetMap          | Location context with theme-matched tiles                                        |
-| **Domain Logic**        | Pure TypeScript (`src/core/`)    | Risk engine, climate-to-cashflow simulator, scheme matcher, auth, portfolio math |
-| **Data Ingestion**      | Open-Meteo APIs                  | Real-time weather, flood simulation, geocoding with offline baseline fallback    |
-| **Desktop Shell**       | Electron                         | Cross-platform desktop app via the same build                                    |
-| **Backend (optional)**  | Express + SQLite (`node:sqlite`) | Shared persistence for profiles/assessments                                      |
-| **Packaging**           | electron-builder                 | Windows NSIS, Linux AppImage/deb, macOS dmg (x64 + arm64)                        |
+Climora combines location-based environmental data from Open-Meteo, regional flood benchmarks, and
+business operational profiles to produce an **explainable 0–100 climate risk score** and a
+**cashflow stress-testing simulator (DSCR impact)** — with provenance shown on every input.
 
 ---
 
-## 4. Features
+## Features
 
-### Access model
+### Access and isolation
 
-- **Landing page (web only)** — product overview, features, desktop downloads; the desktop app skips it by design (Electron is detected via user agent + preload bridge).
-- **Login / Register** — accounts stored locally with salted SHA-256 password hashes (Web Crypto). No plaintext passwords, no demo accounts seeded.
-- **Role isolation** — MSME Owners see only their own enterprise profiles; Lenders see the full portfolio. The workspaces are strictly separated after login.
+- Public landing page (web browsers only — the desktop app skips it by design)
+- Register and sign in with per-user accounts (salted SHA-256 password hashes, no demo accounts)
+- Strict role isolation: MSME Owners see only their own enterprise profiles; Lenders see the full
+  portfolio; the two workspaces are never cross-accessible
 
 ### Lender workspace
 
-- Underwriting pipeline table with risk filter + search, CSV export
-- **Portfolio risk table** — per-profile scored assessment across the whole book
-- District hazard baseline panel (flood / cyclone / drought)
-- Cashflow stress simulator (hazard scenarios → DSCR, runway, recovery time)
-- One-click print/PDF **credit memo**
+- Underwriting pipeline table with risk filtering and CSV export
+- Portfolio-wide risk table scoring every profile, not just the active one
+- District hazard baselines (flood, cyclone, drought)
+- Cashflow stress simulator — hazard scenarios against baseline versus stressed DSCR
+- One-click print and PDF credit memo
 - Weather-threshold alert strip
 
 ### MSME Owner workspace
 
 - Enterprise profile manager with live geocoding
-- Live environmental telemetry + 7-day hazard forecast
-- **Resilience readiness checklist** over operational dependencies
-- Matched government schemes with **match scores**, eligibility criteria and required documents
+- Live environmental telemetry and a 7-day hazard forecast
+- Resilience readiness checklist across operational dependencies
+- Matched government schemes with explicit match scores, eligibility criteria, and documents
 - Loan improvement roadmap with progress tracking
 
-### Command Center (password-protected)
+### Command Center (password-gated)
 
-- KPI row, risk gauge with animated needle, 5-dimension breakdown
-- Live telemetry, district hazard baseline, score-history trend chart
-- Stress simulator, matched schemes, resilience checklist, location map
-- Default password `climora@2026` — override at build time with `VITE_COMMAND_CENTER_PASSWORD`; unlock lasts for the browser session. See `COMMAND_CENTER.md`.
+- KPI row, animated risk gauge, and five-dimension risk breakdown
+- Live telemetry, district baselines, and a score-history trend chart
+- Stress simulator, matched schemes, readiness checklist, and a location map
+- Default password `climora@2026`, overridable with `VITE_COMMAND_CENTER_PASSWORD`
 
 ### Platform
 
-- Light / Dark / System appearance modes; dark theme is pure black + neutral greys with semantic accents only (no blue family)
-- Motion system with `prefers-reduced-motion` support
-- Mobile-responsive layouts; print-ready memo pagination
-- Live vs fallback **provenance badges** on every climate indicator
+- Light / Dark / System appearance modes; the dark theme is pure black and neutral greys with
+  semantic accents only (no blue family)
+- Motion system across the app that respects `prefers-reduced-motion`
+- Mobile-responsive layouts and print-ready memo pagination
+- Live versus fallback provenance badges on every climate indicator
 
 ---
 
-## 5. Getting Started
+## Quick start
 
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) 18+ (built and verified with Node 26)
-- npm
-
-### Run the web app
+Prerequisites: [Node.js](https://nodejs.org/) 18+ and npm.
 
 ```bash
+# 1. Clone
 git clone https://github.com/chriscorexx/Climora-fintech.git
 cd Climora-fintech
+
+# 2. Install
 npm install
-npm run dev:web        # API server + Vite dev server
+
+# 3. Run the web app (API server + Vite)
+npm run dev:web
 ```
 
-Open http://localhost:5173 — you'll see the landing page, then register an account (Lender or MSME Owner).
-
-### Run the desktop app
+Open http://localhost:5173 — the landing page loads, then register an account as a Lender or MSME
+Owner. Workspaces start empty: you create your own profiles.
 
 ```bash
-npm run dev            # server + web + Electron (dev)
-npm run desktop        # Electron only
+npm run desktop   # Electron desktop shell (dev)
+npm run dev       # server + web + desktop together
+npm run server    # optional Express + SQLite API only
 ```
 
-### Optional backend persistence
-
-```bash
-npm run server         # Express + SQLite on :5000
-```
-
-The client automatically uses the API when healthy and falls back to local-only operation when it
-isn't — the web app works without it.
+The client uses the API when it is healthy and falls back to local-only operation when it is not,
+so the web app works without the backend.
 
 ---
 
-## 6. Scripts
-
-| Script                                                      | Purpose                                       |
-| ----------------------------------------------------------- | --------------------------------------------- |
-| `npm run dev` / `dev:web` / `dev:client` / `dev:server`     | Development (all / web / client / API server) |
-| `npm run desktop`                                           | Electron shell in dev                         |
-| `npm run build`                                             | Typecheck + production build → `dist/`        |
-| `npm run build:website`                                     | Build + copy the hosted site into `website/`  |
-| `npm run dist:win` / `dist:linux` / `dist:mac` / `dist:all` | Desktop binaries → `release/`                 |
-| `npm run package`                                           | Build + package for the current platform      |
-| `npm test`                                                  | Vitest unit + jsdom UI suite (89 tests)       |
-| `npm run lint` / `npm run format` / `format:check`          | ESLint / Prettier                             |
-
----
-
-## 7. Deployment
-
-### Hosted website (Vercel — live)
-
-The production web app is hosted on Vercel: **<https://climora-fintech.vercel.app>**
-
-Deploys come straight from the `main` branch with **zero manual settings** — the repo ships
-`vercel.json` (build command, `dist` output, SPA rewrite, immutable asset caching). See
-**`DEPLOY_VERCEL.md`** for the full guide. Summary: import the repo → Vercel detects Vite → Deploy;
-every push to `main` redeploys automatically and PRs get preview URLs. Set
-`VITE_COMMAND_CENTER_PASSWORD` as an environment variable if you want a custom Command Center
-password (inlined at build time).
-
-### Hosted website (Render)
-
-See **`DEPLOY_RENDER.md`** for the Render Static Site guide (build command `npm ci && npm run build`,
-publish directory `dist`, SPA rewrite `/*` → `/index.html`). A ready-to-use `render.yaml` Blueprint
-is included. The prebuilt static site is also kept in `website/` for drag-and-drop/static hosting
-(`npm run build:website` regenerates it).
-
-### Desktop binaries
-
-Prebuilt installers for all platforms are attached to GitHub Releases
-([latest: v1.0.1](https://github.com/chriscorexx/Climora-fintech/releases/tag/v1.0.1)):
-Windows `.exe`, macOS `.dmg` (Intel + Apple Silicon), Linux `.AppImage` + `.deb`.
-Build locally with `npm run dist:all` (macOS requires a macOS host) — see **`BUILDING.md`**.
-
----
-
-## 8. External APIs & Data Sources
-
-- **Open-Meteo Forecast API** — real-time precipitation, temperature extremes, wind speeds (free, CC BY 4.0, no key).
-- **Open-Meteo Flood API** — river discharge anomalies (GloFAS simulation).
-- **Open-Meteo Geocoding API** — city/postal code → coordinates.
-- **District flood baselines** — calibrated regional hazard benchmarks used when live data is unavailable.
-- **Government subsidy registry** — Central & State MSME schemes with eligibility criteria and official portal links.
-
-All Open-Meteo data is used under CC BY 4.0 and attributed in-app.
-
----
-
-## 9. Project Structure
+## Project structure
 
 ```
 climora/
 ├── src/
-│   ├── core/           # Pure domain engines: riskEngine, scenarioSimulator, schemeMatcher,
-│   │                   # weatherService, auth, portfolio, profileOwnership, format, csv,
-│   │                   # scoreHistory, theme, commandCenter, platform
+│   ├── core/           # Pure domain engines: risk scoring, simulation, scheme matching,
+│   │                   # weather, auth, portfolio, formatting, CSV, history, theme, platform
 │   ├── components/
 │   │   ├── landing/    # Public landing page (web-only)
-│   │   ├── auth/       # Login, Register, password gate, shared auth UI
+│   │   ├── auth/       # Login, register, password gate, shared auth UI
 │   │   ├── lender/     # Lender workspace
-│   │   ├── owner/      # MSME Owner workspace + profile editor
+│   │   ├── owner/      # MSME Owner workspace and profile editor
 │   │   ├── dashboard/  # Command Center
-│   │   ├── report/     # Credit memo modal
+│   │   ├── report/     # Credit memo
 │   │   ├── common/     # Gauges, cards, badges, skeleton, resilience, map, alerts
-│   │   └── navigation/ # TopBar (user menu, theme switcher, alerts)
+│   │   └── navigation/ # Top bar: user menu, theme switcher, alert strip
 │   ├── types/          # TypeScript domain models
-│   ├── App.tsx         # Shell: auth gate, view routing, workspace scoping
+│   ├── App.tsx         # Auth gate, view routing, workspace scoping
 │   └── main.tsx        # Entry point
-├── server/             # Optional Express + SQLite API (persistence)
+├── server/             # Optional Express + SQLite API (shared persistence)
 ├── electron/           # Desktop shell (main + preload)
-├── public/             # Static assets (logo)
-├── website/            # Production static build of the web app (deployable as-is)
-├── tests/              # Vitest jsdom UI harness + integration tests
-├── scripts/            # Dev helpers (electron launcher)
+├── website/            # Prebuilt static site for any static host
+├── tests/              # Vitest unit and jsdom UI suite
+├── scripts/            # Dev helpers (Electron launcher)
 ├── build/icons/        # App icons for all platforms
-├── .github/workflows/  # Release CI (linux/win/mac matrix)
-├── *_SPEC.md / *.md    # Domain docs (risk scoring, data sources, scope, access, command center)
-├── BUILDING.md         # Desktop binary build guide
-├── DEPLOY_VERCEL.md    # Web deployment guide (Vercel)
-├── DEPLOY_RENDER.md    # Web deployment guide (Render)
-├── render.yaml         # Render Blueprint
-├── vercel.json         # Vercel project configuration
+├── docs/               # All project documentation, demo video, and deck
+├── .github/            # Issue/PR templates and release CI
 └── package.json
 ```
 
 ---
 
-## 10. Documentation Index
+## Deployment
 
-| Document                                                                                  | Contents                                                                |
-| ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `DEPLOY_RENDER.md`                                                                        | Manual web deployment on Render (static site, env vars, SPA rewrites)   |
-| `DEPLOY_VERCEL.md`                                                                        | Manual web deployment on Vercel (import, env vars, SPA rewrites)        |
-| `BUILDING.md`                                                                             | Desktop binaries: commands, platform matrix, icons, CI, troubleshooting |
-| `ACCESS.md`                                                                               | Auth model, role isolation, Command Center password, security caveats   |
-| `COMMAND_CENTER.md`                                                                       | Command Center access + section-by-section walkthrough                  |
-| `RISK_SCORING.md`                                                                         | 5-dimension model, weights, reweighting, categories                     |
-| `DATA_SOURCES.md`                                                                         | Open-Meteo APIs, fallbacks, provenance, licensing                       |
-| `TECH_STACK.md`                                                                           | Technology decisions                                                    |
-| `MVP_SCOPE.md` / `ApplicationFunctions.md` / `ProblemStatement.md` / `ProjectOverview.md` | Product scope and function specs                                        |
+### Web (Vercel — live)
+
+The production web app runs at **[climora-fintech.vercel.app](https://climora-fintech.vercel.app)**,
+deployed from `main` with zero manual settings — `vercel.json` provides the build command, `dist`
+output, SPA rewrite, and immutable asset caching. Every push to `main` redeploys automatically and
+pull requests get preview URLs. Full guide: [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md).
+
+Set `VITE_COMMAND_CENTER_PASSWORD` in the Vercel project to change the Command Center password
+(inlined at build time — redeploy after changing it).
+
+### Web (Render)
+
+Render is supported as an alternative static host; see
+[docs/DEPLOY_RENDER.md](docs/DEPLOY_RENDER.md) and the included `render.yaml` Blueprint.
+
+### Desktop binaries
+
+Prebuilt installers for Windows (NSIS), macOS (Intel and Apple Silicon), and Linux (AppImage and
+deb) are attached to every GitHub Release. Build locally with:
+
+```bash
+npm run dist:all       # or: npm run package   (current platform)
+```
+
+Platform requirements and CI details: [docs/BUILDING.md](docs/BUILDING.md).
 
 ---
 
-## 11. Quality & Verification
+## Scripts
+
+| Script                                                      | Purpose                                        |
+| ----------------------------------------------------------- | ---------------------------------------------- |
+| `npm run dev` / `dev:web` / `dev:client` / `dev:server`     | Development (all / web / client / API server)  |
+| `npm run desktop`                                           | Electron shell in development                  |
+| `npm run build`                                             | Typecheck plus production build to `dist/`     |
+| `npm run build:website`                                     | Build and sync the hosted site into `website/` |
+| `npm run dist:win` / `dist:linux` / `dist:mac` / `dist:all` | Desktop binaries to `release/`                 |
+| `npm test`                                                  | Vitest unit and UI suite (89 tests)            |
+| `npm run lint` / `format` / `format:check`                  | ESLint / Prettier                              |
+
+---
+
+## Quality
 
 - `npx tsc --noEmit` — clean
-- `npm run lint` (`eslint src tests --max-warnings=0`) — clean
-- `npm test` — **89/89 passing** (domain engines, auth, portfolio, formatting, CSV, jsdom UI + auth-flow tests)
+- `npm run lint` — ESLint with `--max-warnings=0`, clean
+- `npm test` — 89 tests across 15 files (domain engines, auth, portfolio, formatting, CSV, and
+  jsdom UI plus authentication-flow tests)
 - `npm run build` — production build succeeds
-- Linux AppImage smoke-tested headless; desktop release matrix green in CI
+- Linux AppImage smoke-tested headless; the desktop release matrix is green in CI
 
 ---
 
-## 12. Responsible Use & Disclaimer
+## Documentation
+
+All documentation lives in [`docs/`](docs/):
+
+| Document                                                                                        | Contents                                                         |
+| ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| [DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md)                                                       | Web deployment on Vercel (live)                                  |
+| [DEPLOY_RENDER.md](docs/DEPLOY_RENDER.md)                                                       | Web deployment on Render                                         |
+| [BUILDING.md](docs/BUILDING.md)                                                                 | Desktop binaries: commands, platform matrix, CI, troubleshooting |
+| [ACCESS.md](docs/ACCESS.md)                                                                     | Auth model, role isolation, Command Center password, security    |
+| [COMMAND_CENTER.md](docs/COMMAND_CENTER.md)                                                     | Command Center access and walkthrough                            |
+| [RISK_SCORING.md](docs/RISK_SCORING.md)                                                         | Five-dimension model, weights, reweighting, categories           |
+| [DATA_SOURCES.md](docs/DATA_SOURCES.md)                                                         | Open-Meteo APIs, fallbacks, provenance, licensing                |
+| [TECH_STACK.md](docs/TECH_STACK.md)                                                             | Technology decisions                                             |
+| [MVP_SCOPE.md](docs/MVP_SCOPE.md) / [ApplicationFunctions.md](docs/ApplicationFunctions.md)     | Product scope and function specs                                 |
+| [ProblemStatement.md](docs/ProblemStatement.md) / [ProjectOverview.md](docs/ProjectOverview.md) | Challenge context and solution overview                          |
+| [RESEARCH.md](docs/RESEARCH.md) / [references.md](docs/references.md)                           | Research notes and data-source references                        |
+| [demo-video.mp4](docs/demo-video.mp4) / [presentationRound1.pdf](docs/presentationRound1.pdf)   | Demo recording and hackathon deck                                |
+
+---
+
+## Contributing
+
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow, coding
+conventions, and quality gates, and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community
+guidelines.
+
+```bash
+npm install       # setup
+npm run dev:web   # run
+npm test          # verify
+npm run lint      # and lint before opening a PR
+```
+
+## Contributors
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/chriscorexx">
+        <img src="https://github.com/chriscorexx.png" width="80" height="80" alt="chriscorexx" /><br />
+        <sub><b>chriscorexx</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/frictionalmega">
+        <img src="https://github.com/frictionalmega.png" width="80" height="80" alt="frictionalmega" /><br />
+        <sub><b>frictionalmega</b></sub>
+      </a>
+    </td>
+  </tr>
+</table>
+
+Add yourself here in your first pull request — open a PR that appends your row to this table.
+
+## License
+
+Released under the [MIT License](LICENSE.md). Copyright (c) 2026 The Climora Contributors.
+
+## Disclaimer
 
 Climora is a hackathon prototype developed for IFC challenge FIN-05. Its risk scores, scoring
 weights, and cashflow stress simulations are illustrative heuristics designed for decision support
 and climate preparedness. They do not constitute official credit ratings or automated credit
-approval/rejection decisions, and human review is required.
+approval or rejection decisions, and human review is required.
 
-Authentication in the hosted/static deployment is **demo-grade client-side authentication** for the
-hackathon (accounts and hashes live in the browser's `localStorage`); it is not a substitute for a
-production identity provider. See `ACCESS.md` for details.
+Authentication in the hosted deployment is demo-grade, client-side authentication (accounts and
+hashed passwords live in the browser's local storage) and is not a substitute for a production
+identity provider. See [docs/ACCESS.md](docs/ACCESS.md).
