@@ -21,8 +21,13 @@ import {
   listSavedSchemes,
 } from '../controllers/schemeController';
 import { getHealth, getDashboardSummary } from '../controllers/dashboardController';
+import { authRouter } from './auth.routes';
+import { loanRouter } from './loan.routes';
 
 export const apiRouter = Router();
+
+// Auth
+apiRouter.use('/auth', authRouter);
 
 // Health & Dashboard
 apiRouter.get('/health', getHealth);
@@ -55,3 +60,6 @@ apiRouter.get('/schemes/:id', getSchemeById);
 apiRouter.get('/businesses/:id/scheme-matches', matchSchemesForBusiness);
 apiRouter.post('/schemes/save', saveSchemeForBusiness);
 apiRouter.get('/schemes/saved/:businessId', listSavedSchemes);
+
+// Loans
+apiRouter.use('/loans', loanRouter);
