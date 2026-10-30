@@ -46,14 +46,21 @@ describe('Climora UI mode engine', () => {
   });
 
   it('defaults persisted UI mode to system and survives a missing storage API', () => {
-    expect(getStoredThemeMode()).toBe('system');
-    const originalError = console.error;
-    console.error = () => {};
+    const originalLocalStorage = globalThis.localStorage;
+    // @ts-expect-error - simulate missing storage API
+    delete globalThis.localStorage;
     try {
-      expect(() => saveStoredThemeMode('dark')).not.toThrow();
+      expect(getStoredThemeMode()).toBe('system');
+      const originalError = console.error;
+      console.error = () => {};
+      try {
+        expect(() => saveStoredThemeMode('dark')).not.toThrow();
+      } finally {
+        console.error = originalError;
+      }
+      expect(getStoredThemeMode()).toBe('system');
     } finally {
-      console.error = originalError;
+      globalThis.localStorage = originalLocalStorage;
     }
-    expect(getStoredThemeMode()).toBe('system');
   });
 });
